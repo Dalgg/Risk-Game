@@ -1,7 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:res="using:Risk_Game.Resources"
         x:Class="Risk_Game.Views.RoomsWindow"
-        Title="Salas"
+        Title="{x:Static res:Strings.Rooms_TitleLabel}"
         Width="600" Height="400"
         Background="#1E1E1E">
 
@@ -11,18 +12,18 @@
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="25">
 
             <!-- Título -->
-            <TextBlock Text="Salas" Foreground="White" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+            <TextBlock Text="{x:Static res:Strings.Rooms_TitleLabel}" Foreground="White" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,15"/>
 
             <!-- Botón Crear sala -->
-            <Button Content="Crear sala" Background="#0084FF" Foreground="White" FontSize="20" CornerRadius="10"
+            <Button Content="{x:Static res:Strings.Rooms_CreateRoomButton}" Background="#0084FF" Foreground="White" FontSize="20" CornerRadius="10"
                 Width="220" Height="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
 
             <!-- Botón Unirse a sala -->
-            <Button Content="Unirse a sala" Background="#F4882A" Foreground="White" FontSize="20" CornerRadius="10"
+            <Button Content="{x:Static res:Strings.Rooms_JoinRoomButton}" Background="#F4882A" Foreground="White" FontSize="20" CornerRadius="10"
                  Width="220" Height="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
 
             <!-- Botón Regresar -->
-            <Button Content="Regresar" Background="#F92A54" Foreground="White" FontSize="20" CornerRadius="10"
+            <Button Content="{x:Static res:Strings.Global_BackButton}" Background="#F92A54" Foreground="White" FontSize="20" CornerRadius="10"
                 Width="220" Height="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
         </StackPanel>
     </Border>

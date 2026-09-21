@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Login Window -->
+  <data name="Login_TitleLabel" xml:space="preserve"><value>Iniciar sesión</value></data>
+  <data name="Login_UsernameLabel" xml:space="preserve"><value>Usuario:</value></data>
+  <data name="Login_PasswordLabel" xml:space="preserve"><value>Contraseña:</value></data>
+  <data name="Login_ConfirmButton" xml:space="preserve"><value>Confirmar</value></data>
+  <data name="Login_RegisterButton" xml:space="preserve"><value>Registrarse</value></data>
+  <data name="Login_ErrorInvalidAuth" xml:space="preserve"><value>Usuario o contraseña incorrectos.</value></data>
+
+  <!-- Register Window -->
+  <data name="Register_TitleLabel" xml:space="preserve"><value>Crear cuenta</value></data>
+  <data name="Register_EmailLabel" xml:space="preserve"><value>Correo:</value></data>
+  <data name="Register_ConfirmButton" xml:space="preserve"><value>Confirmar</value></data>
+  <data name="Register_ErrorUserExists" xml:space="preserve"><value>El usuario ya existe.</value></data>
+
+  <!-- Main Window -->
+  <data name="MainMenu_StartButton" xml:space="preserve"><value>Jugar</value></data>
+  <data name="MainMenu_RoomsButton" xml:space="preserve"><value>Salas</value></data>
+  <data name="MainMenu_LeaderboardButton" xml:space="preserve"><value>Marcadores</value></data>
+  <data name="MainMenu_ExitButton" xml:space="preserve"><value>Salir</value></data>
+
+  <!-- Rooms Window -->
+  <data name="Rooms_TitleLabel" xml:space="preserve"><value>Sala de Espera</value></data>
+  <data name="Rooms_PlayButton" xml:space="preserve"><value>Iniciar Partida</value></data>
+  <data name="Rooms_ErrorNotEnoughPlayers" xml:space="preserve"><value>Faltan jugadores para iniciar.</value></data>
+
+  <!-- Game Specific (Can't Stop) -->
+  <data name="Game_RollButton" xml:space="preserve"><value>Tirar Dados</value></data>
+  <data name="Game_StopButton" xml:space="preserve"><value>Plantarse</value></data>
+  <data name="Game_StateBust" xml:space="preserve"><value>¡Reventaste! Pierdes el avance.</value></data>
+  <data name="Game_StateClaim" xml:space="preserve"><value>¡Columna reclamada!</value></data>
+  <data name="Game_InstructionPairing" xml:space="preserve"><value>Agrupa los 4 dados en dos parejas.</value></data>
+
+  <!-- Profile Window -->
+  <data name="Profile_GamesPlayedLabel" xml:space="preserve"><value>Partidas jugadas:</value></data>
+  <data name="Profile_WinsLabel" xml:space="preserve"><value>Victorias:</value></data>
+<data name="Rooms_CreateRoomButton" xml:space="preserve"><value>Crear sala</value></data>
+  <data name="Rooms_JoinRoomButton" xml:space="preserve"><value>Unirse a sala</value></data>
+  <data name="Global_BackButton" xml:space="preserve"><value>Regresar</value></data>
+<data name="MainMenu_SinglePlayerButton" xml:space="preserve"><value>Solitario</value></data>
+  <data name="MainMenu_FriendsButton" xml:space="preserve"><value>Amigos</value></data>
+  <data name="MainMenu_SettingsButton" xml:space="preserve"><value>Ajustes</value></data>
+  <data name="Settings_TitleLabel" xml:space="preserve"><value>Ajustes</value></data>
+  <data name="Settings_LanguageLabel" xml:space="preserve"><value>Idioma:</value></data>
+  <data name="Settings_LanguageSpanish" xml:space="preserve"><value>Español</value></data>
+  <data name="Settings_LanguageEnglish" xml:space="preserve"><value>Inglés</value></data>
+  <data name="Settings_VolumeLabel" xml:space="preserve"><value>Volumen:</value></data>
+  <data name="Settings_BrightnessLabel" xml:space="preserve"><value>Brillo:</value></data>
+</root>

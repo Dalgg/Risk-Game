@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Login Window -->
+  <data name="Login_TitleLabel" xml:space="preserve"><value>Login</value></data>
+  <data name="Login_UsernameLabel" xml:space="preserve"><value>Username:</value></data>
+  <data name="Login_PasswordLabel" xml:space="preserve"><value>Password:</value></data>
+  <data name="Login_ConfirmButton" xml:space="preserve"><value>Confirm</value></data>
+  <data name="Login_RegisterButton" xml:space="preserve"><value>Sign up</value></data>
+  <data name="Login_ErrorInvalidAuth" xml:space="preserve"><value>Invalid username or password.</value></data>
+
+  <!-- Register Window -->
+  <data name="Register_TitleLabel" xml:space="preserve"><value>Create account</value></data>
+  <data name="Register_EmailLabel" xml:space="preserve"><value>Email:</value></data>
+  <data name="Register_ConfirmButton" xml:space="preserve"><value>Confirm</value></data>
+  <data name="Register_ErrorUserExists" xml:space="preserve"><value>Username already exists.</value></data>
+
+  <!-- Main Window -->
+  <data name="MainMenu_StartButton" xml:space="preserve"><value>Play</value></data>
+  <data name="MainMenu_RoomsButton" xml:space="preserve"><value>Rooms</value></data>
+  <data name="MainMenu_LeaderboardButton" xml:space="preserve"><value>Leaderboard</value></data>
+  <data name="MainMenu_ExitButton" xml:space="preserve"><value>Exit</value></data>
+
+  <!-- Rooms Window -->
+  <data name="Rooms_TitleLabel" xml:space="preserve"><value>Lobby</value></data>
+  <data name="Rooms_PlayButton" xml:space="preserve"><value>Start Match</value></data>
+  <data name="Rooms_ErrorNotEnoughPlayers" xml:space="preserve"><value>Not enough players to start.</value></data>
+
+  <!-- Game Specific (Can't Stop) -->
+  <data name="Game_RollButton" xml:space="preserve"><value>Roll Dice</value></data>
+  <data name="Game_StopButton" xml:space="preserve"><value>Stop</value></data>
+  <data name="Game_StateBust" xml:space="preserve"><value>Bust! You lose your progress.</value></data>
+  <data name="Game_StateClaim" xml:space="preserve"><value>Column claimed!</value></data>
+  <data name="Game_InstructionPairing" xml:space="preserve"><value>Pair the 4 dice into two sets.</value></data>
+
+  <!-- Profile Window -->
+  <data name="Profile_GamesPlayedLabel" xml:space="preserve"><value>Games played:</value></data>
+  <data name="Profile_WinsLabel" xml:space="preserve"><value>Wins:</value></data>
+<data name="Rooms_CreateRoomButton" xml:space="preserve"><value>Create Room</value></data>
+  <data name="Rooms_JoinRoomButton" xml:space="preserve"><value>Join Room</value></data>
+  <data name="Global_BackButton" xml:space="preserve"><value>Back</value></data>
+<data name="MainMenu_SinglePlayerButton" xml:space="preserve"><value>Single Player</value></data>
+  <data name="MainMenu_FriendsButton" xml:space="preserve"><value>Friends</value></data>
+  <data name="MainMenu_SettingsButton" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_TitleLabel" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_LanguageLabel" xml:space="preserve"><value>Language:</value></data>
+  <data name="Settings_LanguageSpanish" xml:space="preserve"><value>Spanish</value></data>
+  <data name="Settings_LanguageEnglish" xml:space="preserve"><value>English</value></data>
+  <data name="Settings_VolumeLabel" xml:space="preserve"><value>Volume:</value></data>
+  <data name="Settings_BrightnessLabel" xml:space="preserve"><value>Brightness:</value></data>
+</root>
