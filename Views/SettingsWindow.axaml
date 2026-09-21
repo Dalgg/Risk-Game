@@ -1,0 +1,51 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Risk_Game.Views.SettingsWindow"
+        Title="Ajustes"
+        Width="600" Height="550"
+        Background="#1E1E1E">
+
+    <!-- Contenedor gris central -->
+    <Border Background="#5C5C5C" Width="420" Height="450" HorizontalAlignment="Center" VerticalAlignment="Center"
+        CornerRadius="4">
+        <Grid RowDefinitions="Auto, *, Auto" Margin="30">
+
+            <!-- Título -->
+            <TextBlock Grid.Row="0" Text="Ajustes" Foreground="White" FontSize="32" HorizontalAlignment="Center"
+                Margin="0,0,0,30"/>
+
+            <!-- Controles de Ajustes -->
+            <StackPanel Grid.Row="1" Spacing="25" HorizontalAlignment="Center" Width="260">
+
+                <!-- Idioma -->
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Idioma:" Foreground="White" FontSize="16"/>
+                    <ComboBox SelectedIndex="0" Width="150" Background="#EBEBEB" Foreground="Black" CornerRadius="2">
+                        <ComboBoxItem Content="Español"/>
+                        <ComboBoxItem Content="Inglés"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- Volumen -->
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Volumen:" Foreground="White" FontSize="16"/>
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Slider Grid.Column="0" Value="75" Minimum="0" Maximum="100" VerticalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Brillo -->
+                <StackPanel Spacing="10">
+                    <TextBlock Text="Brillo:" Foreground="White" FontSize="16"/>
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Slider Grid.Column="0" Value="50" Minimum="0" Maximum="100" VerticalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Botón Regresar -->
+            <Button Grid.Row="2" Content="Regresar" Background="#B71C1C" Foreground="White" FontSize="18"
+                CornerRadius="8" Padding="25,10" HorizontalAlignment="Center" Margin="0,30,0,0"/>
+        </Grid>
+    </Border>
+</Window>

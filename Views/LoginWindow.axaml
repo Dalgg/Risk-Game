@@ -1,0 +1,50 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Risk_Game.Views.LoginWindow"
+        Title="Iniciar Sesión"
+        Width="600" Height="500"
+        Background="#1E1E1E">
+
+    <!-- Contenedor gris central -->
+    <Border Background="#5C5C5C" Width="400" Height="400" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Grid>
+            <!-- Botón de regreso (Esquina superior izquierda) -->
+            <Button Background="#8B0000" Width="50" Height="40" HorizontalAlignment="Left" VerticalAlignment="Top"
+                CornerRadius="0">
+                <Image Source="avares://Risk-Game/Assets/back_arrow.png" Margin="2"/>
+            </Button>
+
+            <!-- Formulario Central -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="15" Width="250"
+                Margin="0,20,0,0">
+
+                <!-- Título -->
+                <TextBlock Text="Iniciar Sesión" Foreground="White" FontSize="26" HorizontalAlignment="Center"
+                    Margin="0,0,0,10"/>
+
+                <!-- Usuario -->
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Usuario" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                    <TextBox Background="White" Foreground="Black" Height="30" CornerRadius="0"/>
+                </StackPanel>
+
+                <!-- Contraseña -->
+                <StackPanel Spacing="5">
+                    <TextBlock Text="Contraseña" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                    <TextBox Background="White" Foreground="Black" Height="30" CornerRadius="0" PasswordChar="*"/>
+                </StackPanel>
+
+                <!-- Botones de Acción -->
+                <StackPanel Spacing="15" Margin="0,15,0,0">
+                    <Button Content="Ingresar" Background="#0084FF" Foreground="White" FontSize="16" CornerRadius="8"
+                        Width="160" Height="40" HorizontalAlignment="Center" HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"/>
+
+                    <Button Content="Registrarse" Background="#F92A54" Foreground="White" FontSize="16" CornerRadius="8"
+                         Width="160" Height="40" HorizontalAlignment="Center" HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center" Click="OnRegisterClick"/>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

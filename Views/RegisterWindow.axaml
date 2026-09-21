@@ -1,0 +1,50 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Risk_Game.Views.RegisterWindow"
+        Title="Crear nueva cuenta"
+        Width="600" Height="500"
+        Background="#1E1E1E">
+
+    <!-- Contenedor gris central -->
+    <Border Background="#5C5C5C" Width="480" Height="400" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Grid>
+            <!-- Botón de regreso (Esquina superior izquierda) -->
+            <Button Background="#8B0000" Width="60" Height="50" HorizontalAlignment="Left" VerticalAlignment="Top"
+                 CornerRadius="0">
+                <Image Source="avares://Risk-Game/Assets/back_arrow.png" Margin="5"/>
+            </Button>
+
+            <!-- Título -->
+            <TextBlock Text="Crear nueva cuenta" Foreground="White" FontSize="28" HorizontalAlignment="Center"
+                VerticalAlignment="Top" Margin="0,15,0,0"/>
+
+            <!-- Formulario (Grid para alinear Labels y TextBoxes) -->
+            <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="Auto, *" HorizontalAlignment="Stretch"
+                VerticalAlignment="Center" Margin="50,60,50,0">
+
+                <!-- Usuario -->
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Usuario:" Foreground="White" FontSize="22"
+                           VerticalAlignment="Center" Margin="0,0,20,25"/>
+                <TextBox Grid.Row="0" Grid.Column="1" Background="White" Foreground="Black" Height="35"
+                    CornerRadius="0" Margin="0,0,0,25"/>
+
+                <!-- Contraseña -->
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Contraseña:" Foreground="White" FontSize="22"
+                           VerticalAlignment="Center" Margin="0,0,20,25"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Background="White" Foreground="Black" Height="35"
+                    CornerRadius="0" PasswordChar="*" Margin="0,0,0,25"/>
+
+                <!-- Correo -->
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Correo:" Foreground="White" FontSize="22"
+                           VerticalAlignment="Center" Margin="0,0,20,25"/>
+                <TextBox Grid.Row="2" Grid.Column="1" Background="White" Foreground="Black" Height="35"
+                    CornerRadius="0" Margin="0,0,0,25"/>
+            </Grid>
+
+            <!-- Botón Confirmar -->
+            <Button Content="Confirmar" Background="#0084FF" Foreground="White" FontSize="20" CornerRadius="12"
+                Width="180" Height="45" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,40"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+        </Grid>
+    </Border>
+</Window>
