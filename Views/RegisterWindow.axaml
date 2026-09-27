@@ -1,8 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:res="using:Risk_Game.Resources"
-        x:Class="Risk_Game.Views.RegisterWindow"
-        Title="{x:Static res:Strings.Register_TitleLabel}"
+        xmlns:res="using:RiskGame.Resources"
+        x:Class="RiskGame.Views.RegisterWindow"
+        Title="{x:Static res:Strings.RegisterTitleLabel}"
         Width="600" Height="500"
         Background="#1E1E1E">
 
@@ -16,7 +16,7 @@
             </Button>
 
             <!-- Título -->
-            <TextBlock Text="{x:Static res:Strings.Register_TitleLabel}" Foreground="White" FontSize="28" HorizontalAlignment="Center"
+            <TextBlock Text="{x:Static res:Strings.RegisterTitleLabel}" Foreground="White" FontSize="28" HorizontalAlignment="Center"
                 VerticalAlignment="Top" Margin="0,15,0,0"/>
 
             <!-- Formulario (Grid para alinear Labels y TextBoxes) -->
@@ -24,26 +24,26 @@
                 VerticalAlignment="Center" Margin="50,60,50,0">
 
                 <!-- Usuario -->
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.Login_UsernameLabel}" Foreground="White" FontSize="22"
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.LoginUsernameLabel}" Foreground="White" FontSize="22"
                            VerticalAlignment="Center" Margin="0,0,20,25"/>
                 <TextBox Grid.Row="0" Grid.Column="1" Background="White" Foreground="Black" Height="35"
                     CornerRadius="0" Margin="0,0,0,25"/>
 
                 <!-- Contraseña -->
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.Login_PasswordLabel}" Foreground="White" FontSize="22"
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.LoginPasswordLabel}" Foreground="White" FontSize="22"
                            VerticalAlignment="Center" Margin="0,0,20,25"/>
                 <TextBox Grid.Row="1" Grid.Column="1" Background="White" Foreground="Black" Height="35"
                     CornerRadius="0" PasswordChar="*" Margin="0,0,0,25"/>
 
                 <!-- Correo -->
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static res:Strings.Register_EmailLabel}" Foreground="White" FontSize="22"
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static res:Strings.RegisterEmailLabel}" Foreground="White" FontSize="22"
                            VerticalAlignment="Center" Margin="0,0,20,25"/>
                 <TextBox Grid.Row="2" Grid.Column="1" Background="White" Foreground="Black" Height="35"
                     CornerRadius="0" Margin="0,0,0,25"/>
             </Grid>
 
             <!-- Botón Confirmar -->
-            <Button Content="{x:Static res:Strings.Register_ConfirmButton}" Background="#0084FF" Foreground="White" FontSize="20" CornerRadius="12"
+            <Button Content="{x:Static res:Strings.RegisterConfirmButton}" Background="#0084FF" Foreground="White" FontSize="20" CornerRadius="12"
                 Width="180" Height="45" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,40"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
         </Grid>

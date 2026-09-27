@@ -1,38 +1,38 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:Risk_Game.ViewModels"
-        xmlns:res="using:Risk_Game.Resources"
+        xmlns:vm="using:RiskGame.ViewModels"
+        xmlns:res="using:RiskGame.Resources"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         Width="800" Height="550"
-        x:Class="Risk_Game.Views.MainWindow"
+        x:Class="RiskGame.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="Risk Challenge"
         Background="#D3D3D3">
 
     <Grid>
         <!-- Botón superior izquierdo -->
-        <Button Content="{x:Static res:Strings.Login_TitleLabel}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20"
+        <Button Content="{x:Static res:Strings.LoginTitleLabel}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20"
             Background="#333333" Foreground="White" CornerRadius="8" Padding="15,10" FontSize="16"
                 Click="OnLoginClick"/>
 
         <!-- Título Central Superior -->
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,40,0,0" Spacing="5">
             <TextBlock Text="Risk Challenge" FontSize="42" FontWeight="Normal" HorizontalAlignment="Center" Foreground="Black"/>
-            <TextBlock Text="{x:Static res:Strings.MainMenu_StartButton}" FontSize="20" HorizontalAlignment="Center" Foreground="#333333"/>
+            <TextBlock Text="{x:Static res:Strings.MainMenuStartButton}" FontSize="20" HorizontalAlignment="Center" Foreground="#333333"/>
         </StackPanel>
 
         <!-- Botones Centrales -->
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="25" Margin="0,60,0,0">
-            <Button Content="{x:Static res:Strings.MainMenu_SinglePlayerButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
+            <Button Content="{x:Static res:Strings.MainMenuSinglePlayerButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center" Background="#333333" Foreground="White" CornerRadius="8"
                     FontSize="18"/>
 
-            <Button Content="{x:Static res:Strings.MainMenu_RoomsButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
+            <Button Content="{x:Static res:Strings.MainMenuRoomsButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center" Background="#333333" Foreground="White" CornerRadius="8"
                     FontSize="18" Click="OnRoomsClick"/>
 
-            <Button Content="{x:Static res:Strings.MainMenu_ExitButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
+            <Button Content="{x:Static res:Strings.MainMenuExitButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center" Background="#333333" Foreground="White" CornerRadius="8"
                     FontSize="18"/>
         </StackPanel>
@@ -43,7 +43,7 @@
                 <Border Width="80" Height="80" Background="White" CornerRadius="4">
                     <Image Source="/Assets/trophy.png" Stretch="Uniform" Margin="10"/>
                 </Border>
-                <TextBlock Text="{x:Static res:Strings.MainMenu_LeaderboardButton}" HorizontalAlignment="Center" FontSize="18" Foreground="Black"/>
+                <TextBlock Text="{x:Static res:Strings.MainMenuLeaderboardButton}" HorizontalAlignment="Center" FontSize="18" Foreground="Black"/>
             </StackPanel>
         </Button>
 
@@ -56,7 +56,7 @@
                     <Border Width="80" Height="80" Background="White" CornerRadius="4">
                         <Image Source="/Assets/friends.png" Stretch="Uniform" Margin="10"/>
                     </Border>
-                    <TextBlock Text="{x:Static res:Strings.MainMenu_FriendsButton}" HorizontalAlignment="Center" FontSize="18" Foreground="Black"/>
+                    <TextBlock Text="{x:Static res:Strings.MainMenuFriendsButton}" HorizontalAlignment="Center" FontSize="18" Foreground="Black"/>
                 </StackPanel>
             </Button>
 
@@ -66,7 +66,7 @@
                     <Border Width="80" Height="80" Background="White" CornerRadius="4">
                         <Image Source="/Assets/configuration.png" Stretch="Uniform" Margin="10"/>
                     </Border>
-                <TextBlock Text="{x:Static res:Strings.MainMenu_SettingsButton}" HorizontalAlignment="Center" FontSize="18" Foreground="Black"/>
+                <TextBlock Text="{x:Static res:Strings.MainMenuSettingsButton}" HorizontalAlignment="Center" FontSize="18" Foreground="Black"/>
                 </StackPanel>
             </Button>
         </StackPanel>

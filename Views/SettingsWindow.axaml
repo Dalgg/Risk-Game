@@ -1,8 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:res="using:Risk_Game.Resources"
-        x:Class="Risk_Game.Views.SettingsWindow"
-        Title="{x:Static res:Strings.Settings_TitleLabel}"
+        xmlns:res="using:RiskGame.Resources"
+        x:Class="RiskGame.Views.SettingsWindow"
+        Title="{x:Static res:Strings.SettingsTitleLabel}"
         Width="600" Height="550"
         Background="#1E1E1E">
 
@@ -12,7 +12,7 @@
         <Grid RowDefinitions="Auto, *, Auto" Margin="30">
 
             <!-- Título -->
-            <TextBlock Grid.Row="0" Text="{x:Static res:Strings.Settings_TitleLabel}" Foreground="White" FontSize="32" HorizontalAlignment="Center"
+            <TextBlock Grid.Row="0" Text="{x:Static res:Strings.SettingsTitleLabel}" Foreground="White" FontSize="32" HorizontalAlignment="Center"
                 Margin="0,0,0,30"/>
 
             <!-- Controles de Ajustes -->
@@ -20,16 +20,16 @@
 
                 <!-- Idioma -->
                 <StackPanel Spacing="10">
-                    <TextBlock Text="{x:Static res:Strings.Settings_LanguageLabel}" Foreground="White" FontSize="16"/>
+                    <TextBlock Text="{x:Static res:Strings.SettingsLanguageLabel}" Foreground="White" FontSize="16"/>
                     <ComboBox SelectedIndex="0" Width="150" Background="#EBEBEB" Foreground="Black" CornerRadius="2">
-                        <ComboBoxItem Content="{x:Static res:Strings.Settings_LanguageSpanish}"/>
-                        <ComboBoxItem Content="{x:Static res:Strings.Settings_LanguageEnglish}"/>
+                        <ComboBoxItem Content="{x:Static res:Strings.SettingsLanguageSpanish}"/>
+                        <ComboBoxItem Content="{x:Static res:Strings.SettingsLanguageEnglish}"/>
                     </ComboBox>
                 </StackPanel>
 
                 <!-- Volumen -->
                 <StackPanel Spacing="10">
-                    <TextBlock Text="{x:Static res:Strings.Settings_VolumeLabel}" Foreground="White" FontSize="16"/>
+                    <TextBlock Text="{x:Static res:Strings.SettingsVolumeLabel}" Foreground="White" FontSize="16"/>
                     <Grid ColumnDefinitions="*, Auto">
                         <Slider Grid.Column="0" Value="75" Minimum="0" Maximum="100" VerticalAlignment="Center"/>
                     </Grid>
@@ -37,7 +37,7 @@
 
                 <!-- Brillo -->
                 <StackPanel Spacing="10">
-                    <TextBlock Text="{x:Static res:Strings.Settings_BrightnessLabel}" Foreground="White" FontSize="16"/>
+                    <TextBlock Text="{x:Static res:Strings.SettingsBrightnessLabel}" Foreground="White" FontSize="16"/>
                     <Grid ColumnDefinitions="*, Auto">
                         <Slider Grid.Column="0" Value="50" Minimum="0" Maximum="100" VerticalAlignment="Center"/>
                     </Grid>
@@ -45,7 +45,7 @@
             </StackPanel>
 
             <!-- Botón Regresar -->
-            <Button Grid.Row="2" Content="{x:Static res:Strings.Global_BackButton}" Background="#B71C1C" Foreground="White" FontSize="18"
+            <Button Grid.Row="2" Content="{x:Static res:Strings.GlobalBackButton}" Background="#B71C1C" Foreground="White" FontSize="18"
                 CornerRadius="8" Padding="25,10" HorizontalAlignment="Center" Margin="0,30,0,0"/>
         </Grid>
     </Border>

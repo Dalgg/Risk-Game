@@ -1,8 +1,8 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:res="using:Risk_Game.Resources"
-        x:Class="Risk_Game.Views.LoginWindow"
-        Title="{x:Static res:Strings.Login_TitleLabel}"
+        xmlns:res="using:RiskGame.Resources"
+        x:Class="RiskGame.Views.LoginWindow"
+        Title="{x:Static res:Strings.LoginTitleLabel}"
         Width="600" Height="500"
         Background="#1E1E1E">
 
@@ -20,28 +20,28 @@
                 Margin="0,20,0,0">
 
                 <!-- Título -->
-                <TextBlock Text="{x:Static res:Strings.Login_TitleLabel}" Foreground="White" FontSize="26" HorizontalAlignment="Center"
+                <TextBlock Text="{x:Static res:Strings.LoginTitleLabel}" Foreground="White" FontSize="26" HorizontalAlignment="Center"
                     Margin="0,0,0,10"/>
 
                 <!-- Usuario -->
                 <StackPanel Spacing="5">
-                    <TextBlock Text="{x:Static res:Strings.Login_UsernameLabel}" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{x:Static res:Strings.LoginUsernameLabel}" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
                     <TextBox Background="White" Foreground="Black" Height="30" CornerRadius="0"/>
                 </StackPanel>
 
                 <!-- Contraseña -->
                 <StackPanel Spacing="5">
-                    <TextBlock Text="{x:Static res:Strings.Login_PasswordLabel}" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{x:Static res:Strings.LoginPasswordLabel}" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
                     <TextBox Background="White" Foreground="Black" Height="30" CornerRadius="0" PasswordChar="*"/>
                 </StackPanel>
 
                 <!-- Botones de Acción -->
                 <StackPanel Spacing="15" Margin="0,15,0,0">
-                    <Button Content="{x:Static res:Strings.Login_ConfirmButton}" Background="#0084FF" Foreground="White" FontSize="16" CornerRadius="8"
+                    <Button Content="{x:Static res:Strings.LoginConfirmButton}" Background="#0084FF" Foreground="White" FontSize="16" CornerRadius="8"
                         Width="160" Height="40" HorizontalAlignment="Center" HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"/>
 
-                    <Button Content="{x:Static res:Strings.Login_RegisterButton}" Background="#F92A54" Foreground="White" FontSize="16" CornerRadius="8"
+                    <Button Content="{x:Static res:Strings.LoginRegisterButton}" Background="#F92A54" Foreground="White" FontSize="16" CornerRadius="8"
                          Width="160" Height="40" HorizontalAlignment="Center" HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center" Click="OnRegisterClick"/>
                 </StackPanel>

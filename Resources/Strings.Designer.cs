@@ -1,66 +1,80 @@
-namespace Risk_Game.Resources {
-    using System;
-    public class Strings {
-        private static global::System.Resources.ResourceManager resourceMan;
-        private static global::System.Globalization.CultureInfo resourceCulture;
+using System;
+
+namespace RiskGame.Resources
+{
+
+    public class Strings
+    {
+        private static global::System.Resources.ResourceManager _resourceMan;
+        private static global::System.Globalization.CultureInfo _resourceCulture;
         
-        public static global::System.Resources.ResourceManager ResourceManager {
-            get {
-                if (object.ReferenceEquals(resourceMan, null)) {
+        public static global::System.Resources.ResourceManager ResourceManager
+        {
+            get
+            {
+                if (object.ReferenceEquals(_resourceMan, null))
+                {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Risk-Game.Resources.Strings", typeof(Strings).Assembly);
-                    resourceMan = temp;
+                    _resourceMan = temp;
                 }
-                return resourceMan;
+                return _resourceMan;
             }
         }
         
-        public static global::System.Globalization.CultureInfo Culture {
-            get { return resourceCulture; }
-            set { resourceCulture = value; }
+        public static global::System.Globalization.CultureInfo Culture
+        {
+            get
+            {
+                return _resourceCulture;
+            }
+            set
+            {
+                _resourceCulture = value;
+            }
         }
         
-        public static string Login_TitleLabel => ResourceManager.GetString("Login_TitleLabel", resourceCulture);
-        public static string Login_UsernameLabel => ResourceManager.GetString("Login_UsernameLabel", resourceCulture);
-        public static string Login_PasswordLabel => ResourceManager.GetString("Login_PasswordLabel", resourceCulture);
-        public static string Login_ConfirmButton => ResourceManager.GetString("Login_ConfirmButton", resourceCulture);
-        public static string Login_RegisterButton => ResourceManager.GetString("Login_RegisterButton", resourceCulture);
-        public static string Login_ErrorInvalidAuth => ResourceManager.GetString("Login_ErrorInvalidAuth", resourceCulture);
+        public static string LoginTitleLabel => ResourceManager.GetString("LoginTitleLabel", _resourceCulture);
+        public static string LoginUsernameLabel => ResourceManager.GetString("LoginUsernameLabel", _resourceCulture);
+        public static string LoginPasswordLabel => ResourceManager.GetString("LoginPasswordLabel", _resourceCulture);
+        public static string LoginConfirmButton => ResourceManager.GetString("LoginConfirmButton", _resourceCulture);
+        public static string LoginRegisterButton => ResourceManager.GetString("LoginRegisterButton", _resourceCulture);
+        public static string LoginErrorInvalidAuth => ResourceManager.GetString("LoginErrorInvalidAuth", _resourceCulture);
         
-        public static string Register_TitleLabel => ResourceManager.GetString("Register_TitleLabel", resourceCulture);
-        public static string Register_EmailLabel => ResourceManager.GetString("Register_EmailLabel", resourceCulture);
-        public static string Register_ConfirmButton => ResourceManager.GetString("Register_ConfirmButton", resourceCulture);
-        public static string Register_ErrorUserExists => ResourceManager.GetString("Register_ErrorUserExists", resourceCulture);
+        public static string RegisterTitleLabel => ResourceManager.GetString("RegisterTitleLabel", _resourceCulture);
+        public static string RegisterEmailLabel => ResourceManager.GetString("RegisterEmailLabel", _resourceCulture);
+        public static string RegisterConfirmButton => ResourceManager.GetString("RegisterConfirmButton", _resourceCulture);
+        public static string RegisterErrorUserExists => ResourceManager.GetString("RegisterErrorUserExists", _resourceCulture);
         
-        public static string MainMenu_StartButton => ResourceManager.GetString("MainMenu_StartButton", resourceCulture);
-        public static string MainMenu_RoomsButton => ResourceManager.GetString("MainMenu_RoomsButton", resourceCulture);
-        public static string MainMenu_LeaderboardButton => ResourceManager.GetString("MainMenu_LeaderboardButton", resourceCulture);
-        public static string MainMenu_ExitButton => ResourceManager.GetString("MainMenu_ExitButton", resourceCulture);
-        public static string MainMenu_SinglePlayerButton => ResourceManager.GetString("MainMenu_SinglePlayerButton", resourceCulture);
-        public static string MainMenu_FriendsButton => ResourceManager.GetString("MainMenu_FriendsButton", resourceCulture);
-        public static string MainMenu_SettingsButton => ResourceManager.GetString("MainMenu_SettingsButton", resourceCulture);
+        public static string MainMenuStartButton => ResourceManager.GetString("MainMenuStartButton", _resourceCulture);
+        public static string MainMenuRoomsButton => ResourceManager.GetString("MainMenuRoomsButton", _resourceCulture);
+        public static string MainMenuLeaderboardButton => ResourceManager.GetString("MainMenuLeaderboardButton", _resourceCulture);
+        public static string MainMenuExitButton => ResourceManager.GetString("MainMenuExitButton", _resourceCulture);
+        public static string MainMenuSinglePlayerButton => ResourceManager.GetString("MainMenuSinglePlayerButton", _resourceCulture);
+        public static string MainMenuFriendsButton => ResourceManager.GetString("MainMenuFriendsButton", _resourceCulture);
+        public static string MainMenuSettingsButton => ResourceManager.GetString("MainMenuSettingsButton", _resourceCulture);
         
-        public static string Rooms_TitleLabel => ResourceManager.GetString("Rooms_TitleLabel", resourceCulture);
-        public static string Rooms_PlayButton => ResourceManager.GetString("Rooms_PlayButton", resourceCulture);
-        public static string Rooms_ErrorNotEnoughPlayers => ResourceManager.GetString("Rooms_ErrorNotEnoughPlayers", resourceCulture);
-        public static string Rooms_CreateRoomButton => ResourceManager.GetString("Rooms_CreateRoomButton", resourceCulture);
-        public static string Rooms_JoinRoomButton => ResourceManager.GetString("Rooms_JoinRoomButton", resourceCulture);
+        public static string RoomsTitleLabel => ResourceManager.GetString("RoomsTitleLabel", _resourceCulture);
+        public static string RoomsPlayButton => ResourceManager.GetString("RoomsPlayButton", _resourceCulture);
+        public static string RoomsErrorNotEnoughPlayers => ResourceManager.GetString("RoomsErrorNotEnoughPlayers", _resourceCulture);
+        public static string RoomsCreateRoomButton => ResourceManager.GetString("RoomsCreateRoomButton", _resourceCulture);
+        public static string RoomsJoinRoomButton => ResourceManager.GetString("RoomsJoinRoomButton", _resourceCulture);
         
-        public static string Global_BackButton => ResourceManager.GetString("Global_BackButton", resourceCulture);
+        public static string GlobalBackButton => ResourceManager.GetString("GlobalBackButton", _resourceCulture);
         
-        public static string Game_RollButton => ResourceManager.GetString("Game_RollButton", resourceCulture);
-        public static string Game_StopButton => ResourceManager.GetString("Game_StopButton", resourceCulture);
-        public static string Game_StateBust => ResourceManager.GetString("Game_StateBust", resourceCulture);
-        public static string Game_StateClaim => ResourceManager.GetString("Game_StateClaim", resourceCulture);
-        public static string Game_InstructionPairing => ResourceManager.GetString("Game_InstructionPairing", resourceCulture);
+        public static string GameRollButton => ResourceManager.GetString("GameRollButton", _resourceCulture);
+        public static string GameStopButton => ResourceManager.GetString("GameStopButton", _resourceCulture);
+        public static string GameStateBust => ResourceManager.GetString("GameStateBust", _resourceCulture);
+        public static string GameStateClaim => ResourceManager.GetString("GameStateClaim", _resourceCulture);
+        public static string GameInstructionPairing => ResourceManager.GetString("GameInstructionPairing", _resourceCulture);
         
-        public static string Profile_GamesPlayedLabel => ResourceManager.GetString("Profile_GamesPlayedLabel", resourceCulture);
-        public static string Profile_WinsLabel => ResourceManager.GetString("Profile_WinsLabel", resourceCulture);
+        public static string ProfileGamesPlayedLabel => ResourceManager.GetString("ProfileGamesPlayedLabel", _resourceCulture);
+        public static string ProfileWinsLabel => ResourceManager.GetString("ProfileWinsLabel", _resourceCulture);
         
-        public static string Settings_TitleLabel => ResourceManager.GetString("Settings_TitleLabel", resourceCulture);
-        public static string Settings_LanguageLabel => ResourceManager.GetString("Settings_LanguageLabel", resourceCulture);
-        public static string Settings_LanguageSpanish => ResourceManager.GetString("Settings_LanguageSpanish", resourceCulture);
-        public static string Settings_LanguageEnglish => ResourceManager.GetString("Settings_LanguageEnglish", resourceCulture);
-        public static string Settings_VolumeLabel => ResourceManager.GetString("Settings_VolumeLabel", resourceCulture);
-        public static string Settings_BrightnessLabel => ResourceManager.GetString("Settings_BrightnessLabel", resourceCulture);
+        public static string SettingsTitleLabel => ResourceManager.GetString("SettingsTitleLabel", _resourceCulture);
+        public static string SettingsLanguageLabel => ResourceManager.GetString("SettingsLanguageLabel", _resourceCulture);
+        public static string SettingsLanguageSpanish => ResourceManager.GetString("SettingsLanguageSpanish", _resourceCulture);
+        public static string SettingsLanguageEnglish => ResourceManager.GetString("SettingsLanguageEnglish", _resourceCulture);
+        public static string SettingsVolumeLabel => ResourceManager.GetString("SettingsVolumeLabel", _resourceCulture);
+        public static string SettingsBrightnessLabel => ResourceManager.GetString("SettingsBrightnessLabel", _resourceCulture);
     }
 }

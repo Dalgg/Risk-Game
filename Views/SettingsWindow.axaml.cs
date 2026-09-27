@@ -1,11 +1,14 @@
 using Avalonia.Controls;
 
-namespace Risk_Game.Views;
-
-public partial class SettingsWindow : Window
+namespace RiskGame.Views
 {
-    public SettingsWindow()
+
+    public partial class SettingsWindow : Window
     {
-        InitializeComponent();
+        public SettingsWindow()
+        {
+            InitializeComponent();
+        }
     }
+
 }
