@@ -38,6 +38,12 @@
   <data name="RoomsPlayButton" xml:space="preserve"><value>Start Match</value></data>
   <data name="RoomsErrorNotEnoughPlayers" xml:space="preserve"><value>Not enough players to start.</value></data>
 
+  <!-- Leaderboard Window -->
+  <data name="LeaderboardTitle" xml:space="preserve"><value>Top Players</value></data>
+  <data name="LeaderboardSubtitle" xml:space="preserve"><value>Ranking</value></data>
+  <data name="LeaderboardGlobalButton" xml:space="preserve"><value>Global</value></data>
+  <data name="LeaderboardFriendsButton" xml:space="preserve"><value>Friends</value></data>
+  
   <!-- Game Specific (Can't Stop) -->
   <data name="GameRollButton" xml:space="preserve"><value>Roll Dice</value></data>
   <data name="GameStopButton" xml:space="preserve"><value>Stop</value></data>

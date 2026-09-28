@@ -1,5 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia;
+using Risk_Game.Views;
 
 namespace RiskGame.Views
 {
@@ -11,23 +14,34 @@ namespace RiskGame.Views
             InitializeComponent();
         }
 
+        private void ChangeWindow(Window newWindow)
+        {
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.MainWindow = newWindow;
+                newWindow.Show();
+                this.Close();
+            }
+        }
+
         private void OnSettingsClick(object? sender, RoutedEventArgs e)
         {
-            SettingsWindow settingsWindow = new SettingsWindow();
-            settingsWindow.Show();
+            ChangeWindow(new SettingsWindow());
         }
 
         private void OnLoginClick(object? sender, RoutedEventArgs e)
         {
-            LoginWindow loginWindow = new LoginWindow();
-            loginWindow.Show();
+            ChangeWindow(new LoginWindow());
         }
 
         private void OnRoomsClick(object? sender, RoutedEventArgs e)
         {
-            RoomsWindow roomsWindow = new RoomsWindow();
-            roomsWindow.Show();
+            ChangeWindow(new RoomsWindow());
+        }
+
+        private void OnLeaderboardClick(object? sender, RoutedEventArgs e)
+        {
+            ChangeWindow(new LeaderboardWindow());
         }
     }
-
 }

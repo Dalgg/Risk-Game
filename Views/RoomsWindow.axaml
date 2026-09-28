@@ -24,7 +24,7 @@
 
             <!-- Botón Regresar -->
             <Button Content="{x:Static res:Strings.GlobalBackButton}" Background="#F92A54" Foreground="White" FontSize="20" CornerRadius="10"
-                Width="220" Height="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                Width="220" Height="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Click="OnBackClick" />
         </StackPanel>
     </Border>
 </Window>

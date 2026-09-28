@@ -21,7 +21,7 @@
                 <!-- Idioma -->
                 <StackPanel Spacing="10">
                     <TextBlock Text="{x:Static res:Strings.SettingsLanguageLabel}" Foreground="White" FontSize="16"/>
-                    <ComboBox SelectedIndex="0" Width="150" Background="#EBEBEB" Foreground="Black" CornerRadius="2">
+                    <ComboBox x:Name="LanguageComboBox"  Width="150" Background="#EBEBEB" Foreground="Black" CornerRadius="2" SelectionChanged="OnLanguageChanged">
                         <ComboBoxItem Content="{x:Static res:Strings.SettingsLanguageSpanish}"/>
                         <ComboBoxItem Content="{x:Static res:Strings.SettingsLanguageEnglish}"/>
                     </ComboBox>
@@ -46,7 +46,7 @@
 
             <!-- Botón Regresar -->
             <Button Grid.Row="2" Content="{x:Static res:Strings.GlobalBackButton}" Background="#B71C1C" Foreground="White" FontSize="18"
-                CornerRadius="8" Padding="25,10" HorizontalAlignment="Center" Margin="0,30,0,0"/>
+                CornerRadius="8" Padding="25,10" HorizontalAlignment="Center" Margin="0,30,0,0" Click="OnBackClick" />
         </Grid>
     </Border>
 </Window>

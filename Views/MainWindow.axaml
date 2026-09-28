@@ -38,7 +38,7 @@
         </StackPanel>
 
         <Button HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,60,0,0" Background="Transparent"
-            BorderThickness="0" Padding="0">
+            BorderThickness="0" Padding="0" Click="OnLeaderboardClick">
             <StackPanel Spacing="10">
                 <Border Width="80" Height="80" Background="White" CornerRadius="4">
                     <Image Source="/Assets/trophy.png" Stretch="Uniform" Margin="10"/>

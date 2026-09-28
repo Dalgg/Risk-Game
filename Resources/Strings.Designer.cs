@@ -76,5 +76,9 @@ namespace RiskGame.Resources
         public static string SettingsLanguageEnglish => ResourceManager.GetString("SettingsLanguageEnglish", _resourceCulture);
         public static string SettingsVolumeLabel => ResourceManager.GetString("SettingsVolumeLabel", _resourceCulture);
         public static string SettingsBrightnessLabel => ResourceManager.GetString("SettingsBrightnessLabel", _resourceCulture);
+        public static string LeaderboardTitle => ResourceManager.GetString("LeaderboardTitle", _resourceCulture);
+        public static string LeaderboardSubtitle => ResourceManager.GetString("LeaderboardSubtitle", _resourceCulture);
+        public static string LeaderboardGlobalButton => ResourceManager.GetString("LeaderboardGlobalButton", _resourceCulture);
+        public static string LeaderboardFriendsButton => ResourceManager.GetString("LeaderboardFriendsButton", _resourceCulture);
     }
 }

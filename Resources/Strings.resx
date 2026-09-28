@@ -38,6 +38,12 @@
   <data name="RoomsPlayButton" xml:space="preserve"><value>Iniciar Partida</value></data>
   <data name="RoomsErrorNotEnoughPlayers" xml:space="preserve"><value>Faltan jugadores para iniciar.</value></data>
 
+  <!-- Leaderboard Window -->
+  <data name="LeaderboardTitle" xml:space="preserve"><value>Mejores jugadores</value></data>
+  <data name="LeaderboardSubtitle" xml:space="preserve"><value>Clasificación</value></data>
+  <data name="LeaderboardGlobalButton" xml:space="preserve"><value>Global</value></data>
+  <data name="LeaderboardFriendsButton" xml:space="preserve"><value>Amigos</value></data>
+
   <!-- Game Specific (Can't Stop) -->
   <data name="GameRollButton" xml:space="preserve"><value>Tirar Dados</value></data>
   <data name="GameStopButton" xml:space="preserve"><value>Plantarse</value></data>
@@ -54,6 +60,7 @@
 <data name="MainMenuSinglePlayerButton" xml:space="preserve"><value>Solitario</value></data>
   <data name="MainMenuFriendsButton" xml:space="preserve"><value>Amigos</value></data>
   <data name="MainMenuSettingsButton" xml:space="preserve"><value>Ajustes</value></data>
+  
   <data name="SettingsTitleLabel" xml:space="preserve"><value>Ajustes</value></data>
   <data name="SettingsLanguageLabel" xml:space="preserve"><value>Idioma:</value></data>
   <data name="SettingsLanguageSpanish" xml:space="preserve"><value>Español</value></data>

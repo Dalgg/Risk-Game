@@ -11,7 +11,7 @@
         <Grid>
             <!-- Botón de regreso (Esquina superior izquierda) -->
             <Button Background="#8B0000" Width="50" Height="40" HorizontalAlignment="Left" VerticalAlignment="Top"
-                CornerRadius="0">
+                CornerRadius="0" Click="OnBackClick">
                 <Image Source="avares://Risk-Game/Assets/back_arrow.png" Margin="2"/>
             </Button>
 
