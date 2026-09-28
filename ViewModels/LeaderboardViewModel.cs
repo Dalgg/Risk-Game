@@ -1,32 +1,65 @@
-using RiskGame.Models;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using RiskGame.Models;
 
 namespace RiskGame.ViewModels
 {
-    // Estructura auxiliar para mostrar en la vista
+    // Estructura de datos para la tabla
     public class PlayerScoreView
     {
-        public string Username { get; set; }
+        public int Rank { get; set; }
+        public string Username { get; set; } = string.Empty;
         public int TotalScore { get; set; }
     }
 
     public class LeaderboardViewModel : ViewModelBase
     {
-        public List<PlayerScoreView> GetTopPlayers(int limit = 10)
+        // Colección observable enlazada a la tabla XAML
+        public ObservableCollection<PlayerScoreView> Players { get; } = new ObservableCollection<PlayerScoreView>();
+        
+        private bool _isDescending = true;
+
+        public LeaderboardViewModel()
         {
-            using (var context = new RiskGameContext())
+            LoadGlobalScores();
+        }
+
+        public void LoadGlobalScores()
+        {
+            using (RiskGameContext context = new RiskGameContext())
             {
-                var topPlayers = context.Users.Select(u => new PlayerScoreView
+                // 1. Consulta SQL Server a través de EF Core
+                IQueryable<PlayerScoreView> query = context.Users
+                    .Select(u => new PlayerScoreView
                     {
                         Username = u.Username,
-                        TotalScore = u.MatchResults.Sum(m => m.FinalScore ?? 0) 
-                    })
-                    .OrderByDescending(p => p.TotalScore)
-                    .Take(limit)
-                    .ToList();
-                return topPlayers;
+                        TotalScore = u.MatchResults.Sum(m => m.FinalScore ?? 0)
+                    });
+
+                // 2. Aplica el filtro de ordenamiento
+                if (_isDescending)
+                    query = query.OrderByDescending(p => p.TotalScore);
+                else
+                    query = query.OrderBy(p => p.TotalScore);
+
+                // 3. Limita los resultados a los 10 mejores
+                List<PlayerScoreView> result = query.Take(10).ToList();
+
+                // 4. Actualiza la colección de la interfaz asignando los rangos
+                Players.Clear();
+                for (int i = 0; i < result.Count; i++)
+                {
+                    result[i].Rank = i + 1;
+                    Players.Add(result[i]);
+                }
             }
+        }
+
+        public void ToggleSortDirection()
+        {
+            _isDescending = !_isDescending;
+            LoadGlobalScores();
         }
     }
 }

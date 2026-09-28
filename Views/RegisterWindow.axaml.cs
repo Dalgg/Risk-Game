@@ -1,13 +1,12 @@
-using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using RiskGame.ViewModels;
+using System;
 
 namespace RiskGame.Views
 {
-
     public partial class RegisterWindow : Window
     {
         public RegisterWindow()
@@ -16,29 +15,31 @@ namespace RiskGame.Views
         }
 
         private void OnConfirmClick(object? sender, RoutedEventArgs e)
-    {
-        string email = EmailTextBox.Text ?? string.Empty;
-        string usuario = UsernameTextBox.Text ?? string.Empty;
-        string password = PasswordTextBox.Text ?? string.Empty;
-
-        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(usuario) || string.IsNullOrWhiteSpace(password))
         {
-            Console.WriteLine("PRUEBA: Faltan campos por llenar.");
-            return;
-        }
+            string email = EmailTextBox.Text ?? string.Empty;
+            string usuario = UsernameTextBox.Text ?? string.Empty;
+            string password = PasswordTextBox.Text ?? string.Empty;
 
-        RegisterViewModel viewModel = new RegisterViewModel();
-        var resultado = viewModel.RegisterUser(email, usuario, password);
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(usuario) || string.IsNullOrWhiteSpace(password))
+            {
+                // De acuerdo al estandar, evitamos Console.WriteLine.
+                // Como esto es un UI, idealmente usariamos un MessageBox, pero para no romper 
+                // dependencias lo comentamos hasta que implementen dialogos.
+                return;
+            }
 
-        if (resultado.Success)
-        {
-            Console.WriteLine($"PRUEBA EXITOSA: {resultado.Message}");
+            RegisterViewModel viewModel = new RegisterViewModel();
+            (bool Success, string Message) resultado = viewModel.RegisterUser(email, usuario, password);
+
+            if (resultado.Success)
+            {
+                // Aqui iria un ILogger o Dialogo de exito
+            }
+            else
+            {
+                // Aqui iria un ILogger o Dialogo de error
+            }
         }
-        else
-        {
-            Console.WriteLine($"PRUEBA FALLIDA: {resultado.Message}");
-        }
-    }
 
         private void OnBackClick(object? sender, RoutedEventArgs e)
         {

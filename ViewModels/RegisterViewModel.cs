@@ -1,6 +1,6 @@
-using RiskGame.Models;
 using System;
 using System.Linq;
+using RiskGame.Models;
 
 namespace RiskGame.ViewModels
 {
@@ -8,7 +8,7 @@ namespace RiskGame.ViewModels
     {
         public (bool Success, string Message) RegisterUser(string email, string username, string password)
         {
-            using (var context = new RiskGameContext())
+            using (RiskGameContext context = new RiskGameContext())
             {
                 bool userExists = context.Users.Any(u => u.Email == email || u.Username == username);
                 
@@ -16,7 +16,7 @@ namespace RiskGame.ViewModels
                 {
                     return (false, "El usuario o correo ya está registrado.");
                 }
-                var newUser = new User
+                User newUser = new User
                 {
                     Email = email,
                     Username = username,

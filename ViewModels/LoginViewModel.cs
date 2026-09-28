@@ -1,5 +1,5 @@
-using RiskGame.Models;
 using System.Linq;
+using RiskGame.Models;
 
 namespace RiskGame.ViewModels
 {
@@ -7,9 +7,9 @@ namespace RiskGame.ViewModels
     {
         public bool AuthenticateUser(string username, string password)
         {
-            using (var context = new RiskGameContext())
+            using (RiskGameContext context = new RiskGameContext())
             {
-                var user = context.Users.FirstOrDefault(u => 
+                User? user = context.Users.FirstOrDefault(u => 
                     u.Username == username && 
                     u.PasswordHash == password); 
                 return user != null;

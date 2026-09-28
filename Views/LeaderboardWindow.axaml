@@ -1,7 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:res="using:RiskGame.Resources"
+        xmlns:vm="using:RiskGame.ViewModels"
         x:Class="RiskGame.Views.LeaderboardWindow"
+        x:DataType="vm:LeaderboardViewModel"
         Title="{x:Static res:Strings.LeaderboardTitle}"
         Width="600" Height="600"
         Background="#4A4A4A">
@@ -15,22 +17,35 @@
         </StackPanel>
         <Grid Grid.Row="1" ColumnDefinitions="Auto, *, Auto" Margin="0,0,0,20">
             <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15">
-                <Button Content="{x:Static res:Strings.LeaderboardGlobalButton}" Background="#0084FF" 
-                    Foreground="White" FontWeight="Bold" CornerRadius="6" Width="100" Height="35" 
-                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                <Button Content="{x:Static res:Strings.LeaderboardGlobalButton}" Background="#0084FF" Foreground="White" 
+                        FontWeight="Bold" CornerRadius="6" Width="100" Height="35" 
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                        Click="OnGlobalClick"/>
                 
-                <Button Content="{x:Static res:Strings.LeaderboardFriendsButton}" Background="#0084FF" 
-                    Foreground="White" FontWeight="Bold" CornerRadius="6" Width="100" Height="35" 
-                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                <Button Content="{x:Static res:Strings.LeaderboardFriendsButton}" Background="#0084FF" Foreground="White" 
+                        FontWeight="Bold" CornerRadius="6" Width="100" Height="35" 
+                        HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
             </StackPanel>
             
-            <!-- Botón de Orden (Derecha) -->
-            <Button Grid.Column="2" Background="White" Width="40" Height="40" CornerRadius="4" Padding="5">
+            <!-- BotÃ³n de Orden (Derecha) -->
+            <Button Grid.Column="2" Background="White" Width="40" Height="40" CornerRadius="4" Padding="5" Click="OnSortClick">
                 <Image Source="avares://Risk-Game/Assets/sort.png" Stretch="Uniform"/>
             </Button>
         </Grid>
-        <Border Grid.Row="2" Background="#E2E3E5" Margin="0,0,0,30">
-            <!-- Aquí irá posteriormente el ListBox o DataGrid con los jugadores -->
+
+        <!-- Fila 2: Tabla de Datos (ListBox emulando DataGrid) -->
+        <Border Grid.Row="2" Background="#E2E3E5" Margin="0,0,0,30" CornerRadius="4">
+            <ListBox ItemsSource="{Binding Players}" Background="Transparent" Margin="10">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:PlayerScoreView">
+                        <Grid ColumnDefinitions="50, *, 100" Margin="0,5">
+                            <TextBlock Grid.Column="0" Text="{Binding Rank}" FontWeight="Bold" Foreground="Black" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                            <TextBlock Grid.Column="1" Text="{Binding Username}" Foreground="Black" FontSize="18" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="{Binding TotalScore}" FontWeight="Bold" Foreground="Black" FontSize="18" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,20,0"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </Border>
         <Button Grid.Row="3" Content="{x:Static res:Strings.GlobalBackButton}" 
                 Background="#990000" Foreground="White" FontWeight="Bold" FontSize="16" 
