@@ -1,8 +1,8 @@
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia;
-using Risk_Game.Views;
+using RiskGame.Views;
 
 namespace RiskGame.Views
 {

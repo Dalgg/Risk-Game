@@ -4,7 +4,8 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using RiskGame.Views;
 
-namespace Risk_Game.Views;
+namespace RiskGame.Views
+{
 
 public partial class LeaderboardWindow : Window
 {
@@ -23,4 +24,4 @@ public partial class LeaderboardWindow : Window
             this.Close();
         }
     }
-}
+}}
