@@ -14,15 +14,16 @@ namespace RiskGame.Views
         }
         private void OnRegisterClick(object? sender, RoutedEventArgs e)
         {
-            var registerWindow = new RegisterWindow();
+            RegisterWindow registerWindow = new RegisterWindow();
             registerWindow.Show();
+            this.Close();
         }
 
         private void OnBackClick(object? sender, RoutedEventArgs e)
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                var mainWindow = new MainWindow();
+                MainWindow mainWindow = new MainWindow();
                 desktop.MainWindow = mainWindow;
                 mainWindow.Show();
                 this.Close(); 

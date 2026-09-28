@@ -34,7 +34,7 @@
 
             <Button Content="{x:Static res:Strings.MainMenuExitButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center" Background="#333333" Foreground="White" CornerRadius="8"
-                    FontSize="18"/>
+                    FontSize="18" Click="OnExitClick"/>
         </StackPanel>
 
         <Button HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,60,0,0" Background="Transparent"

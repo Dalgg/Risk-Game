@@ -43,5 +43,10 @@ namespace RiskGame.Views
         {
             ChangeWindow(new LeaderboardWindow());
         }
+
+        private void OnExitClick(object? sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
     }
 }
