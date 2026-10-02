@@ -1,18 +1,14 @@
-# Compilación de .NET
 bin/
 obj/
 
-# Visual Studio
 .vs/
 
-# Rider
 .idea/
 
-# Archivos temporales
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
 
-# Archivos de configuración local
 *.local
+appsettings.local.json

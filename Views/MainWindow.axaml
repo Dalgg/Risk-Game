@@ -11,10 +11,27 @@
         Background="#D3D3D3">
 
     <Grid>
-        <!-- Botón superior izquierdo -->
-        <Button Content="{x:Static res:Strings.LoginTitleLabel}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20"
-            Background="#333333" Foreground="White" CornerRadius="8" Padding="15,10" FontSize="16"
+        <!-- 1. Botón para Invitados (Se muestra si IsGuest es true) -->
+        <Button Content="{x:Static res:Strings.LoginTitleLabel}" 
+                IsVisible="{Binding IsGuest}"
+                HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20"
+                Background="#333333" Foreground="White" CornerRadius="8" Padding="15,10" FontSize="16"
                 Click="OnLoginClick"/>
+
+        <!-- 2. Perfil del usuario (Se muestra si IsLoggedIn es true) -->
+        <Button IsVisible="{Binding IsLoggedIn}"
+                HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20"
+                Background="#333333" Foreground="White" CornerRadius="8" Padding="10"
+                Click="OnProfileClick">
+            <StackPanel Orientation="Horizontal" Spacing="12">
+                <!-- Contenedor circular para el Avatar -->
+                <Border Width="40" Height="40" CornerRadius="20" ClipToBounds="True" Background="White">
+                    <Image Source="/Assets/default_avatar.png" Stretch="UniformToFill"/>
+                </Border>
+                <!-- Nombre de Usuario dinámico -->
+                <TextBlock Text="{Binding LoggedUsername}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Button>
 
         <!-- Título Central Superior -->
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,40,0,0" Spacing="5">

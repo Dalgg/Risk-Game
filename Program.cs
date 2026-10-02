@@ -3,25 +3,36 @@ using Avalonia;
 
 namespace RiskGame
 {
-
-    sealed class Program
+    /// <summary>
+    /// Punto de entrada del proceso. Configura el ciclo de vida de la aplicación Avalonia.
+    /// </summary>
+    internal sealed class Program
     {
-        // Initialization code. Don't use any Avalonia, third-party APIs or any
-        // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-        // yet and stuff might break.
+        /// <summary>
+        /// Inicializa el entorno gráfico y arranca el ciclo de vida de escritorio clásico.
+        /// </summary>
+        /// <param name="args">Argumentos de línea de comandos propagados por el sistema operativo.</param>
         [STAThread]
-        public static void Main(string[] args) => BuildAvaloniaApp()
-            .StartWithClassicDesktopLifetime(args);
+        public static void Main(string[] args)
+        {
+            BuildAvaloniaApp()
+                .StartWithClassicDesktopLifetime(args);
+        }
 
-        // Avalonia configuration, don't remove; also used by visual designer.
+        /// <summary>
+        /// Construye el <see cref="AppBuilder"/> con los proveedores de plataforma y de fuentes
+        /// requeridos por la aplicación. También lo consume el diseñador visual.
+        /// </summary>
+        /// <returns>El constructor de la aplicación ya configurado para la plataforma actual.</returns>
         public static AppBuilder BuildAvaloniaApp()
-            => AppBuilder.Configure<App>()
+        {
+            return AppBuilder.Configure<App>()
                 .UsePlatformDetect()
-    #if DEBUG
+#if DEBUG
                 .WithDeveloperTools()
-    #endif
+#endif
                 .WithInterFont()
                 .LogToTrace();
+        }
     }
-
 }

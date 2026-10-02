@@ -26,20 +26,20 @@
                 <!-- Usuario -->
                 <StackPanel Spacing="5">
                     <TextBlock Text="{x:Static res:Strings.LoginUsernameLabel}" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
-                    <TextBox Background="White" Foreground="Black" Height="30" CornerRadius="0"/>
+                    <TextBox x:Name="UserTextBox" Background="White" Foreground="Black" Height="30" CornerRadius="0"/>
                 </StackPanel>
 
                 <!-- Contraseña -->
                 <StackPanel Spacing="5">
                     <TextBlock Text="{x:Static res:Strings.LoginPasswordLabel}" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
-                    <TextBox Background="White" Foreground="Black" Height="30" CornerRadius="0" PasswordChar="*"/>
+                    <TextBox x:Name="PasswordTextBox" Background="White" Foreground="Black" Height="30" CornerRadius="0" PasswordChar="*"/>
                 </StackPanel>
 
                 <!-- Botones de Acción -->
                 <StackPanel Spacing="15" Margin="0,15,0,0">
                     <Button Content="{x:Static res:Strings.LoginConfirmButton}" Background="#0084FF" Foreground="White" FontSize="16" CornerRadius="8"
                         Width="160" Height="40" HorizontalAlignment="Center" HorizontalContentAlignment="Center"
-                            VerticalContentAlignment="Center"/>
+                            VerticalContentAlignment="Center" Click="OnConfirmLoginClick" />
 
                     <Button Content="{x:Static res:Strings.LoginRegisterButton}" Background="#F92A54" Foreground="White" FontSize="16" CornerRadius="8"
                          Width="160" Height="40" HorizontalAlignment="Center" HorizontalContentAlignment="Center"

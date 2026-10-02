@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 
 namespace RiskGame.Models
 {
@@ -23,3 +23,4 @@ namespace RiskGame.Models
     }
 
 }
+

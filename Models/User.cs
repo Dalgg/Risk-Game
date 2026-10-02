@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 
 namespace RiskGame.Models
 {
@@ -23,9 +23,11 @@ namespace RiskGame.Models
 
         public virtual ICollection<Friendship> FriendshipIdUser2Navigations { get; set; } = new List<Friendship>();
 
-        public virtual ICollection<LobbyInvitation> LobbyInvitationIdRecipientNavigations { get; set; } = new List<LobbyInvitation>();
+        public virtual ICollection<LobbyInvitation> LobbyInvitationIdRecipientNavigations { get; set; }
+            = new List<LobbyInvitation>();
 
-        public virtual ICollection<LobbyInvitation> LobbyInvitationIdSenderNavigations { get; set; } = new List<LobbyInvitation>();
+        public virtual ICollection<LobbyInvitation> LobbyInvitationIdSenderNavigations { get; set; }
+            = new List<LobbyInvitation>();
 
         public virtual ICollection<MatchResult> MatchResults { get; set; } = new List<MatchResult>();
 
@@ -33,3 +35,4 @@ namespace RiskGame.Models
     }
 
 }
+

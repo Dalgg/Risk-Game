@@ -5,57 +5,90 @@ using RiskGame.Models;
 
 namespace RiskGame.ViewModels
 {
-    // Estructura de datos para la tabla
-    public class PlayerScoreView
+    /// <summary>
+    /// Fila inmutable de la tabla de clasificación, creada a partir del usuario y su puntuación acumulada.
+    /// </summary>
+    public sealed record PlayerScoreView
     {
-        public int Rank { get; set; }
-        public string Username { get; set; } = string.Empty;
-        public int TotalScore { get; set; }
+        /// <summary>
+        /// Posición en la tabla de clasificación. El primer lugar corresponde al índice 1.
+        /// </summary>
+        public int Rank { get; init; }
+
+        /// <summary>
+        /// Nombre de usuario del jugador clasificado.
+        /// </summary>
+        public string Username { get; init; } = string.Empty;
+
+        /// <summary>
+        /// Suma de las puntuaciones finales obtenidas por el jugador en todas sus partidas.
+        /// </summary>
+        public int TotalScore { get; init; }
     }
 
+    /// <summary>
+    /// Modelo de vista de la ventana de clasificación global. Consulta las partidas finalizadas
+    /// y expone únicamente los diez mejores resultados a la interfaz.
+    /// </summary>
     public class LeaderboardViewModel : ViewModelBase
     {
-        // Colección observable enlazada a la tabla XAML
-        public ObservableCollection<PlayerScoreView> Players { get; } = new ObservableCollection<PlayerScoreView>();
-        
-        private bool _isDescending = true;
+        /// <summary>
+        /// Cantidad máxima de jugadores que se muestran en la tabla de clasificación.
+        /// </summary>
+        private const int TopPlayersLimit = 10;
 
+        /// <summary>
+        /// Indica si la tabla se ordena de mayor a menor puntuación cuando el valor es <c>true</c>.
+        /// </summary>
+        private bool _isDescending;
+
+        /// <summary>
+        /// Crea el modelo de vista y carga de inmediato la clasificación global.
+        /// </summary>
         public LeaderboardViewModel()
         {
             LoadGlobalScores();
         }
 
+        /// <summary>
+        /// Colección observable enlazada a la tabla de la ventana de clasificación.
+        /// </summary>
+        public ObservableCollection<PlayerScoreView> Players { get; } = new ObservableCollection<PlayerScoreView>();
+
+        /// <summary>
+        /// Consulta la clasificación global, la ordena según la dirección activa y vuelve a publicar
+        /// las diez primeras filas en <see cref="Players"/>.
+        /// </summary>
         public void LoadGlobalScores()
         {
             using (RiskGameContext context = new RiskGameContext())
             {
-                // 1. Consulta SQL Server a través de EF Core
                 IQueryable<PlayerScoreView> query = context.Users
-                    .Select(u => new PlayerScoreView
+                    .Select(user => new PlayerScoreView
                     {
-                        Username = u.Username,
-                        TotalScore = u.MatchResults.Sum(m => m.FinalScore ?? 0)
+                        Username = user.Username,
+                        TotalScore = user.MatchResults.Sum(matchResult => matchResult.FinalScore ?? 0)
                     });
 
-                // 2. Aplica el filtro de ordenamiento
-                if (_isDescending)
-                    query = query.OrderByDescending(p => p.TotalScore);
-                else
-                    query = query.OrderBy(p => p.TotalScore);
+                query = _isDescending
+                    ? query.OrderByDescending(score => score.TotalScore)
+                    : query.OrderBy(score => score.TotalScore);
 
-                // 3. Limita los resultados a los 10 mejores
-                List<PlayerScoreView> result = query.Take(10).ToList();
+                List<PlayerScoreView> topScores = query.Take(TopPlayersLimit).ToList();
 
-                // 4. Actualiza la colección de la interfaz asignando los rangos
+                // El rango se asigna en memoria porque depende de la posición final y no de la consulta.
                 Players.Clear();
-                for (int i = 0; i < result.Count; i++)
+                for (int index = 0; index < topScores.Count; index++)
                 {
-                    result[i].Rank = i + 1;
-                    Players.Add(result[i]);
+                    topScores[index] = topScores[index] with { Rank = index + 1 };
+                    Players.Add(topScores[index]);
                 }
             }
         }
 
+        /// <summary>
+        /// Invierte la dirección del ordenamiento y recarga la tabla de clasificación.
+        /// </summary>
         public void ToggleSortDirection()
         {
             _isDescending = !_isDescending;
