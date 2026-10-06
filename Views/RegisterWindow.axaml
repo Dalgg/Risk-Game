@@ -7,7 +7,7 @@
         Background="#1E1E1E">
 
     <!-- Contenedor gris central -->
-    <Border Background="#5C5C5C" Width="480" Height="400" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Border Background="#5C5C5C" Width="480" Height="460" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Grid>
             <!-- Botón de regreso (Esquina superior izquierda) -->
             <Button Background="#8B0000" Width="60" Height="50" HorizontalAlignment="Left" VerticalAlignment="Top"
@@ -18,6 +18,10 @@
             <!-- Título -->
             <TextBlock Text="{x:Static res:Strings.RegisterTitleLabel}" Foreground="White" FontSize="28" HorizontalAlignment="Center"
                 VerticalAlignment="Top" Margin="0,15,0,0"/>
+
+            <!-- Mensaje de error / éxito -->
+            <TextBlock x:Name="MessageTextBlock" IsVisible="False" TextWrapping="Wrap" TextAlignment="Center"
+                       FontSize="13" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="30,62,30,0"/>
 
             <!-- Formulario (Grid para alinear Labels y TextBoxes) -->
             <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="Auto, *" HorizontalAlignment="Stretch"

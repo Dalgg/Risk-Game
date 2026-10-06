@@ -1,93 +1,88 @@
-using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using RiskGame.Models;
+using RiskGame.Resources;
 using RiskGame.Services;
 using RiskGame.ViewModels;
 
 namespace RiskGame.Views
 {
-    /// <summary>
-    /// Ventana de inicio de sesión. Valida las credenciales tecleadas por el jugador y, cuando
-    /// son válidas, establece la sesión antes de volver a la ventana principal.
-    /// </summary>
+
     public partial class LoginWindow : Window
     {
-        /// <summary>
-        /// Crea la ventana de inicio de sesión y carga sus componentes visuales.
-        /// </summary>
+        private static readonly IBrush ErrorBrush = new SolidColorBrush(Color.Parse("#FF8A8A"));
+        private static readonly IBrush SuccessBrush = new SolidColorBrush(Color.Parse("#8CE99A"));
+
         public LoginWindow()
         {
             InitializeComponent();
         }
 
-        /// <summary>
-        /// Abre la ventana de registro de cuenta.
-        /// </summary>
-        /// <param name="sender">Elemento que originó el evento.</param>
-        /// <param name="e">Datos asociados al evento de interacción.</param>
+        public LoginWindow(string successMessage) : this()
+        {
+            ShowMessage(successMessage, SuccessBrush);
+        }
+
         private void OnRegisterClick(object? sender, RoutedEventArgs e)
         {
             RegisterWindow registerWindow = new RegisterWindow();
             registerWindow.Show();
-            Close();
+            this.Close();
         }
 
-        /// <summary>
-        /// Regresa a la ventana principal sin iniciar sesión.
-        /// </summary>
-        /// <param name="sender">Elemento que originó el evento.</param>
-        /// <param name="e">Datos asociados al evento de interacción.</param>
         private void OnBackClick(object? sender, RoutedEventArgs e)
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 MainWindow mainWindow = new MainWindow();
-                desktopLifetime.MainWindow = mainWindow;
+                desktop.MainWindow = mainWindow;
                 mainWindow.Show();
-                Close();
+                this.Close(); 
             }
         }
 
-        /// <summary>
-        /// Autentica al jugador con las credenciales capturadas y abre la ventana principal si el
-        /// acceso es válido.
-        /// </summary>
-        /// <param name="sender">Elemento que originó el evento.</param>
-        /// <param name="e">Datos asociados al evento de interacción.</param>
         private void OnConfirmLoginClick(object? sender, RoutedEventArgs e)
         {
-            string username = UserTextBox.Text ?? string.Empty;
+            // 1. Obtener textos de la interfaz
+            string username = (UserTextBox.Text ?? string.Empty).Trim();
             string password = PasswordTextBox.Text ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
-                Console.WriteLine("Error: Faltan credenciales.");
+                ShowMessage(Strings.LoginErrorEmptyFields, ErrorBrush);
                 return;
             }
 
-            LoginViewModel viewModel = new LoginViewModel();
+            // 2. Validar con la base de datos
+            var viewModel = new LoginViewModel();
             User? user = viewModel.AuthenticateUser(username, password);
 
             if (user == null)
             {
-                // TODO: Mostrar un TextBlock rojo con el mensaje "Usuario o contraseña incorrectos".
-                Console.WriteLine("Acceso denegado: Usuario o contraseña incorrectos.");
+                ShowMessage(Strings.LoginErrorInvalidAuth, ErrorBrush);
                 return;
             }
 
+            // 3. Guardar la sesión; MainWindow la lee al crearse
             SessionService.Login(user);
-            Console.WriteLine("Acceso autorizado.");
 
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 MainWindow mainWindow = new MainWindow();
-                desktopLifetime.MainWindow = mainWindow;
+                desktop.MainWindow = mainWindow;
                 mainWindow.Show();
-                Close();
+                this.Close();
             }
+        }
+
+        private void ShowMessage(string text, IBrush brush)
+        {
+            MessageTextBlock.Text = text;
+            MessageTextBlock.Foreground = brush;
+            MessageTextBlock.IsVisible = true;
         }
     }
 }

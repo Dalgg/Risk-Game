@@ -1,49 +1,66 @@
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using RiskGame.Models;
 using RiskGame.Services;
 
 namespace RiskGame.ViewModels
 {
-    /// <summary>
-    /// Modelo de vista responsable de crear cuentas de jugador en la base de datos.
-    /// </summary>
     public class RegisterViewModel : ViewModelBase
     {
-        /// <summary>
-        /// Registra un nuevo jugador, siempre que ni su correo ni su nombre de usuario estén
-        /// previamente asociados a otra cuenta.
-        /// </summary>
-        /// <param name="email">Correo electrónico único del jugador.</param>
-        /// <param name="username">Nombre de usuario único elegido por el jugador.</param>
-        /// <param name="password">Contraseña en texto plano, que se almacenaría hasheada.</param>
-        /// <returns>
-        /// El resultado del registro: un valor booleano que indica si la cuenta se creó y el mensaje
-        /// destinado al usuario que describe el motivo de un eventual rechazo.
-        /// </returns>
-        public (bool Success, string Message) RegisterUser(string email, string username, string password)
+        private const int MaxEmailLength = 100;
+        private static readonly Regex EmailRegex = new Regex( @"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$"
+            , RegexOptions.Compiled);
+ 
+        private static readonly Regex UsernameRegex = new Regex( @"^[A-Za-z0-9._\-]{3,50}$"
+            , RegexOptions.Compiled);
+ 
+        public RegisterResult RegisterUser(string email, string username, string password)
         {
+            email = email.Trim();
+            username = username.Trim();
+ 
+            if (email.Length == 0 || username.Length == 0 || password.Length == 0)
+            {
+                return RegisterResult.EmptyFields;
+            }
+ 
+            if (email.Length > MaxEmailLength || !EmailRegex.IsMatch(email))
+            {
+                return RegisterResult.InvalidEmail;
+            }
+ 
+            if (!UsernameRegex.IsMatch(username))
+            {
+                return RegisterResult.InvalidUsername;
+            }
+ 
+            if (!PasswordPolicy.PasswordIsValid(password))
+            {
+                return RegisterResult.WeakPassword;
+            }
+ 
             using (RiskGameContext context = new RiskGameContext())
             {
-                bool userExists = context.Users.Any(u => u.Email == email || u.Username == username);
-
-                if (userExists)
+                if (context.Users.Any(u => u.Username == username))
                 {
-                    return (false, "El usuario o correo ya está registrado.");
+                    return RegisterResult.UsernameExists;
                 }
-
+ 
+                if (context.Users.Any(u => u.Email == email))
+                {
+                    return RegisterResult.EmailExists;
+                }
+ 
                 User newUser = new User
                 {
-                    Email = email,
-                    Username = username,
-                    PasswordHash = PasswordHasher.Hash(password),
-                    Nickname = username,
-                    RegistrationDate = DateTime.Now
+                    Email = email, Username = username, PasswordHash = PasswordHasher.Hash(password), Nickname 
+                        = username, RegistrationDate = DateTime.Now
                 };
                 context.Users.Add(newUser);
                 context.SaveChanges();
-
-                return (true, "Cuenta creada exitosamente.");
+ 
+                return RegisterResult.Success;
             }
         }
     }

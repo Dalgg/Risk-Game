@@ -7,7 +7,7 @@
         Background="#1E1E1E">
 
     <!-- Contenedor gris central -->
-    <Border Background="#5C5C5C" Width="400" Height="400" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Border Background="#5C5C5C" Width="400" Height="440" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Grid>
             <!-- Botón de regreso (Esquina superior izquierda) -->
             <Button Background="#8B0000" Width="50" Height="40" HorizontalAlignment="Left" VerticalAlignment="Top"
@@ -34,6 +34,10 @@
                     <TextBlock Text="{x:Static res:Strings.LoginPasswordLabel}" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
                     <TextBox x:Name="PasswordTextBox" Background="White" Foreground="Black" Height="30" CornerRadius="0" PasswordChar="*"/>
                 </StackPanel>
+
+                <!-- Mensaje de error / éxito -->
+                <TextBlock x:Name="MessageTextBlock" IsVisible="False" TextWrapping="Wrap" TextAlignment="Center"
+                           FontSize="13" HorizontalAlignment="Center"/>
 
                 <!-- Botones de Acción -->
                 <StackPanel Spacing="15" Margin="0,15,0,0">

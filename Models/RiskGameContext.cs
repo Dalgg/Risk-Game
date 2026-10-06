@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 using RiskGame.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace RiskGame.Models
 {
@@ -11,8 +11,7 @@ namespace RiskGame.Models
         {
         }
 
-        public RiskGameContext(DbContextOptions<RiskGameContext> options)
-            : base(options)
+        public RiskGameContext(DbContextOptions<RiskGameContext> options) : base(options)
         {
         }
 

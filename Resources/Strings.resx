@@ -20,12 +20,19 @@
   <data name="LoginConfirmButton" xml:space="preserve"><value>Confirmar</value></data>
   <data name="LoginRegisterButton" xml:space="preserve"><value>Registrarse</value></data>
   <data name="LoginErrorInvalidAuth" xml:space="preserve"><value>Usuario o contraseña incorrectos.</value></data>
+  <data name="LoginErrorEmptyFields" xml:space="preserve"><value>Ingresa tu usuario y contraseña.</value></data>
 
   <!-- Register Window -->
   <data name="RegisterTitleLabel" xml:space="preserve"><value>Crear cuenta</value></data>
   <data name="RegisterEmailLabel" xml:space="preserve"><value>Correo:</value></data>
   <data name="RegisterConfirmButton" xml:space="preserve"><value>Confirmar</value></data>
   <data name="RegisterErrorUserExists" xml:space="preserve"><value>El usuario ya existe.</value></data>
+  <data name="RegisterErrorEmptyFields" xml:space="preserve"><value>Completa todos los campos.</value></data>
+  <data name="RegisterErrorInvalidEmail" xml:space="preserve"><value>Ingresa un correo válido (máximo 100 caracteres).</value></data>
+  <data name="RegisterErrorInvalidUsername" xml:space="preserve"><value>El usuario debe tener entre 3 y 50 caracteres: letras sin acentos, números, punto, guion o guion bajo.</value></data>
+  <data name="RegisterErrorWeakPassword" xml:space="preserve"><value>La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.</value></data>
+  <data name="RegisterErrorEmailExists" xml:space="preserve"><value>El correo ya está registrado.</value></data>
+  <data name="RegisterSuccess" xml:space="preserve"><value>Cuenta creada. Ya puedes iniciar sesión.</value></data>
 
   <!-- Main Window -->
   <data name="MainMenuStartButton" xml:space="preserve"><value>Jugar</value></data>
@@ -44,7 +51,7 @@
   <data name="LeaderboardGlobalButton" xml:space="preserve"><value>Global</value></data>
   <data name="LeaderboardFriendsButton" xml:space="preserve"><value>Amigos</value></data>
 
-  <!-- Game Specific (Can't Stop) -->
+  <!-- Game Specific -->
   <data name="GameRollButton" xml:space="preserve"><value>Tirar Dados</value></data>
   <data name="GameStopButton" xml:space="preserve"><value>Plantarse</value></data>
   <data name="GameStateBust" xml:space="preserve"><value>¡Reventaste! Pierdes el avance.</value></data>
@@ -54,10 +61,10 @@
   <!-- Profile Window -->
   <data name="ProfileGamesPlayedLabel" xml:space="preserve"><value>Partidas jugadas:</value></data>
   <data name="ProfileWinsLabel" xml:space="preserve"><value>Victorias:</value></data>
-<data name="RoomsCreateRoomButton" xml:space="preserve"><value>Crear sala</value></data>
+  <data name="RoomsCreateRoomButton" xml:space="preserve"><value>Crear sala</value></data>
   <data name="RoomsJoinRoomButton" xml:space="preserve"><value>Unirse a sala</value></data>
   <data name="GlobalBackButton" xml:space="preserve"><value>Regresar</value></data>
-<data name="MainMenuSinglePlayerButton" xml:space="preserve"><value>Solitario</value></data>
+  <data name="MainMenuSinglePlayerButton" xml:space="preserve"><value>Solitario</value></data>
   <data name="MainMenuFriendsButton" xml:space="preserve"><value>Amigos</value></data>
   <data name="MainMenuSettingsButton" xml:space="preserve"><value>Ajustes</value></data>
   
