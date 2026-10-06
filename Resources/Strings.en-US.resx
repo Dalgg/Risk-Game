@@ -13,7 +13,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
 
-  <!-- Login Window -->
   <data name="LoginTitleLabel" xml:space="preserve"><value>Login</value></data>
   <data name="LoginUsernameLabel" xml:space="preserve"><value>Username:</value></data>
   <data name="LoginPasswordLabel" xml:space="preserve"><value>Password:</value></data>
@@ -21,8 +20,6 @@
   <data name="LoginRegisterButton" xml:space="preserve"><value>Sign up</value></data>
   <data name="LoginErrorInvalidAuth" xml:space="preserve"><value>Invalid username or password.</value></data>
   <data name="LoginErrorEmptyFields" xml:space="preserve"><value>Enter your username and password.</value></data>
-
-  <!-- Register Window -->
   <data name="RegisterTitleLabel" xml:space="preserve"><value>Create account</value></data>
   <data name="RegisterEmailLabel" xml:space="preserve"><value>Email:</value></data>
   <data name="RegisterConfirmButton" xml:space="preserve"><value>Confirm</value></data>
@@ -34,31 +31,26 @@
   <data name="RegisterErrorEmailExists" xml:space="preserve"><value>Email is already registered.</value></data>
   <data name="RegisterSuccess" xml:space="preserve"><value>Account created. You can now log in.</value></data>
 
-  <!-- Main Window -->
   <data name="MainMenuStartButton" xml:space="preserve"><value>Play</value></data>
   <data name="MainMenuRoomsButton" xml:space="preserve"><value>Rooms</value></data>
   <data name="MainMenuLeaderboardButton" xml:space="preserve"><value>Leaderboard</value></data>
   <data name="MainMenuExitButton" xml:space="preserve"><value>Exit</value></data>
 
-  <!-- Rooms Window -->
   <data name="RoomsTitleLabel" xml:space="preserve"><value>Lobby</value></data>
   <data name="RoomsPlayButton" xml:space="preserve"><value>Start Match</value></data>
   <data name="RoomsErrorNotEnoughPlayers" xml:space="preserve"><value>Not enough players to start.</value></data>
 
-  <!-- Leaderboard Window -->
   <data name="LeaderboardTitle" xml:space="preserve"><value>Top Players</value></data>
   <data name="LeaderboardSubtitle" xml:space="preserve"><value>Ranking</value></data>
   <data name="LeaderboardGlobalButton" xml:space="preserve"><value>Global</value></data>
   <data name="LeaderboardFriendsButton" xml:space="preserve"><value>Friends</value></data>
   
-  <!-- Game Specific -->
   <data name="GameRollButton" xml:space="preserve"><value>Roll Dice</value></data>
   <data name="GameStopButton" xml:space="preserve"><value>Stop</value></data>
   <data name="GameStateBust" xml:space="preserve"><value>Bust! You lose your progress.</value></data>
   <data name="GameStateClaim" xml:space="preserve"><value>Column claimed!</value></data>
   <data name="GameInstructionPairing" xml:space="preserve"><value>Pair the 4 dice into two sets.</value></data>
 
-  <!-- Profile Window -->
   <data name="ProfileGamesPlayedLabel" xml:space="preserve"><value>Games played:</value></data>
   <data name="ProfileWinsLabel" xml:space="preserve"><value>Wins:</value></data>
   <data name="RoomsCreateRoomButton" xml:space="preserve"><value>Create Room</value></data>
@@ -73,4 +65,16 @@
   <data name="SettingsLanguageEnglish" xml:space="preserve"><value>English</value></data>
   <data name="SettingsVolumeLabel" xml:space="preserve"><value>Volume:</value></data>
   <data name="SettingsBrightnessLabel" xml:space="preserve"><value>Brightness:</value></data>
+  <data name="RegisterErrorDataConflict" xml:space="preserve">
+    <value>Could not register information in the database due to a data conflict.</value>
+  </data>
+  <data name="RegisterErrorConnectionFailed" xml:space="preserve">
+    <value>Database server connection failed.</value>
+  </data>
+  <data name="LoginErrorDatabase" xml:space="preserve">
+    <value>Failed to authenticate due to a database connection error.</value>
+  </data>
+  <data name="LeaderboardErrorDatabase" xml:space="preserve">
+    <value>Could not load scores due to a connection error.</value>
+  </data>
 </root>

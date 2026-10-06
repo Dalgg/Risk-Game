@@ -86,11 +86,6 @@ namespace RiskGame.Models
                     .HasFilter("([closure_date] IS NULL)");
 
                 entity.Property(e => e.IdLobby).HasColumnName("id_lobby");
-                entity.Property(e => e.BoardColor)
-                    .HasMaxLength(20)
-                    .IsUnicode(false)
-                    .HasDefaultValue("White")
-                    .HasColumnName("board_color");
                 entity.Property(e => e.ClosureDate)
                     .HasColumnType("datetime")
                     .HasColumnName("closure_date");
@@ -110,11 +105,6 @@ namespace RiskGame.Models
                 entity.Property(e => e.TurnDuration)
                     .HasDefaultValue(60)
                     .HasColumnName("turn_duration");
-                entity.Property(e => e.VisualTheme)
-                    .HasMaxLength(50)
-                    .IsUnicode(false)
-                    .HasDefaultValue("Classic")
-                    .HasColumnName("visual_theme");
             });
 
             modelBuilder.Entity<LobbyInvitation>(entity =>

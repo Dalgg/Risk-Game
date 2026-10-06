@@ -27,13 +27,11 @@
                         HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
             </StackPanel>
             
-            <!-- BotÃ³n de Orden (Derecha) -->
             <Button Grid.Column="2" Background="White" Width="40" Height="40" CornerRadius="4" Padding="5" Click="OnSortClick">
                 <Image Source="avares://Risk-Game/Assets/sort.png" Stretch="Uniform"/>
             </Button>
         </Grid>
 
-        <!-- Fila 2: Tabla de Datos (ListBox emulando DataGrid) -->
         <Border Grid.Row="2" Background="#E2E3E5" Margin="0,0,0,30" CornerRadius="4">
             <ListBox ItemsSource="{Binding Players}" Background="Transparent" Margin="10">
                 <ListBox.ItemTemplate>

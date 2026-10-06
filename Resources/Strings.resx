@@ -13,7 +13,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
 
-  <!-- Login Window -->
   <data name="LoginTitleLabel" xml:space="preserve"><value>Iniciar sesión</value></data>
   <data name="LoginUsernameLabel" xml:space="preserve"><value>Usuario:</value></data>
   <data name="LoginPasswordLabel" xml:space="preserve"><value>Contraseña:</value></data>
@@ -22,7 +21,6 @@
   <data name="LoginErrorInvalidAuth" xml:space="preserve"><value>Usuario o contraseña incorrectos.</value></data>
   <data name="LoginErrorEmptyFields" xml:space="preserve"><value>Ingresa tu usuario y contraseña.</value></data>
 
-  <!-- Register Window -->
   <data name="RegisterTitleLabel" xml:space="preserve"><value>Crear cuenta</value></data>
   <data name="RegisterEmailLabel" xml:space="preserve"><value>Correo:</value></data>
   <data name="RegisterConfirmButton" xml:space="preserve"><value>Confirmar</value></data>
@@ -34,31 +32,26 @@
   <data name="RegisterErrorEmailExists" xml:space="preserve"><value>El correo ya está registrado.</value></data>
   <data name="RegisterSuccess" xml:space="preserve"><value>Cuenta creada. Ya puedes iniciar sesión.</value></data>
 
-  <!-- Main Window -->
   <data name="MainMenuStartButton" xml:space="preserve"><value>Jugar</value></data>
   <data name="MainMenuRoomsButton" xml:space="preserve"><value>Salas</value></data>
   <data name="MainMenuLeaderboardButton" xml:space="preserve"><value>Marcadores</value></data>
   <data name="MainMenuExitButton" xml:space="preserve"><value>Salir</value></data>
 
-  <!-- Rooms Window -->
   <data name="RoomsTitleLabel" xml:space="preserve"><value>Sala de Espera</value></data>
   <data name="RoomsPlayButton" xml:space="preserve"><value>Iniciar Partida</value></data>
   <data name="RoomsErrorNotEnoughPlayers" xml:space="preserve"><value>Faltan jugadores para iniciar.</value></data>
 
-  <!-- Leaderboard Window -->
   <data name="LeaderboardTitle" xml:space="preserve"><value>Mejores jugadores</value></data>
   <data name="LeaderboardSubtitle" xml:space="preserve"><value>Clasificación</value></data>
   <data name="LeaderboardGlobalButton" xml:space="preserve"><value>Global</value></data>
   <data name="LeaderboardFriendsButton" xml:space="preserve"><value>Amigos</value></data>
 
-  <!-- Game Specific -->
   <data name="GameRollButton" xml:space="preserve"><value>Tirar Dados</value></data>
   <data name="GameStopButton" xml:space="preserve"><value>Plantarse</value></data>
   <data name="GameStateBust" xml:space="preserve"><value>¡Reventaste! Pierdes el avance.</value></data>
   <data name="GameStateClaim" xml:space="preserve"><value>¡Columna reclamada!</value></data>
   <data name="GameInstructionPairing" xml:space="preserve"><value>Agrupa los 4 dados en dos parejas.</value></data>
 
-  <!-- Profile Window -->
   <data name="ProfileGamesPlayedLabel" xml:space="preserve"><value>Partidas jugadas:</value></data>
   <data name="ProfileWinsLabel" xml:space="preserve"><value>Victorias:</value></data>
   <data name="RoomsCreateRoomButton" xml:space="preserve"><value>Crear sala</value></data>
@@ -74,4 +67,16 @@
   <data name="SettingsLanguageEnglish" xml:space="preserve"><value>Inglés</value></data>
   <data name="SettingsVolumeLabel" xml:space="preserve"><value>Volumen:</value></data>
   <data name="SettingsBrightnessLabel" xml:space="preserve"><value>Brillo:</value></data>
+  <data name="RegisterErrorDataConflict" xml:space="preserve">
+    <value>No se pudo registrar la información en la base de datos por conflicto de datos.</value>
+  </data>
+  <data name="RegisterErrorConnectionFailed" xml:space="preserve">
+    <value>Fallo de conexión con el servidor de base de datos.</value>
+  </data>
+  <data name="LoginErrorDatabase" xml:space="preserve">
+    <value>Fallo al autenticar debido a un error de conexión con la base de datos.</value>
+  </data>
+  <data name="LeaderboardErrorDatabase" xml:space="preserve">
+    <value>No se pudieron cargar las puntuaciones por un error de conexión.</value>
+  </data>
 </root>

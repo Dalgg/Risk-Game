@@ -13,10 +13,6 @@ namespace RiskGame.Models
 
         public int TurnDuration { get; set; }
 
-        public string VisualTheme { get; set; } = null!;
-
-        public string BoardColor { get; set; } = null!;
-
         public DateTime CreationDate { get; set; }
 
         public DateTime? ClosureDate { get; set; }

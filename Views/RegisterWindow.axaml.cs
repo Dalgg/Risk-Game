@@ -5,6 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using RiskGame.Models;
 using RiskGame.Resources;
+using RiskGame.Exceptions;
 using RiskGame.ViewModels;
 
 namespace RiskGame.Views
@@ -25,7 +26,18 @@ namespace RiskGame.Views
             string password = PasswordTextBox.Text ?? string.Empty;
 
             RegisterViewModel viewModel = new RegisterViewModel();
-            RegisterResult registerResult = viewModel.RegisterUser(email, user, password);
+            RegisterResult registerResult;
+            try
+            {
+                registerResult = viewModel.RegisterUser(email, user, password);
+            }
+            catch (DataOperationException ex)
+            {
+                MessageTextBlock.Text = ex.Message;
+                MessageTextBlock.Foreground = ErrorBrush;
+                MessageTextBlock.IsVisible = true;
+                return;
+            }
 
             if (registerResult == RegisterResult.Success)
             {

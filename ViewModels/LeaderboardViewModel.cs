@@ -1,7 +1,12 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data.Common;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using RiskGame.Exceptions;
 using RiskGame.Models;
+using RiskGame.Resources;
+using RiskGame.Services;
 
 namespace RiskGame.ViewModels
 {
@@ -23,32 +28,40 @@ namespace RiskGame.ViewModels
 
         public LeaderboardViewModel()
         {
-            LoadGlobalScores();
+            // Initial load is now handled safely by the view or caught internally.
         }
 
         public ObservableCollection<PlayerScoreView> Players { get; } = new ObservableCollection<PlayerScoreView>();
 
         public void LoadGlobalScores()
         {
-            using (RiskGameContext context = new RiskGameContext())
+            try
             {
-                IQueryable<PlayerScoreView> query = context.Users.Select(user => new PlayerScoreView
-                    {
-                        Username = user.Username,
-                        TotalScore = user.MatchResults.Sum(matchResult => matchResult.FinalScore ?? 0)
-                    });
-
-                query = _isDescending ? query.OrderByDescending(score => score.TotalScore) 
-                    : query.OrderBy(score => score.TotalScore);
-
-                List<PlayerScoreView> topScores = query.Take(TopPlayersLimit).ToList();
-
-                Players.Clear();
-                for (int index = 0; index < topScores.Count; index++)
+                using (RiskGameContext context = new RiskGameContext())
                 {
-                    topScores[index] = topScores[index] with { Rank = index + 1 };
-                    Players.Add(topScores[index]);
+                    IQueryable<PlayerScoreView> query = context.Users.Select(user => new PlayerScoreView
+                        {
+                            Username = user.Username,
+                            TotalScore = user.MatchResults.Sum(matchResult => matchResult.FinalScore ?? 0)
+                        });
+    
+                    query = _isDescending ? query.OrderByDescending(score => score.TotalScore) 
+                        : query.OrderBy(score => score.TotalScore);
+    
+                    List<PlayerScoreView> topScores = query.Take(TopPlayersLimit).ToList();
+    
+                    Players.Clear();
+                    for (int index = 0; index < topScores.Count; index++)
+                    {
+                        topScores[index] = topScores[index] with { Rank = index + 1 };
+                        Players.Add(topScores[index]);
+                    }
                 }
+            }
+            catch (DbException ex)
+            {
+                JsonLogger.Error(ex, "Connection error (DbException) while loading leaderboard.");
+                throw new DataOperationException(Strings.LeaderboardErrorDatabase, ex);
             }
         }
 

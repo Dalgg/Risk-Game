@@ -128,5 +128,13 @@ namespace RiskGame.Resources
         public static string LeaderboardGlobalButton => ResourceManager.GetString("LeaderboardGlobalButton", _resourceCulture);
         
         public static string LeaderboardFriendsButton => ResourceManager.GetString("LeaderboardFriendsButton", _resourceCulture);
+
+        public static string RegisterErrorDataConflict => ResourceManager.GetString("RegisterErrorDataConflict", _resourceCulture);
+
+        public static string RegisterErrorConnectionFailed => ResourceManager.GetString("RegisterErrorConnectionFailed", _resourceCulture);
+
+        public static string LoginErrorDatabase => ResourceManager.GetString("LoginErrorDatabase", _resourceCulture);
+
+        public static string LeaderboardErrorDatabase => ResourceManager.GetString("LeaderboardErrorDatabase", _resourceCulture);
     }
 }

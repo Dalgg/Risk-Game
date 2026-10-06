@@ -6,19 +6,15 @@
         Width="600" Height="550"
         Background="#1E1E1E">
 
-    <!-- Contenedor gris central -->
     <Border Background="#5C5C5C" Width="420" Height="450" HorizontalAlignment="Center" VerticalAlignment="Center"
         CornerRadius="4">
         <Grid RowDefinitions="Auto, *, Auto" Margin="30">
 
-            <!-- Título -->
             <TextBlock Grid.Row="0" Text="{x:Static res:Strings.SettingsTitleLabel}" Foreground="White" FontSize="32" HorizontalAlignment="Center"
                 Margin="0,0,0,30"/>
 
-            <!-- Controles de Ajustes -->
             <StackPanel Grid.Row="1" Spacing="25" HorizontalAlignment="Center" Width="260">
 
-                <!-- Idioma -->
                 <StackPanel Spacing="10">
                     <TextBlock Text="{x:Static res:Strings.SettingsLanguageLabel}" Foreground="White" FontSize="16"/>
                     <ComboBox x:Name="LanguageComboBox"  Width="150" Background="#EBEBEB" Foreground="Black" CornerRadius="2" SelectionChanged="OnLanguageChanged">
@@ -27,7 +23,6 @@
                     </ComboBox>
                 </StackPanel>
 
-                <!-- Volumen -->
                 <StackPanel Spacing="10">
                     <TextBlock Text="{x:Static res:Strings.SettingsVolumeLabel}" Foreground="White" FontSize="16"/>
                     <Grid ColumnDefinitions="*, Auto">
@@ -35,7 +30,6 @@
                     </Grid>
                 </StackPanel>
 
-                <!-- Brillo -->
                 <StackPanel Spacing="10">
                     <TextBlock Text="{x:Static res:Strings.SettingsBrightnessLabel}" Foreground="White" FontSize="16"/>
                     <Grid ColumnDefinitions="*, Auto">
@@ -44,7 +38,6 @@
                 </StackPanel>
             </StackPanel>
 
-            <!-- Botón Regresar -->
             <Button Grid.Row="2" Content="{x:Static res:Strings.GlobalBackButton}" Background="#B71C1C" Foreground="White" FontSize="18"
                 CornerRadius="8" Padding="25,10" HorizontalAlignment="Center" Margin="0,30,0,0" Click="OnBackClick" />
         </Grid>

@@ -6,6 +6,7 @@ using Avalonia.Media;
 using RiskGame.Models;
 using RiskGame.Resources;
 using RiskGame.Services;
+using RiskGame.Exceptions;
 using RiskGame.ViewModels;
 
 namespace RiskGame.Views
@@ -46,7 +47,6 @@ namespace RiskGame.Views
 
         private void OnConfirmLoginClick(object? sender, RoutedEventArgs e)
         {
-            // 1. Obtener textos de la interfaz
             string username = (UserTextBox.Text ?? string.Empty).Trim();
             string password = PasswordTextBox.Text ?? string.Empty;
 
@@ -56,9 +56,17 @@ namespace RiskGame.Views
                 return;
             }
 
-            // 2. Validar con la base de datos
-            var viewModel = new LoginViewModel();
-            User? user = viewModel.AuthenticateUser(username, password);
+            LoginViewModel viewModel = new LoginViewModel();
+            User? user;
+            try
+            {
+                user = viewModel.AuthenticateUser(username, password);
+            }
+            catch (DataOperationException ex)
+            {
+                ShowMessage(ex.Message, ErrorBrush);
+                return;
+            }
 
             if (user == null)
             {
@@ -66,7 +74,6 @@ namespace RiskGame.Views
                 return;
             }
 
-            // 3. Guardar la sesión; MainWindow la lee al crearse
             SessionService.Login(user);
 
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
