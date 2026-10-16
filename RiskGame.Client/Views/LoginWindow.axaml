@@ -10,7 +10,7 @@
         <Grid>
             <Button Background="#8B0000" Width="50" Height="40" HorizontalAlignment="Left" VerticalAlignment="Top"
                 CornerRadius="0" Click="OnBackClick">
-                <Image Source="avares://Risk-Game/Assets/back_arrow.png" Margin="2"/>
+                <Image Source="avares://RiskGame.Client/Assets/back_arrow.png" Margin="2"/>
             </Button>
 
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="15" Width="250"

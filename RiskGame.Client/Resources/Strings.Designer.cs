@@ -16,7 +16,7 @@ namespace RiskGame.Resources
             {
                 if (object.ReferenceEquals(_resourceMan, null))
                 {
-                    ResourceManager resourceManagerInstance = new ResourceManager("Risk-Game.Resources.Strings", typeof(Strings).Assembly);
+                    ResourceManager resourceManagerInstance = new ResourceManager("RiskGame.Resources.Strings", typeof(Strings).Assembly);
                     _resourceMan = resourceManagerInstance;
                 }
                 return _resourceMan;

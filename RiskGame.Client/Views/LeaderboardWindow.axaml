@@ -28,7 +28,7 @@
             </StackPanel>
             
             <Button Grid.Column="2" Background="White" Width="40" Height="40" CornerRadius="4" Padding="5" Click="OnSortClick">
-                <Image Source="avares://Risk-Game/Assets/sort.png" Stretch="Uniform"/>
+                <Image Source="avares://RiskGame.Client/Assets/sort.png" Stretch="Uniform"/>
             </Button>
         </Grid>
 

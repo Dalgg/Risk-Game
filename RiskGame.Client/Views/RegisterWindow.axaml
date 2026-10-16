@@ -10,7 +10,7 @@
         <Grid>
             <Button Background="#8B0000" Width="60" Height="50" HorizontalAlignment="Left" VerticalAlignment="Top"
                  CornerRadius="0" Click="OnBackClick">
-                <Image Source="avares://Risk-Game/Assets/back_arrow.png" Margin="5"/>
+                <Image Source="avares://RiskGame.Client/Assets/back_arrow.png" Margin="5"/>
             </Button>
 
             <TextBlock Text="{x:Static res:Strings.RegisterTitleLabel}" Foreground="White" FontSize="28" HorizontalAlignment="Center"
