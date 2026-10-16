@@ -1,5 +1,3 @@
-using RiskGame.Models;
-
 namespace RiskGame.Services
 {
     public static class SessionService
@@ -8,10 +6,16 @@ namespace RiskGame.Services
 
         public static bool IsLoggedIn => CurrentUser != null;
 
-        public static void Login(User user)
+        public static void Login(SessionUser user)
         {
-            CurrentUser = new SessionUser( user.IdUser, user.Username, user.Nickname, user.AvatarReference);
+            CurrentUser = user;
         }
+
+        public static void Login(int idUser, string username, string nickname, string? avatarReference)
+        {
+            CurrentUser = new SessionUser(idUser, username, nickname, avatarReference);
+        }
+
         public static void Logout()
         {
             CurrentUser = null;

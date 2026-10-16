@@ -3,15 +3,13 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using RiskGame.Models;
+using RiskGame.Exceptions;
 using RiskGame.Resources;
 using RiskGame.Services;
-using RiskGame.Exceptions;
 using RiskGame.ViewModels;
 
 namespace RiskGame.Views
 {
-
     public partial class LoginWindow : Window
     {
         private static readonly IBrush ErrorBrush = new SolidColorBrush(Color.Parse("#FF8A8A"));
@@ -41,7 +39,7 @@ namespace RiskGame.Views
                 MainWindow mainWindow = new MainWindow();
                 desktop.MainWindow = mainWindow;
                 mainWindow.Show();
-                this.Close(); 
+                this.Close();
             }
         }
 
@@ -57,7 +55,7 @@ namespace RiskGame.Views
             }
 
             LoginViewModel viewModel = new LoginViewModel();
-            User? user;
+            SessionUser? user;
             try
             {
                 user = viewModel.AuthenticateUser(username, password);

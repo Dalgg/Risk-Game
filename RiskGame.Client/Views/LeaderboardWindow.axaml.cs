@@ -17,20 +17,13 @@ namespace RiskGame.Views
 
             _viewModel = new LeaderboardViewModel();
             DataContext = _viewModel;
-        
+
             try
-            {
-                try
             {
                 _viewModel.LoadGlobalScores();
             }
             catch (DataOperationException)
             {
-            }
-            }
-            catch (DataOperationException)
-            {
-                // In a real app we would show a dialog. For now we prevent crash.
             }
         }
 
