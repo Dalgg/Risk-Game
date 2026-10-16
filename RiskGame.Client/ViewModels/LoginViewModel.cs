@@ -1,4 +1,6 @@
 using Grpc.Core;
+using Grpc.Net.Client;
+using RiskGame.Contracts.Auth;
 using RiskGame.Exceptions;
 using RiskGame.Resources;
 using RiskGame.Services;
@@ -11,8 +13,28 @@ namespace RiskGame.ViewModels
         {
             try
             {
-                _ = GrpcChannelProvider.GetChannel();
-                return null;
+                GrpcChannel channel = GrpcChannelProvider.GetChannel();
+                AuthGrpc.AuthGrpcClient client = new AuthGrpc.AuthGrpcClient(channel);
+                LoginResponse response = client.Login(new LoginRequest
+                {
+                    Username = username,
+                    Password = password
+                });
+
+                if (!response.IsAuthenticated || response.Player == null)
+                {
+                    return null;
+                }
+
+                string? avatar = string.IsNullOrWhiteSpace(response.Player.AvatarReference)
+                    ? null
+                    : response.Player.AvatarReference;
+
+                return new SessionUser(
+                    response.Player.UserId,
+                    response.Player.Username,
+                    response.Player.Nickname,
+                    avatar);
             }
             catch (RpcException ex)
             {

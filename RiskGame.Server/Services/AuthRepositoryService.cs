@@ -13,8 +13,7 @@ namespace RiskGame.Server.Services
     {
         private const int MaxEmailLength = 100;
         private static readonly Regex EmailRegex = new Regex(
-            @"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$",
-            RegexOptions.Compiled);
+            @"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$", RegexOptions.Compiled);
         private static readonly Regex UsernameRegex = new Regex(
             @"^[A-Za-z0-9._\-]{3,50}$",
             RegexOptions.Compiled);

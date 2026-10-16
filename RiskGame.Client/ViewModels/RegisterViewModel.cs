@@ -1,5 +1,8 @@
 using System.Text.RegularExpressions;
+using System;
 using Grpc.Core;
+using Grpc.Net.Client;
+using RiskGame.Contracts.Auth;
 using RiskGame.Exceptions;
 using RiskGame.Models;
 using RiskGame.Resources;
@@ -44,8 +47,21 @@ namespace RiskGame.ViewModels
 
             try
             {
-                _ = GrpcChannelProvider.GetChannel();
-                return RegisterResult.Success;
+                GrpcChannel channel = GrpcChannelProvider.GetChannel();
+                AuthGrpc.AuthGrpcClient client = new AuthGrpc.AuthGrpcClient(channel);
+                RegisterResponse response = client.Register(new RegisterRequest
+                {
+                    Email = normalizedEmail,
+                    Username = normalizedUsername,
+                    Password = password
+                });
+
+                if (!Enum.IsDefined(typeof(RegisterResult), response.ResultCode))
+                {
+                    throw new DataOperationException(Strings.RegisterErrorConnectionFailed);
+                }
+
+                return (RegisterResult)response.ResultCode;
             }
             catch (RpcException ex)
             {

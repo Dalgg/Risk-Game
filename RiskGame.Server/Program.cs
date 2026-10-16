@@ -28,6 +28,8 @@ namespace RiskGame.Server
 
             WebApplication app = builder.Build();
 
+            app.MapGrpcService<AuthGrpcService>();
+
             app.Run();
         }
     }

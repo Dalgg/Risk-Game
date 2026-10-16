@@ -1,0 +1,37 @@
+syntax = "proto3";
+option csharp_namespace = "RiskGame.Contracts.Auth";
+package riskgame.auth;
+
+service AuthGrpc {
+  rpc Register (RegisterRequest) returns (RegisterResponse);
+  rpc Login (LoginRequest) returns (LoginResponse);
+}
+
+message RegisterRequest {
+  string email = 1;     
+  string username = 2;  
+  string password = 3;  
+}
+
+message RegisterResponse {
+  int32 result_code = 1; 
+  string message = 2;   
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2; 
+}
+
+message PlayerDto {
+  int32 user_id = 1;           
+  string username = 2;         
+  string nickname = 3;         
+  string avatar_reference = 4; 
+}
+
+message LoginResponse {
+  bool is_authenticated = 1;  
+  string session_token = 2;   
+  PlayerDto player = 3;       
+}
