@@ -16,7 +16,7 @@ namespace RiskGame.Server
 
             builder.WebHost.ConfigureKestrel(serverOptions =>
             {
-                serverOptions.ListenLocalhost(DefaultGrpcPort, listenOptions =>
+                serverOptions.ListenAnyIP(DefaultGrpcPort, listenOptions =>
                 {
                     listenOptions.Protocols = HttpProtocols.Http2;
                 });
