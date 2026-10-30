@@ -1,4 +1,5 @@
 using System;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -15,13 +16,14 @@ namespace RiskGame.Server.Services
         private const string NicknameHeaderKey = "nickname";
         private const string AvatarHeaderKey = "avatar-reference";
         private const string IsGuestHeaderKey = "is-guest";
+        private const string DefaultGuestNickname = "Guest";
         private const int BottomUserIdRange = 100000;
         private const int TopUserIdRange = 999999;
-        private readonly LobbySessionManager _sessionManager;
+        private readonly LobbySessionManager sessionManager;
 
         public LobbyGrpcService(LobbySessionManager sessionManager)
         {
-            _sessionManager = sessionManager;
+            this.sessionManager = sessionManager;
         }
 
         public override Task<LobbyDetails> JoinLobby(StringValue request, ServerCallContext context)
@@ -29,7 +31,7 @@ namespace RiskGame.Server.Services
             try
             {
                 PlayerSummary player = ExtractPlayerFromHeaders(context.RequestHeaders);
-                LobbyDetails lobbyDetails = _sessionManager.JoinLobby(request.Value, player);
+                LobbyDetails lobbyDetails = sessionManager.JoinLobby(request.Value, player);
                 return Task.FromResult(lobbyDetails);
             }
             catch (LobbyNotFoundException ex)
@@ -49,7 +51,7 @@ namespace RiskGame.Server.Services
         public override Task<Empty> LeaveLobby(Empty request, ServerCallContext context)
         {
             PlayerSummary player = ExtractPlayerFromHeaders(context.RequestHeaders);
-            _sessionManager.LeaveLobby(player.UserId);
+            sessionManager.LeaveLobby(player.UserId);
             return Task.FromResult(new Empty());
         }
 
@@ -59,7 +61,7 @@ namespace RiskGame.Server.Services
             ServerCallContext context)
         {
             PlayerSummary player = ExtractPlayerFromHeaders(context.RequestHeaders);
-            LobbyDetails? initialSnapshot = _sessionManager.RegisterSubscriber(player.UserId, responseStream);
+            LobbyDetails? initialSnapshot = sessionManager.RegisterSubscriber(player.UserId, responseStream);
 
             if (initialSnapshot != null)
             {
@@ -77,14 +79,14 @@ namespace RiskGame.Server.Services
             }
 
             context.CancellationToken.WaitHandle.WaitOne();
-            _sessionManager.UnregisterSubscriber(player.UserId);
+            sessionManager.UnregisterSubscriber(player.UserId);
             return Task.CompletedTask;
         }
 
         private static PlayerSummary ExtractPlayerFromHeaders(Metadata headers)
         {
             int userId = 0;
-            string nickname = "Guest";
+            string nickname = DefaultGuestNickname;
             string avatarReference = string.Empty;
             bool isGuest = true;
 
@@ -110,7 +112,7 @@ namespace RiskGame.Server.Services
 
             if (userId == 0)
             {
-                userId = Random.Shared.Next(BottomUserIdRange, TopUserIdRange);
+                userId = RandomNumberGenerator.GetInt32(BottomUserIdRange, TopUserIdRange);
             }
 
             return new PlayerSummary

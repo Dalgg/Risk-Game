@@ -6,26 +6,28 @@ using Grpc.Core;
 using RiskGame.Contracts.Common;
 using RiskGame.Contracts.Lobby;
 using RiskGame.Exceptions;
+using RiskGame.Services;
 
 namespace RiskGame.Server.Services
 {
     public sealed class LobbySessionManager
     {
         private const int MaxPlayersPerLobby = 4;
-        private readonly object _syncLock = new object();
-        private readonly Dictionary<string, ActiveLobbyRoom> _roomsByCode = new Dictionary<string, ActiveLobbyRoom>(StringComparer.OrdinalIgnoreCase);
-        private readonly Dictionary<int, string> _userToLobbyCode = new Dictionary<int, string>();
-        private readonly LobbyRepositoryService _lobbyRepository;
+        private const string FastRulesVariantName = "Fast";
+        private readonly object syncLock = new object();
+        private readonly Dictionary<string, ActiveLobbyRoom> roomsByCode = new Dictionary<string, ActiveLobbyRoom>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<int, string> userToLobbyCode = new Dictionary<int, string>();
+        private readonly LobbyRepositoryService lobbyRepository;
 
         public LobbySessionManager(LobbyRepositoryService lobbyRepository)
         {
-            _lobbyRepository = lobbyRepository;
+            this.lobbyRepository = lobbyRepository;
         }
 
         public LobbyDetails JoinLobby(string lobbyCode, PlayerSummary player)
         {
             string normalizedCode = (lobbyCode ?? string.Empty).Trim();
-            RiskGame.Models.Lobby? dbLobby = _lobbyRepository.GetActiveLobbyByCode(normalizedCode);
+            RiskGame.Models.Lobby? dbLobby = lobbyRepository.GetActiveLobbyByCode(normalizedCode);
             if (dbLobby == null)
             {
                 throw new LobbyNotFoundException("The requested lobby code does not exist or is closed.");
@@ -34,14 +36,14 @@ namespace RiskGame.Server.Services
             LobbyDetails snapshot;
             List<IServerStreamWriter<LobbyEvent>> subscribersToNotify;
 
-            lock (_syncLock)
+            lock (syncLock)
             {
                 RemovePlayerFromCurrentLobbyInternal(player.UserId);
 
-                if (!_roomsByCode.TryGetValue(dbLobby.LobbyCode, out ActiveLobbyRoom? room))
+                if (!roomsByCode.TryGetValue(dbLobby.LobbyCode, out ActiveLobbyRoom? room))
                 {
                     room = CreateRoomFromEntity(dbLobby, player.UserId);
-                    _roomsByCode[dbLobby.LobbyCode] = room;
+                    roomsByCode[dbLobby.LobbyCode] = room;
                 }
 
                 LobbyPlayer? existingPlayer = room.Players.FirstOrDefault(candidate => candidate.Player.UserId == player.UserId);
@@ -70,12 +72,18 @@ namespace RiskGame.Server.Services
                     room.Players.Add(newLobbyPlayer);
                 }
 
-                _userToLobbyCode[player.UserId] = room.LobbyCode;
+                userToLobbyCode[player.UserId] = room.LobbyCode;
                 snapshot = BuildLobbyDetails(room);
                 subscribersToNotify = room.Subscribers.Values.ToList();
             }
 
-            BroadcastLobbyChanged(subscribersToNotify, LobbyChangeType.PlayerJoined, snapshot, player.UserId);
+            LobbyChanged joinedChange = new LobbyChanged
+            {
+                Change = LobbyChangeType.PlayerJoined,
+                Lobby = snapshot,
+                AffectedUserId = player.UserId
+            };
+            BroadcastLobbyChanged(subscribersToNotify, joinedChange);
             return snapshot;
         }
 
@@ -84,13 +92,13 @@ namespace RiskGame.Server.Services
             LobbyDetails? snapshot = null;
             List<IServerStreamWriter<LobbyEvent>> subscribersToNotify = new List<IServerStreamWriter<LobbyEvent>>();
 
-            lock (_syncLock)
+            lock (syncLock)
             {
-                if (_userToLobbyCode.TryGetValue(userId, out string? lobbyCode)
-                    && _roomsByCode.TryGetValue(lobbyCode, out ActiveLobbyRoom? room))
+                if (userToLobbyCode.TryGetValue(userId, out string? lobbyCode)
+                    && roomsByCode.TryGetValue(lobbyCode, out ActiveLobbyRoom? room))
                 {
                     RemovePlayerFromRoom(room, userId);
-                    _userToLobbyCode.Remove(userId);
+                    userToLobbyCode.Remove(userId);
 
                     if (room.Players.Count > 0)
                     {
@@ -99,23 +107,29 @@ namespace RiskGame.Server.Services
                     }
                     else
                     {
-                        _roomsByCode.Remove(lobbyCode);
+                        roomsByCode.Remove(lobbyCode);
                     }
                 }
             }
 
             if (snapshot != null && subscribersToNotify.Count > 0)
             {
-                BroadcastLobbyChanged(subscribersToNotify, LobbyChangeType.PlayerLeft, snapshot, userId);
+                LobbyChanged leftChange = new LobbyChanged
+                {
+                    Change = LobbyChangeType.PlayerLeft,
+                    Lobby = snapshot,
+                    AffectedUserId = userId
+                };
+                BroadcastLobbyChanged(subscribersToNotify, leftChange);
             }
         }
 
         public LobbyDetails? RegisterSubscriber(int userId, IServerStreamWriter<LobbyEvent> responseStream)
         {
-            lock (_syncLock)
+            lock (syncLock)
             {
-                if (!_userToLobbyCode.TryGetValue(userId, out string? lobbyCode)
-                    || !_roomsByCode.TryGetValue(lobbyCode, out ActiveLobbyRoom? room))
+                if (!userToLobbyCode.TryGetValue(userId, out string? lobbyCode)
+                    || !roomsByCode.TryGetValue(lobbyCode, out ActiveLobbyRoom? room))
                 {
                     return null;
                 }
@@ -132,11 +146,11 @@ namespace RiskGame.Server.Services
 
         private void RemovePlayerFromCurrentLobbyInternal(int userId)
         {
-            if (_userToLobbyCode.TryGetValue(userId, out string? currentCode)
-                && _roomsByCode.TryGetValue(currentCode, out ActiveLobbyRoom? currentRoom))
+            if (userToLobbyCode.TryGetValue(userId, out string? currentCode)
+                && roomsByCode.TryGetValue(currentCode, out ActiveLobbyRoom? currentRoom))
             {
                 RemovePlayerFromRoom(currentRoom, userId);
-                _userToLobbyCode.Remove(userId);
+                userToLobbyCode.Remove(userId);
             }
         }
 
@@ -158,7 +172,7 @@ namespace RiskGame.Server.Services
 
         private static ActiveLobbyRoom CreateRoomFromEntity(RiskGame.Models.Lobby dbLobby, int initialHostUserId)
         {
-            RulesVariant variant = string.Equals(dbLobby.RulesVariant, "Fast", StringComparison.OrdinalIgnoreCase)
+            RulesVariant variant = string.Equals(dbLobby.RulesVariant, FastRulesVariantName, StringComparison.OrdinalIgnoreCase)
                 ? RulesVariant.Fast
                 : RulesVariant.Standard;
 
@@ -219,18 +233,11 @@ namespace RiskGame.Server.Services
 
         private static void BroadcastLobbyChanged(
             IReadOnlyList<IServerStreamWriter<LobbyEvent>> subscribers,
-            LobbyChangeType changeType,
-            LobbyDetails lobbyDetails,
-            int affectedUserId)
+            LobbyChanged lobbyChanged)
         {
             LobbyEvent notification = new LobbyEvent
             {
-                LobbyChanged = new LobbyChanged
-                {
-                    Change = changeType,
-                    Lobby = lobbyDetails,
-                    AffectedUserId = affectedUserId
-                }
+                LobbyChanged = lobbyChanged
             };
 
             foreach (IServerStreamWriter<LobbyEvent> subscriber in subscribers)
@@ -241,11 +248,13 @@ namespace RiskGame.Server.Services
                     {
                         subscriber.WriteAsync(notification).GetAwaiter().GetResult();
                     }
-                    catch (InvalidOperationException)
+                    catch (InvalidOperationException ex)
                     {
+                        JsonLogger.Error(ex, "Could not write lobby notification to subscriber stream.");
                     }
-                    catch (RpcException)
+                    catch (RpcException ex)
                     {
+                        JsonLogger.Error(ex, "Could not write lobby notification to subscriber stream.");
                     }
                 });
             }
