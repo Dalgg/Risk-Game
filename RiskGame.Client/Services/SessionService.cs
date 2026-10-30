@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+
 namespace RiskGame.Services
 {
     public static class SessionService
@@ -14,6 +16,18 @@ namespace RiskGame.Services
         public static void Login(int idUser, string username, string nickname, string? avatarReference)
         {
             CurrentUser = new SessionUser(idUser, username, nickname, avatarReference);
+        }
+
+        public static SessionUser GetOrCreateCurrentUser()
+        {
+            if (CurrentUser == null)
+            {
+                int guestNumber = RandomNumberGenerator.GetInt32(1000, 9999);
+                string guestAlias = $"Invitado_{guestNumber}";
+                CurrentUser = new SessionUser(-guestNumber, guestAlias, guestAlias, null);
+            }
+
+            return CurrentUser;
         }
 
         public static void Logout()

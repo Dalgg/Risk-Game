@@ -39,7 +39,7 @@
             </StackPanel>
 
             <Button Grid.Row="2" Content="{x:Static res:Strings.GlobalBackButton}" Background="#B71C1C" Foreground="White" FontSize="18"
-                CornerRadius="8" Padding="25,10" HorizontalAlignment="Center" Margin="0,30,0,0" Click="OnBackClick" />
+                CornerRadius="8" Padding="25,10" HorizontalAlignment="Center" Margin="0,30,0,0" Click="BackClick" />
         </Grid>
     </Border>
 </Window>

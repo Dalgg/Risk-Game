@@ -42,7 +42,7 @@ namespace RiskGame.Views
             }
         }
 
-        private void OnBackClick(object? sender, RoutedEventArgs e)
+        private void BackClick(object? sender, RoutedEventArgs e)
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {

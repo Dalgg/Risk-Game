@@ -3,22 +3,114 @@
         xmlns:res="using:RiskGame.Resources"
         x:Class="RiskGame.Views.RoomsWindow"
         Title="{x:Static res:Strings.RoomsTitleLabel}"
-        Width="600" Height="400"
+        Width="600" Height="420"
         Background="#1E1E1E">
 
     <Border Background="#5C5C5C" Margin="40">
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="25">
+        <Grid>
+            <StackPanel x:Name="MenuButtonsStackPanel" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                Spacing="25">
 
-            <TextBlock Text="{x:Static res:Strings.RoomsTitleLabel}" Foreground="White" FontSize="32" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+                <TextBlock Text="{x:Static res:Strings.RoomsTitleLabel}" Foreground="White" FontSize="32"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,15" />
 
-            <Button Content="{x:Static res:Strings.RoomsCreateRoomButton}" Background="#0084FF" Foreground="White" FontSize="20" CornerRadius="10"
-                Width="220" Height="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                <Button Content="{x:Static res:Strings.RoomsCreateRoomButton}" Background="#0084FF" Foreground="White"
+                        FontSize="20"
+                        CornerRadius="10"
+                        Width="220"
+                        Height="50"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center" />
 
-            <Button Content="{x:Static res:Strings.RoomsJoinRoomButton}" Background="#F4882A" Foreground="White" FontSize="20" CornerRadius="10"
-                 Width="220" Height="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                <Button Content="{x:Static res:Strings.RoomsJoinRoomButton}"
+                        Background="#F4882A"
+                        Foreground="White"
+                        FontSize="20"
+                        CornerRadius="10"
+                        Width="220"
+                        Height="50"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Click="OnJoinRoomClick" />
 
-            <Button Content="{x:Static res:Strings.GlobalBackButton}" Background="#F92A54" Foreground="White" FontSize="20" CornerRadius="10"
-                Width="220" Height="50" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Click="OnBackClick" />
-        </StackPanel>
+                <Button Content="{x:Static res:Strings.GlobalBackButton}"
+                        Background="#F92A54"
+                        Foreground="White"
+                        FontSize="20"
+                        CornerRadius="10"
+                        Width="220"
+                        Height="50"
+                        HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"
+                        Click="BackClick" />
+            </StackPanel>
+
+            <StackPanel x:Name="JoinCodeStackPanel"
+                        IsVisible="False"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="15"
+                        Width="280">
+
+                <TextBlock Text="{x:Static res:Strings.RoomsJoinRoomButton}"
+                           Foreground="White"
+                           FontSize="28"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,5" />
+
+                <TextBlock Text="Código de la sala:"
+                           Foreground="White"
+                           FontSize="16"
+                           HorizontalAlignment="Center" />
+
+                <TextBox x:Name="RoomCodeTextBox"
+                         Background="White"
+                         Foreground="Black"
+                         Height="34"
+                         MaxLength="10"
+                         CornerRadius="0"
+                         HorizontalContentAlignment="Center"
+                         VerticalContentAlignment="Center" />
+
+                <TextBlock x:Name="JoinMessageTextBlock"
+                           IsVisible="False"
+                           Foreground="#FF8A8A"
+                           FontSize="13"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           HorizontalAlignment="Center" />
+
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Spacing="15"
+                            Margin="0,10,0,0">
+
+                    <Button Content="{x:Static res:Strings.LoginConfirmButton}"
+                            Background="#0084FF"
+                            Foreground="White"
+                            FontSize="16"
+                            CornerRadius="8"
+                            Width="130"
+                            Height="40"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            IsDefault="True"
+                            Click="OnConfirmJoinRoomClick" />
+
+                    <Button Content="{x:Static res:Strings.GlobalBackButton}"
+                            Background="#F92A54"
+                            Foreground="White"
+                            FontSize="16"
+                            CornerRadius="8"
+                            Width="130"
+                            Height="40"
+                            HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            IsCancel="True"
+                            Click="OnCancelJoinRoomClick" />
+                </StackPanel>
+            </StackPanel>
+        </Grid>
     </Border>
 </Window>

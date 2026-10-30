@@ -49,6 +49,6 @@
                 Background="#990000" Foreground="White" FontWeight="Bold" FontSize="16" 
                 CornerRadius="6" Width="150" Height="40" 
                 HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                Click="OnBackClick"/>
+                Click="BackClick"/>
     </Grid>
 </Window>

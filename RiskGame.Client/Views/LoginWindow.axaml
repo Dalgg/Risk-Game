@@ -9,7 +9,7 @@
     <Border Background="#5C5C5C" Width="400" Height="440" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Grid>
             <Button Background="#8B0000" Width="50" Height="40" HorizontalAlignment="Left" VerticalAlignment="Top"
-                CornerRadius="0" Click="OnBackClick">
+                CornerRadius="0" Click="BackClick">
                 <Image Source="avares://RiskGame.Client/Assets/back_arrow.png" Margin="2"/>
             </Button>
 

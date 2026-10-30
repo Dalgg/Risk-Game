@@ -2,19 +2,83 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
+using RiskGame.Contracts.Lobby;
+using RiskGame.Exceptions;
+using RiskGame.ViewModels;
 
 namespace RiskGame.Views
 {
-
     public partial class RoomsWindow : Window
     {
-
         public RoomsWindow()
         {
             InitializeComponent();
         }
 
-        private void OnBackClick(object? sender, RoutedEventArgs e)
+        private void OnJoinRoomClick(object? sender, RoutedEventArgs e)
+        {
+            JoinMessageTextBlock.IsVisible = false;
+            RoomCodeTextBox.Text = string.Empty;
+            MenuButtonsStackPanel.IsVisible = false;
+            JoinCodeStackPanel.IsVisible = true;
+            RoomCodeTextBox.Focus();
+        }
+
+        private void OnCancelJoinRoomClick(object? sender, RoutedEventArgs e)
+        {
+            JoinMessageTextBlock.IsVisible = false;
+            JoinCodeStackPanel.IsVisible = false;
+            MenuButtonsStackPanel.IsVisible = true;
+        }
+
+        private void OnConfirmJoinRoomClick(object? sender, RoutedEventArgs e)
+        {
+            string roomCode = (RoomCodeTextBox.Text ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(roomCode))
+            {
+                ShowJoinError("Ingresa el código de la sala.");
+                return;
+            }
+
+            LobbyViewModel lobbyViewModel = new LobbyViewModel();
+            LobbyDetails lobbyDetails;
+
+            try
+            {
+                lobbyDetails = lobbyViewModel.JoinLobby(roomCode);
+            }
+            catch (LobbyNotFoundException ex)
+            {
+                ShowJoinError(ex.Message);
+                return;
+            }
+            catch (LobbyFullException ex)
+            {
+                ShowJoinError(ex.Message);
+                return;
+            }
+            catch (DataOperationException ex)
+            {
+                ShowJoinError(ex.Message);
+                return;
+            }
+
+            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            {
+                LobbyWindow lobbyWindow = new LobbyWindow(lobbyDetails, lobbyViewModel);
+                desktopLifetime.MainWindow = lobbyWindow;
+                lobbyWindow.Show();
+                Close();
+            }
+        }
+
+        private void ShowJoinError(string message)
+        {
+            JoinMessageTextBlock.Text = message;
+            JoinMessageTextBlock.IsVisible = true;
+        }
+
+        private void BackClick(object? sender, RoutedEventArgs e)
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {

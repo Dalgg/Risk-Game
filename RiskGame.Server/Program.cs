@@ -25,10 +25,13 @@ namespace RiskGame.Server
             builder.Services.AddGrpc();
             builder.Services.AddSingleton<AuthRepositoryService>();
             builder.Services.AddSingleton<ScoreboardRepositoryService>();
+            builder.Services.AddSingleton<LobbyRepositoryService>();
+            builder.Services.AddSingleton<LobbySessionManager>();
 
             WebApplication app = builder.Build();
 
             app.MapGrpcService<AuthGrpcService>();
+            app.MapGrpcService<LobbyGrpcService>();
 
             app.Run();
         }

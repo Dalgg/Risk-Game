@@ -1,0 +1,86 @@
+syntax = "proto3";
+option csharp_namespace = "RiskGame.Contracts.Lobby";
+package riskgame.lobby;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+import "common.proto";
+
+service Lobby {
+  rpc CreateLobby (LobbyRules) returns (LobbyDetails);
+  rpc GetPublicLobbies (google.protobuf.Empty) returns (LobbyList);
+  rpc JoinLobby (google.protobuf.StringValue) returns (LobbyDetails);
+  rpc LeaveLobby (google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc SubscribeLobbyEvents (google.protobuf.Empty) returns (stream LobbyEvent);
+}
+
+enum LobbyStatus {
+  LOBBY_STATUS_WAITING = 0;
+  LOBBY_STATUS_STARTING = 1;
+  LOBBY_STATUS_IN_MATCH = 2;
+  LOBBY_STATUS_CLOSED = 3;
+}
+
+enum LobbyChangeType {
+  LOBBY_CHANGE_TYPE_PLAYER_JOINED = 0;
+  LOBBY_CHANGE_TYPE_PLAYER_LEFT = 1;
+  LOBBY_CHANGE_TYPE_PLAYER_KICKED = 2;
+  LOBBY_CHANGE_TYPE_PLAYER_READY_CHANGED = 3;
+  LOBBY_CHANGE_TYPE_RULES_UPDATED = 4;
+  LOBBY_CHANGE_TYPE_SNAPSHOT = 5;
+}
+
+enum LobbyCloseReason {
+  LOBBY_CLOSE_REASON_HOST_CANCELLED = 0;
+  LOBBY_CLOSE_REASON_EMPTY = 1;
+  LOBBY_CLOSE_REASON_MATCH_FINISHED = 2;
+}
+
+message LobbyRules {
+  riskgame.common.RulesVariant rules_variant = 1;
+  int32 turn_duration_seconds = 2;
+  int32 max_players = 3;
+  bool is_private = 4;
+}
+
+message LobbyPlayer {
+  riskgame.common.PlayerSummary player = 1;
+  bool is_ready = 2;
+  bool is_host = 3;
+  riskgame.common.PlayerColor color = 4;
+}
+
+message LobbyDetails {
+  int32 lobby_id = 1;
+  string lobby_code = 2;
+  int32 host_user_id = 3;
+  LobbyRules rules = 4;
+  LobbyStatus status = 5;
+  repeated LobbyPlayer players = 6;
+}
+
+message LobbyList {
+  repeated LobbyDetails lobbies = 1;
+}
+
+message LobbyChanged {
+  LobbyChangeType change = 1;
+  LobbyDetails lobby = 2;
+  optional int32 affected_user_id = 3;
+}
+
+message LobbyClosed {
+  LobbyCloseReason reason = 1;
+}
+
+message MatchStarting {
+  int32 match_id = 1;
+}
+
+message LobbyEvent {
+  oneof payload {
+    LobbyChanged lobby_changed = 1;
+    LobbyClosed lobby_closed = 2;
+    MatchStarting match_starting = 3;
+  }
+}
