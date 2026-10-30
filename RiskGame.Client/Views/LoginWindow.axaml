@@ -39,7 +39,7 @@
 
                     <Button Content="{x:Static res:Strings.LoginRegisterButton}" Background="#F92A54" Foreground="White" FontSize="16" CornerRadius="8"
                          Width="160" Height="40" HorizontalAlignment="Center" HorizontalContentAlignment="Center"
-                            VerticalContentAlignment="Center" Click="OnRegisterClick"/>
+                            VerticalContentAlignment="Center" Click="RegisterClick"/>
                 </StackPanel>
             </StackPanel>
         </Grid>

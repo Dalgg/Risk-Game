@@ -27,7 +27,8 @@ namespace RiskGame.Services
 
                 using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path));
                 if (document.RootElement.TryGetProperty("ConnectionStrings", out JsonElement section) && section
-                    .TryGetProperty("RiskGameDB", out JsonElement value) && value.ValueKind == JsonValueKind.String 
+                    .TryGetProperty("RiskGameDB", out JsonElement value) 
+                    && value.ValueKind == JsonValueKind.String 
                     && !string.IsNullOrWhiteSpace(value.GetString()))
                 {
                     return value.GetString()!;

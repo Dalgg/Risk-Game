@@ -25,7 +25,7 @@ namespace RiskGame.Views
             ShowMessage(successMessage, SuccessBrush);
         }
 
-        private void OnRegisterClick(object? sender, RoutedEventArgs e)
+        private void RegisterClick(object? sender, RoutedEventArgs e)
         {
             RegisterWindow registerWindow = new RegisterWindow();
             registerWindow.Show();

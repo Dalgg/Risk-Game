@@ -235,11 +235,11 @@ namespace RiskGame.Server.Services
 
             foreach (IServerStreamWriter<LobbyEvent> subscriber in subscribers)
             {
-                Task.Run(async () =>
+                Task.Run(() =>
                 {
                     try
                     {
-                        await subscriber.WriteAsync(notification);
+                        subscriber.WriteAsync(notification).GetAwaiter().GetResult();
                     }
                     catch (InvalidOperationException)
                     {

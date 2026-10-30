@@ -15,6 +15,8 @@ namespace RiskGame.Server.Services
         private const string NicknameHeaderKey = "nickname";
         private const string AvatarHeaderKey = "avatar-reference";
         private const string IsGuestHeaderKey = "is-guest";
+        private const int BottomUserIdRange = 100000;
+        private const int TopUserIdRange = 999999;
         private readonly LobbySessionManager _sessionManager;
 
         public LobbyGrpcService(LobbySessionManager sessionManager)
@@ -51,7 +53,7 @@ namespace RiskGame.Server.Services
             return Task.FromResult(new Empty());
         }
 
-        public override async Task SubscribeLobbyEvents(
+        public override Task SubscribeLobbyEvents(
             Empty request,
             IServerStreamWriter<LobbyEvent> responseStream,
             ServerCallContext context)
@@ -71,16 +73,12 @@ namespace RiskGame.Server.Services
                     }
                 };
 
-                await responseStream.WriteAsync(snapshotEvent);
+                responseStream.WriteAsync(snapshotEvent).GetAwaiter().GetResult();
             }
 
-            TaskCompletionSource<bool> disconnectSignal = new TaskCompletionSource<bool>();
-            using (context.CancellationToken.Register(() => disconnectSignal.TrySetResult(true)))
-            {
-                await disconnectSignal.Task;
-            }
-
+            context.CancellationToken.WaitHandle.WaitOne();
             _sessionManager.UnregisterSubscriber(player.UserId);
+            return Task.CompletedTask;
         }
 
         private static PlayerSummary ExtractPlayerFromHeaders(Metadata headers)
@@ -112,7 +110,7 @@ namespace RiskGame.Server.Services
 
             if (userId == 0)
             {
-                userId = Random.Shared.Next(100000, 999999);
+                userId = Random.Shared.Next(BottomUserIdRange, TopUserIdRange);
             }
 
             return new PlayerSummary
@@ -126,11 +124,7 @@ namespace RiskGame.Server.Services
 
         private static RpcException CreateFaultException(StatusCode statusCode, FaultCode faultCode, string message)
         {
-            Metadata trailers = new Metadata
-            {
-                { FaultCodeTrailerKey, faultCode.ToString() }
-            };
-
+            Metadata trailers = new Metadata { { FaultCodeTrailerKey, faultCode.ToString() }};
             return new RpcException(new Status(statusCode, message), trailers);
         }
     }

@@ -64,7 +64,7 @@ namespace RiskGame.ViewModels
             StopSubscription();
             _streamCancellation = new CancellationTokenSource();
             CancellationToken cancellationToken = _streamCancellation.Token;
-            Task.Run(async () =>
+            Task.Run(() =>
             {
                 try
                 {
@@ -77,7 +77,7 @@ namespace RiskGame.ViewModels
                         headers,
                         cancellationToken: cancellationToken);
 
-                    while (await call.ResponseStream.MoveNext(cancellationToken))
+                    while (call.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult())
                     {
                         LobbyEvent currentEvent = call.ResponseStream.Current;
                         DispatchLobbyEvent(currentEvent, callback);
