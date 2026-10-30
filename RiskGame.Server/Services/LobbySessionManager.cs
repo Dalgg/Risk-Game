@@ -27,11 +27,7 @@ namespace RiskGame.Server.Services
         public LobbyDetails JoinLobby(string lobbyCode, PlayerSummary player)
         {
             string normalizedCode = (lobbyCode ?? string.Empty).Trim();
-            RiskGame.Models.Lobby? dbLobby = lobbyRepository.GetActiveLobbyByCode(normalizedCode);
-            if (dbLobby == null)
-            {
-                throw new LobbyNotFoundException("The requested lobby code does not exist or is closed.");
-            }
+            RiskGame.Models.Lobby dbLobby = lobbyRepository.GetActiveLobbyByCode(normalizedCode);
 
             LobbyDetails snapshot;
             List<IServerStreamWriter<LobbyEvent>> subscribersToNotify;

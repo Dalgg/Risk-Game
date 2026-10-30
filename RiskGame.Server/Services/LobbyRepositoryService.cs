@@ -10,21 +10,28 @@ namespace RiskGame.Server.Services
 {
     public class LobbyRepositoryService
     {
-        public Lobby? GetActiveLobbyByCode(string lobbyCode)
+        public Lobby GetActiveLobbyByCode(string lobbyCode)
         {
             string normalizedCode = (lobbyCode ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(normalizedCode))
             {
-                return null;
+                throw new LobbyNotFoundException("The requested lobby code does not exist or is closed.");
             }
 
             try
             {
                 using (RiskGameContext context = new RiskGameContext())
                 {
-                    return context.Lobbies
+                    Lobby? activeLobby = context.Lobbies
                         .AsNoTracking()
                         .FirstOrDefault(lobby => lobby.LobbyCode == normalizedCode && lobby.ClosureDate == null);
+
+                    if (activeLobby == null)
+                    {
+                        throw new LobbyNotFoundException("The requested lobby code does not exist or is closed.");
+                    }
+
+                    return activeLobby;
                 }
             }
             catch (DbException ex)
