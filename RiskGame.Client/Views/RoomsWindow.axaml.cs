@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using RiskGame.Contracts.Lobby;
 using RiskGame.Exceptions;
+using RiskGame.Resources;
 using RiskGame.ViewModels;
 
 namespace RiskGame.Views
@@ -15,7 +16,7 @@ namespace RiskGame.Views
             InitializeComponent();
         }
 
-        private void OnJoinRoomClick(object? sender, RoutedEventArgs e)
+        private void JoinRoomClick(object? sender, RoutedEventArgs e)
         {
             JoinMessageTextBlock.IsVisible = false;
             RoomCodeTextBox.Text = string.Empty;
@@ -24,19 +25,19 @@ namespace RiskGame.Views
             RoomCodeTextBox.Focus();
         }
 
-        private void OnCancelJoinRoomClick(object? sender, RoutedEventArgs e)
+        private void CancelJoinRoomClick(object? sender, RoutedEventArgs e)
         {
             JoinMessageTextBlock.IsVisible = false;
             JoinCodeStackPanel.IsVisible = false;
             MenuButtonsStackPanel.IsVisible = true;
         }
 
-        private void OnConfirmJoinRoomClick(object? sender, RoutedEventArgs e)
+        private void ConfirmJoinRoomClick(object? sender, RoutedEventArgs e)
         {
             string roomCode = (RoomCodeTextBox.Text ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(roomCode))
             {
-                ShowJoinError("Ingresa el código de la sala.");
+                ShowJoinError(Strings.RoomsErrorEmptyCode);
                 return;
             }
 

@@ -136,5 +136,35 @@ namespace RiskGame.Resources
         public static string LoginErrorDatabase => ResourceManager.GetString("LoginErrorDatabase", _resourceCulture);
 
         public static string LeaderboardErrorDatabase => ResourceManager.GetString("LeaderboardErrorDatabase", _resourceCulture);
+
+        public static string RoomsCodeLabel => ResourceManager.GetString("RoomsCodeLabel", _resourceCulture);
+
+        public static string RoomsErrorEmptyCode => ResourceManager.GetString("RoomsErrorEmptyCode", _resourceCulture);
+
+        public static string LobbyTitleLabel => ResourceManager.GetString("LobbyTitleLabel", _resourceCulture);
+
+        public static string LobbyRoomIdFormat => ResourceManager.GetString("LobbyRoomIdFormat", _resourceCulture);
+
+        public static string LobbyPlayersHeaderLabel => ResourceManager.GetString("LobbyPlayersHeaderLabel", _resourceCulture);
+
+        public static string LobbyFriendsHeaderLabel => ResourceManager.GetString("LobbyFriendsHeaderLabel", _resourceCulture);
+
+        public static string LobbyLeaveButton => ResourceManager.GetString("LobbyLeaveButton", _resourceCulture);
+
+        public static string LobbyOptionsButton => ResourceManager.GetString("LobbyOptionsButton", _resourceCulture);
+
+        public static string LobbyPlayButton => ResourceManager.GetString("LobbyPlayButton", _resourceCulture);
+
+        public static string LobbyDefaultPlayerName => ResourceManager.GetString("LobbyDefaultPlayerName", _resourceCulture);
+
+        public static string LobbyHostRoleLabel => ResourceManager.GetString("LobbyHostRoleLabel", _resourceCulture);
+
+        public static string LobbyConnectedRoleLabel => ResourceManager.GetString("LobbyConnectedRoleLabel", _resourceCulture);
+
+        public static string LobbyErrorNotFound => ResourceManager.GetString("LobbyErrorNotFound", _resourceCulture);
+
+        public static string LobbyErrorFull => ResourceManager.GetString("LobbyErrorFull", _resourceCulture);
+
+        public static string LobbyErrorConnectionFailed => ResourceManager.GetString("LobbyErrorConnectionFailed", _resourceCulture);
     }
 }

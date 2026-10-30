@@ -4,8 +4,9 @@ namespace RiskGame.Services
 {
     public static class SessionService
     {
-        private const int bottomUserIdRange = 1000;
-        private const int topUserIdRange = 9999;
+        private const int BottomUserIdRange = 1000;
+        private const int TopUserIdRange = 9999;
+        private const string GuestPrefix = "Invitado_";
 
         public static SessionUser? CurrentUser { get; private set; }
 
@@ -25,8 +26,8 @@ namespace RiskGame.Services
         {
             if (CurrentUser == null)
             {
-                int guestNumber = RandomNumberGenerator.GetInt32(bottomUserIdRange, topUserIdRange);
-                string guestAlias = $"Invitado_{guestNumber}";
+                int guestNumber = RandomNumberGenerator.GetInt32(BottomUserIdRange, TopUserIdRange);
+                string guestAlias = $"{GuestPrefix}{guestNumber}";
                 CurrentUser = new SessionUser(-guestNumber, guestAlias, guestAlias, null);
             }
 

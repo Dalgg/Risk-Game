@@ -2,49 +2,109 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:res="using:RiskGame.Resources"
         x:Class="RiskGame.Views.LobbyWindow"
-        Title="Lobby"
-        Width="850" Height="500"
+        Title="{x:Static res:Strings.RoomsTitleLabel}"
+        Width="850"
+        Height="500"
         Background="#181A25">
 
-    <Grid RowDefinitions="Auto, *, Auto" Margin="20">    
-        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Spacing="5" Margin="0,0,0,15">
-            <TextBlock Text="LOBBY" FontSize="32" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="RoomCodeTextBlock" Text="ID DE LA SALA: #9842-AX" FontSize="14" Foreground="#9EA1B2" HorizontalAlignment="Center" LetterSpacing="1"/>
+    <Grid RowDefinitions="Auto, *, Auto" Margin="20">
+        <StackPanel Grid.Row="0"
+                    HorizontalAlignment="Center"
+                    Spacing="5"
+                    Margin="0,0,0,15">
+            <TextBlock Text="{x:Static res:Strings.LobbyTitleLabel}"
+                       FontSize="32"
+                       FontWeight="Bold"
+                       Foreground="White"
+                       HorizontalAlignment="Center" />
+
+            <TextBlock x:Name="RoomCodeTextBlock"
+                       FontSize="14"
+                       Foreground="#9EA1B2"
+                       HorizontalAlignment="Center"
+                       LetterSpacing="1" />
         </StackPanel>
 
         <Grid Grid.Row="1" ColumnDefinitions="*, *" Margin="0,10,0,20">
-            <Border Grid.Column="0" BorderBrush="#2A2F5B" BorderThickness="2" CornerRadius="8" Margin="0,0,10,0" Padding="15">
+            <Border Grid.Column="0"
+                    BorderBrush="#2A2F5B"
+                    BorderThickness="2"
+                    CornerRadius="8"
+                    Margin="0,0,10,0"
+                    Padding="15">
                 <Grid RowDefinitions="Auto, *">
-                    <TextBlock Grid.Row="0" Text="JUGADORES EN LA SALA" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,0,0,15"/>
-                    <StackPanel x:Name="PlayersStackPanel" Grid.Row="1" Spacing="8">
-                    </StackPanel>
+                    <TextBlock Grid.Row="0"
+                               Text="{x:Static res:Strings.LobbyPlayersHeaderLabel}"
+                               Foreground="White"
+                               FontSize="16"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,15" />
+
+                    <StackPanel x:Name="PlayersStackPanel" Grid.Row="1" Spacing="8" />
                 </Grid>
             </Border>
 
-            <Border Grid.Column="1" BorderBrush="#2A2F5B" BorderThickness="2" CornerRadius="8" Margin="10,0,0,0" Padding="15">
+            <Border Grid.Column="1"
+                    BorderBrush="#2A2F5B"
+                    BorderThickness="2"
+                    CornerRadius="8"
+                    Margin="10,0,0,0"
+                    Padding="15">
                 <Grid RowDefinitions="Auto, *">
-                    <TextBlock Grid.Row="0" Text="AMIGOS" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,0,0,15"/>                    
-                    <StackPanel x:Name="FriendsStackPanel" Grid.Row="1" Spacing="8">
-                    </StackPanel>
+                    <TextBlock Grid.Row="0"
+                               Text="{x:Static res:Strings.LobbyFriendsHeaderLabel}"
+                               Foreground="White"
+                               FontSize="16"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,15" />
+
+                    <StackPanel x:Name="FriendsStackPanel" Grid.Row="1" Spacing="8" />
                 </Grid>
             </Border>
         </Grid>
 
         <Grid Grid.Row="2" ColumnDefinitions="Auto, *, Auto, *, Auto">
-            <Button Grid.Column="0" Content="SALIR" Background="#B02C3A" Foreground="White" FontSize="16" FontWeight="Bold" 
-                    Width="180" Height="45" CornerRadius="6" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
-                    Click="OnLeaveLobbyClick"/>            
-                    
-            <Button Grid.Column="2" Background="#3B4252" Foreground="White" FontSize="16" FontWeight="Bold" 
-                    Width="180" Height="45" CornerRadius="6" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <TextBlock Text="OPCIONES" VerticalAlignment="Center"/>
-                    <TextBlock Text="⚙" FontSize="20" VerticalAlignment="Center" Margin="0,-2,0,0"/>
-                </StackPanel>
-            </Button>
-            
-            <Button Grid.Column="4" Content="JUGAR" Background="#D4A32D" Foreground="White" FontSize="16" FontWeight="Bold" 
-                    Width="180" Height="45" CornerRadius="6" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            <Button Grid.Column="0"
+                    Content="{x:Static res:Strings.LobbyLeaveButton}"
+                    Background="#B02C3A"
+                    Foreground="White"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Width="180"
+                    Height="45"
+                    CornerRadius="6"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    TabIndex="0"
+                    IsCancel="True"
+                    Click="LeaveLobbyClick" />
+
+            <Button Grid.Column="2"
+                    Content="{x:Static res:Strings.LobbyOptionsButton}"
+                    Background="#3B4252"
+                    Foreground="White"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Width="180"
+                    Height="45"
+                    CornerRadius="6"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    TabIndex="1" />
+
+            <Button Grid.Column="4"
+                    Content="{x:Static res:Strings.LobbyPlayButton}"
+                    Background="#D4A32D"
+                    Foreground="White"
+                    FontSize="16"
+                    FontWeight="Bold"
+                    Width="180"
+                    Height="45"
+                    CornerRadius="6"
+                    HorizontalContentAlignment="Center"
+                    VerticalContentAlignment="Center"
+                    TabIndex="2"
+                    IsDefault="True" />
         </Grid>
     </Grid>
 </Window>

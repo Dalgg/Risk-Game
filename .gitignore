@@ -12,3 +12,6 @@ obj/
 
 *.local
 appsettings.local.json
+logs/
+*.jsonl
+.vscode/

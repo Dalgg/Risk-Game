@@ -3,25 +3,33 @@
         xmlns:res="using:RiskGame.Resources"
         x:Class="RiskGame.Views.RoomsWindow"
         Title="{x:Static res:Strings.RoomsTitleLabel}"
-        Width="600" Height="420"
+        Width="600"
+        Height="420"
         Background="#1E1E1E">
 
     <Border Background="#5C5C5C" Margin="40">
         <Grid>
-            <StackPanel x:Name="MenuButtonsStackPanel" HorizontalAlignment="Center" VerticalAlignment="Center" 
-                Spacing="25">
+            <StackPanel x:Name="MenuButtonsStackPanel"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="25">
 
-                <TextBlock Text="{x:Static res:Strings.RoomsTitleLabel}" Foreground="White" FontSize="32"
+                <TextBlock Text="{x:Static res:Strings.RoomsTitleLabel}"
+                           Foreground="White"
+                           FontSize="32"
                            HorizontalAlignment="Center"
                            Margin="0,0,0,15" />
 
-                <Button Content="{x:Static res:Strings.RoomsCreateRoomButton}" Background="#0084FF" Foreground="White"
+                <Button Content="{x:Static res:Strings.RoomsCreateRoomButton}"
+                        Background="#0084FF"
+                        Foreground="White"
                         FontSize="20"
                         CornerRadius="10"
                         Width="220"
                         Height="50"
                         HorizontalContentAlignment="Center"
-                        VerticalContentAlignment="Center" />
+                        VerticalContentAlignment="Center"
+                        TabIndex="0" />
 
                 <Button Content="{x:Static res:Strings.RoomsJoinRoomButton}"
                         Background="#F4882A"
@@ -32,7 +40,8 @@
                         Height="50"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
-                        Click="OnJoinRoomClick" />
+                        TabIndex="1"
+                        Click="JoinRoomClick" />
 
                 <Button Content="{x:Static res:Strings.GlobalBackButton}"
                         Background="#F92A54"
@@ -43,6 +52,8 @@
                         Height="50"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
+                        TabIndex="2"
+                        IsCancel="True"
                         Click="BackClick" />
             </StackPanel>
 
@@ -59,7 +70,7 @@
                            HorizontalAlignment="Center"
                            Margin="0,0,0,5" />
 
-                <TextBlock Text="Código de la sala:"
+                <TextBlock Text="{x:Static res:Strings.RoomsCodeLabel}"
                            Foreground="White"
                            FontSize="16"
                            HorizontalAlignment="Center" />
@@ -71,7 +82,8 @@
                          MaxLength="10"
                          CornerRadius="0"
                          HorizontalContentAlignment="Center"
-                         VerticalContentAlignment="Center" />
+                         VerticalContentAlignment="Center"
+                         TabIndex="3" />
 
                 <TextBlock x:Name="JoinMessageTextBlock"
                            IsVisible="False"
@@ -95,8 +107,9 @@
                             Height="40"
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
+                            TabIndex="4"
                             IsDefault="True"
-                            Click="OnConfirmJoinRoomClick" />
+                            Click="ConfirmJoinRoomClick" />
 
                     <Button Content="{x:Static res:Strings.GlobalBackButton}"
                             Background="#F92A54"
@@ -107,8 +120,9 @@
                             Height="40"
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
+                            TabIndex="5"
                             IsCancel="True"
-                            Click="OnCancelJoinRoomClick" />
+                            Click="CancelJoinRoomClick" />
                 </StackPanel>
             </StackPanel>
         </Grid>

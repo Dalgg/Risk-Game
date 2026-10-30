@@ -77,4 +77,19 @@
   <data name="LeaderboardErrorDatabase" xml:space="preserve">
     <value>Could not load scores due to a connection error.</value>
   </data>
+  <data name="RoomsCodeLabel" xml:space="preserve"><value>Room code:</value></data>
+  <data name="RoomsErrorEmptyCode" xml:space="preserve"><value>Enter the room code.</value></data>
+  <data name="LobbyTitleLabel" xml:space="preserve"><value>LOBBY</value></data>
+  <data name="LobbyRoomIdFormat" xml:space="preserve"><value>ROOM ID: #{0}</value></data>
+  <data name="LobbyPlayersHeaderLabel" xml:space="preserve"><value>PLAYERS IN ROOM</value></data>
+  <data name="LobbyFriendsHeaderLabel" xml:space="preserve"><value>FRIENDS</value></data>
+  <data name="LobbyLeaveButton" xml:space="preserve"><value>LEAVE</value></data>
+  <data name="LobbyOptionsButton" xml:space="preserve"><value>OPTIONS</value></data>
+  <data name="LobbyPlayButton" xml:space="preserve"><value>PLAY</value></data>
+  <data name="LobbyDefaultPlayerName" xml:space="preserve"><value>Player</value></data>
+  <data name="LobbyHostRoleLabel" xml:space="preserve"><value>HOST</value></data>
+  <data name="LobbyConnectedRoleLabel" xml:space="preserve"><value>CONNECTED</value></data>
+  <data name="LobbyErrorNotFound" xml:space="preserve"><value>No active room was found with that code.</value></data>
+  <data name="LobbyErrorFull" xml:space="preserve"><value>The room is already full (maximum 4 players).</value></data>
+  <data name="LobbyErrorConnectionFailed" xml:space="preserve"><value>Could not connect to the lobby server.</value></data>
 </root>

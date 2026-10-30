@@ -79,4 +79,19 @@
   <data name="LeaderboardErrorDatabase" xml:space="preserve">
     <value>No se pudieron cargar las puntuaciones por un error de conexión.</value>
   </data>
+  <data name="RoomsCodeLabel" xml:space="preserve"><value>Código de la sala:</value></data>
+  <data name="RoomsErrorEmptyCode" xml:space="preserve"><value>Ingresa el código de la sala.</value></data>
+  <data name="LobbyTitleLabel" xml:space="preserve"><value>LOBBY</value></data>
+  <data name="LobbyRoomIdFormat" xml:space="preserve"><value>ID DE LA SALA: #{0}</value></data>
+  <data name="LobbyPlayersHeaderLabel" xml:space="preserve"><value>JUGADORES EN LA SALA</value></data>
+  <data name="LobbyFriendsHeaderLabel" xml:space="preserve"><value>AMIGOS</value></data>
+  <data name="LobbyLeaveButton" xml:space="preserve"><value>SALIR</value></data>
+  <data name="LobbyOptionsButton" xml:space="preserve"><value>OPCIONES</value></data>
+  <data name="LobbyPlayButton" xml:space="preserve"><value>JUGAR</value></data>
+  <data name="LobbyDefaultPlayerName" xml:space="preserve"><value>Jugador</value></data>
+  <data name="LobbyHostRoleLabel" xml:space="preserve"><value>ANFITRIÓN</value></data>
+  <data name="LobbyConnectedRoleLabel" xml:space="preserve"><value>CONECTADO</value></data>
+  <data name="LobbyErrorNotFound" xml:space="preserve"><value>No se encontró ninguna sala activa con ese código.</value></data>
+  <data name="LobbyErrorFull" xml:space="preserve"><value>La sala ya está llena (máximo 4 jugadores).</value></data>
+  <data name="LobbyErrorConnectionFailed" xml:space="preserve"><value>No se pudo conectar con el servidor de salas.</value></data>
 </root>

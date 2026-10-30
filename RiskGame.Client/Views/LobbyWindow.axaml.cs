@@ -9,29 +9,37 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using RiskGame.Callbacks;
 using RiskGame.Contracts.Lobby;
+using RiskGame.Resources;
 using RiskGame.ViewModels;
 
 namespace RiskGame.Views
 {
     public partial class LobbyWindow : Window, ILobbyCallback
     {
+        private const int PlayerNameFontSize = 16;
+        private const int PlayerRoleFontSize = 12;
+        private const int PlayerCardCornerRadius = 6;
+        private const int CardHorizontalPadding = 12;
+        private const int CardVerticalPadding = 10;
+        private const int NameColumnIndex = 0;
+        private const int RoleColumnIndex = 1;
         private static readonly IBrush PlayerCardBackground = new SolidColorBrush(Color.Parse("#25293A"));
         private static readonly IBrush HostBadgeBrush = new SolidColorBrush(Color.Parse("#D4A32D"));
         private static readonly IBrush PlayerNameBrush = Brushes.White;
-        private readonly LobbyViewModel _lobbyViewModel;
-        private bool _hasLeftLobby;
+        private readonly LobbyViewModel lobbyViewModel;
+        private bool hasLeftLobby;
 
         public LobbyWindow()
         {
             InitializeComponent();
-            _lobbyViewModel = new LobbyViewModel();
+            lobbyViewModel = new LobbyViewModel();
         }
 
-        public LobbyWindow(LobbyDetails initialDetails, LobbyViewModel lobbyViewModel) : this()
+        public LobbyWindow(LobbyDetails initialDetails, LobbyViewModel currentLobbyViewModel) : this()
         {
-            _lobbyViewModel = lobbyViewModel;
+            lobbyViewModel = currentLobbyViewModel;
             ApplyLobbyDetails(initialDetails);
-            _lobbyViewModel.SubscribeToEvents(this);
+            lobbyViewModel.SubscribeToEvents(this);
         }
 
         public void LobbyChanged(LobbyChanged notification)
@@ -62,7 +70,7 @@ namespace RiskGame.Views
 
         private void ApplyLobbyDetails(LobbyDetails details)
         {
-            RoomCodeTextBlock.Text = $"ID DE LA SALA: #{details.LobbyCode}";
+            RoomCodeTextBlock.Text = string.Format(Strings.LobbyRoomIdFormat, details.LobbyCode);
             RenderPlayers(details.Players);
         }
 
@@ -79,8 +87,8 @@ namespace RiskGame.Views
 
         private static Border CreatePlayerCard(LobbyPlayer lobbyPlayer)
         {
-            string displayName = lobbyPlayer.Player?.Nickname ?? "Jugador";
-            string roleText = lobbyPlayer.IsHost ? "ANFITRIÓN" : "CONECTADO";
+            string displayName = lobbyPlayer.Player?.Nickname ?? Strings.LobbyDefaultPlayerName;
+            string roleText = lobbyPlayer.IsHost ? Strings.LobbyHostRoleLabel : Strings.LobbyConnectedRoleLabel;
 
             Grid cardGrid = new Grid
             {
@@ -91,21 +99,21 @@ namespace RiskGame.Views
             {
                 Text = displayName,
                 Foreground = PlayerNameBrush,
-                FontSize = 16,
+                FontSize = PlayerNameFontSize,
                 FontWeight = FontWeight.SemiBold,
                 VerticalAlignment = VerticalAlignment.Center
             };
-            Grid.SetColumn(nameBlock, 0);
+            Grid.SetColumn(nameBlock, NameColumnIndex);
 
             TextBlock roleBlock = new TextBlock
             {
                 Text = roleText,
                 Foreground = HostBadgeBrush,
-                FontSize = 12,
+                FontSize = PlayerRoleFontSize,
                 FontWeight = FontWeight.Bold,
                 VerticalAlignment = VerticalAlignment.Center
             };
-            Grid.SetColumn(roleBlock, 1);
+            Grid.SetColumn(roleBlock, RoleColumnIndex);
 
             cardGrid.Children.Add(nameBlock);
             cardGrid.Children.Add(roleBlock);
@@ -113,13 +121,13 @@ namespace RiskGame.Views
             return new Border
             {
                 Background = PlayerCardBackground,
-                CornerRadius = new CornerRadius(6),
-                Padding = new Thickness(12, 10),
+                CornerRadius = new CornerRadius(PlayerCardCornerRadius),
+                Padding = new Thickness(CardHorizontalPadding, CardVerticalPadding),
                 Child = cardGrid
             };
         }
 
-        private void OnLeaveLobbyClick(object? sender, RoutedEventArgs e)
+        private void LeaveLobbyClick(object? sender, RoutedEventArgs e)
         {
             EnsureLobbyLeft();
             ReturnToRoomsWindow();
@@ -127,10 +135,10 @@ namespace RiskGame.Views
 
         private void EnsureLobbyLeft()
         {
-            if (!_hasLeftLobby)
+            if (!hasLeftLobby)
             {
-                _hasLeftLobby = true;
-                _lobbyViewModel.LeaveLobby();
+                hasLeftLobby = true;
+                lobbyViewModel.LeaveLobby();
             }
         }
 

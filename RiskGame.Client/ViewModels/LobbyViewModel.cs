@@ -7,6 +7,7 @@ using Grpc.Net.Client;
 using RiskGame.Callbacks;
 using RiskGame.Contracts.Lobby;
 using RiskGame.Exceptions;
+using RiskGame.Resources;
 using RiskGame.Services;
 
 namespace RiskGame.ViewModels
@@ -17,7 +18,7 @@ namespace RiskGame.ViewModels
         private const string NicknameHeaderKey = "nickname";
         private const string AvatarHeaderKey = "avatar-reference";
         private const string IsGuestHeaderKey = "is-guest";
-        private CancellationTokenSource? _streamCancellation;
+        private CancellationTokenSource? streamCancellation;
 
         public LobbyDetails JoinLobby(string roomCode)
         {
@@ -30,16 +31,16 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
             {
-                throw new LobbyNotFoundException("No se encontró ninguna sala activa con ese código.", ex);
+                throw new LobbyNotFoundException(Strings.LobbyErrorNotFound, ex);
             }
             catch (RpcException ex) when (ex.StatusCode == StatusCode.ResourceExhausted)
             {
-                throw new LobbyFullException("La sala ya está llena (máximo 4 jugadores).", ex);
+                throw new LobbyFullException(Strings.LobbyErrorFull, ex);
             }
             catch (RpcException ex)
             {
                 JsonLogger.Error(ex, "gRPC communication error (RpcException) while joining lobby {0}.", roomCode);
-                throw new DataOperationException("No se pudo conectar con el servidor de salas.", ex);
+                throw new DataOperationException(Strings.LobbyErrorConnectionFailed, ex);
             }
         }
 
@@ -62,8 +63,8 @@ namespace RiskGame.ViewModels
         public void SubscribeToEvents(ILobbyCallback callback)
         {
             StopSubscription();
-            _streamCancellation = new CancellationTokenSource();
-            CancellationToken cancellationToken = _streamCancellation.Token;
+            streamCancellation = new CancellationTokenSource();
+            CancellationToken cancellationToken = streamCancellation.Token;
             Task.Run(() =>
             {
                 try
@@ -85,9 +86,11 @@ namespace RiskGame.ViewModels
                 }
                 catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
                 {
+                    JsonLogger.Error(ex, "Lobby event stream cancelled by client.");
                 }
-                catch (OperationCanceledException)
+                catch (OperationCanceledException ex)
                 {
+                    JsonLogger.Error(ex, "Lobby event stream subscription operation cancelled.");
                 }
                 catch (RpcException ex)
                 {
@@ -98,11 +101,11 @@ namespace RiskGame.ViewModels
 
         public void StopSubscription()
         {
-            if (_streamCancellation != null)
+            if (streamCancellation != null)
             {
-                _streamCancellation.Cancel();
-                _streamCancellation.Dispose();
-                _streamCancellation = null;
+                streamCancellation.Cancel();
+                streamCancellation.Dispose();
+                streamCancellation = null;
             }
         }
 
