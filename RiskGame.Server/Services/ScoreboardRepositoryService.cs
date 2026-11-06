@@ -20,38 +20,49 @@ namespace RiskGame.Server.Services
     {
         private const int DefaultTopPlayersLimit = 10;
 
-        public IReadOnlyList<ServerScoreEntry> GetGlobalScores(bool isDescending, int limit = DefaultTopPlayersLimit)
+        public IReadOnlyList<ServerScoreEntry> GetGlobalScores(bool isDescending, int scoreLimit = DefaultTopPlayersLimit)
         {
-            int effectiveLimit = limit > 0 ? limit : DefaultTopPlayersLimit;
+            int effectiveScoreLimit = DefaultTopPlayersLimit;
+            if (scoreLimit > 0)
+            {
+                effectiveScoreLimit = scoreLimit;
+            }
 
             try
             {
-                using (RiskGameContext context = new RiskGameContext())
+                using (RiskGameContext databaseContext = new RiskGameContext())
                 {
-                    IQueryable<ServerScoreEntry> query = context.Users.Select(user => new ServerScoreEntry
+                    IQueryable<ServerScoreEntry> scoreQuery = databaseContext.Users.Select(userEntity => new ServerScoreEntry
                     {
-                        Username = user.Username,
-                        TotalScore = user.MatchResults.Sum(matchResult => matchResult.FinalScore ?? 0)
+                        Username = userEntity.Username,
+                        TotalScore = userEntity.MatchResults
+                            .Where(matchResult => matchResult.FinalScore != null)
+                            .Sum(matchResult => matchResult.FinalScore!.Value)
                     });
 
-                    query = isDescending
-                        ? query.OrderByDescending(score => score.TotalScore)
-                        : query.OrderBy(score => score.TotalScore);
-
-                    List<ServerScoreEntry> topScores = query.Take(effectiveLimit).ToList();
-
-                    for (int index = 0; index < topScores.Count; index++)
+                    if (isDescending)
                     {
-                        topScores[index] = topScores[index] with { Rank = index + 1 };
+                        scoreQuery = scoreQuery.OrderByDescending(scoreEntry => scoreEntry.TotalScore);
+                    }
+                    else
+                    {
+                        scoreQuery = scoreQuery.OrderBy(scoreEntry => scoreEntry.TotalScore);
                     }
 
-                    return topScores;
+                    List<ServerScoreEntry> topScoreEntries = scoreQuery.Take(effectiveScoreLimit).ToList();
+
+                    for (int entryIndex = 0; entryIndex < topScoreEntries.Count; entryIndex++)
+                    {
+                        topScoreEntries[entryIndex] = topScoreEntries[entryIndex] with { Rank = entryIndex + 1 };
+                    }
+
+                    return topScoreEntries;
                 }
             }
-            catch (DbException ex)
+            catch (DbException databaseException)
             {
-                JsonLogger.Error(ex, "Connection error (DbException) while loading leaderboard on server.");
-                throw new DataOperationException("Could not retrieve global scores from the database.", ex);
+                JsonLogger.Error(databaseException, "Connection error (DbException) while loading leaderboard on server.");
+                throw new DataOperationException("Could not retrieve global scores from the database.", databaseException);
             }
         }
     }

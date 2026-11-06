@@ -14,6 +14,13 @@ service Lobby {
   rpc SubscribeLobbyEvents (google.protobuf.Empty) returns (stream LobbyEvent);
 }
 
+service LobbyRoom {
+  rpc SetReady (google.protobuf.BoolValue) returns (google.protobuf.Empty);
+  rpc UpdateRules (LobbyRules) returns (google.protobuf.Empty);
+  rpc KickPlayer (google.protobuf.Int32Value) returns (google.protobuf.Empty);
+  rpc StartMatch (google.protobuf.Empty) returns (google.protobuf.Int32Value);
+}
+
 enum LobbyStatus {
   LOBBY_STATUS_WAITING = 0;
   LOBBY_STATUS_STARTING = 1;

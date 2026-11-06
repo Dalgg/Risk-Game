@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using RiskGame.Contracts.Chat;
 using RiskGame.Contracts.Common;
 using RiskGame.Contracts.Lobby;
 using RiskGame.Exceptions;
@@ -13,7 +15,11 @@ namespace RiskGame.Server.Services
     public sealed class LobbySessionManager
     {
         private const int MaxPlayersPerLobby = 4;
+        private const int MinimumPlayersToStart = 2;
+        private const int DefaultTurnDurationSeconds = 60;
+        private const int MaxChatMessageLength = 120;
         private const string FastRulesVariantName = "Fast";
+        private const string StandardRulesVariantName = "Standard";
         private readonly object syncLock = new object();
         private readonly Dictionary<string, ActiveLobbyRoom> roomsByCode = new Dictionary<string, ActiveLobbyRoom>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<int, string> userToLobbyCode = new Dictionary<int, string>();
@@ -24,163 +30,356 @@ namespace RiskGame.Server.Services
             this.lobbyRepository = lobbyRepository;
         }
 
-        public LobbyDetails JoinLobby(string lobbyCode, PlayerSummary player)
+        public LobbyDetails CreateLobby(LobbyRules requestedRules, PlayerSummary hostPlayer)
         {
-            string normalizedCode = (lobbyCode ?? string.Empty).Trim();
-            RiskGame.Models.Lobby dbLobby = lobbyRepository.GetActiveLobbyByCode(normalizedCode);
+            string rulesVariantName = StandardRulesVariantName;
+            if (requestedRules != null && requestedRules.RulesVariant == RulesVariant.Fast)
+            {
+                rulesVariantName = FastRulesVariantName;
+            }
 
-            LobbyDetails snapshot;
+            int turnDurationSeconds = DefaultTurnDurationSeconds;
+            if (requestedRules != null && requestedRules.TurnDurationSeconds > 0)
+            {
+                turnDurationSeconds = requestedRules.TurnDurationSeconds;
+            }
+
+            RiskGame.Models.Lobby createdDatabaseLobby = lobbyRepository.CreateLobbyInDatabase(
+                rulesVariantName,
+                turnDurationSeconds);
+
+            return JoinLobby(createdDatabaseLobby.LobbyCode, hostPlayer);
+        }
+
+        public LobbyDetails JoinLobby(string lobbyCode, PlayerSummary joiningPlayer)
+        {
+            string normalizedLobbyCode = string.Empty;
+            if (lobbyCode != null)
+            {
+                normalizedLobbyCode = lobbyCode.Trim();
+            }
+
+            RiskGame.Models.Lobby databaseLobby = lobbyRepository.GetActiveLobbyByCode(normalizedLobbyCode);
+            LobbyDetails lobbySnapshot;
             List<IServerStreamWriter<LobbyEvent>> subscribersToNotify;
 
             lock (syncLock)
             {
-                RemovePlayerFromCurrentLobbyInternal(player.UserId);
+                RemovePlayerFromCurrentLobbyInternal(joiningPlayer.UserId);
 
-                if (!roomsByCode.TryGetValue(dbLobby.LobbyCode, out ActiveLobbyRoom? room))
+                ActiveLobbyRoom activeLobbyRoom;
+                if (roomsByCode.ContainsKey(databaseLobby.LobbyCode))
                 {
-                    room = CreateRoomFromEntity(dbLobby, player.UserId);
-                    roomsByCode[dbLobby.LobbyCode] = room;
+                    activeLobbyRoom = roomsByCode[databaseLobby.LobbyCode];
+                }
+                else
+                {
+                    activeLobbyRoom = CreateRoomFromEntity(databaseLobby, joiningPlayer.UserId);
+                    roomsByCode[databaseLobby.LobbyCode] = activeLobbyRoom;
                 }
 
-                LobbyPlayer? existingPlayer = room.Players.FirstOrDefault(candidate => candidate.Player.UserId == player.UserId);
-                if (existingPlayer == null)
+                LobbyPlayer? existingLobbyPlayer = activeLobbyRoom.Players.FirstOrDefault(
+                    registeredPlayer => registeredPlayer.Player.UserId == joiningPlayer.UserId);
+
+                if (existingLobbyPlayer == null)
                 {
-                    if (room.Players.Count >= MaxPlayersPerLobby)
+                    if (activeLobbyRoom.Players.Count >= MaxPlayersPerLobby)
                     {
                         throw new LobbyFullException("The lobby has reached the maximum of 4 players.");
                     }
 
-                    bool isHost = room.Players.Count == 0;
-                    if (isHost)
+                    bool isRoomHost = activeLobbyRoom.Players.Count == 0;
+                    if (isRoomHost)
                     {
-                        room.HostUserId = player.UserId;
+                        activeLobbyRoom.HostUserId = joiningPlayer.UserId;
                     }
 
-                    PlayerColor assignedColor = AssignAvailableColor(room.Players);
+                    PlayerColor assignedPlayerColor = AssignAvailableColor(activeLobbyRoom.Players);
                     LobbyPlayer newLobbyPlayer = new LobbyPlayer
                     {
-                        Player = player,
+                        Player = joiningPlayer,
                         IsReady = false,
-                        IsHost = isHost,
-                        Color = assignedColor
+                        IsHost = isRoomHost,
+                        Color = assignedPlayerColor
                     };
 
-                    room.Players.Add(newLobbyPlayer);
+                    activeLobbyRoom.Players.Add(newLobbyPlayer);
                 }
 
-                userToLobbyCode[player.UserId] = room.LobbyCode;
-                snapshot = BuildLobbyDetails(room);
-                subscribersToNotify = room.Subscribers.Values.ToList();
+                userToLobbyCode[joiningPlayer.UserId] = activeLobbyRoom.LobbyCode;
+                lobbySnapshot = BuildLobbyDetails(activeLobbyRoom);
+                subscribersToNotify = activeLobbyRoom.Subscribers.Values.ToList();
             }
 
-            LobbyChanged joinedChange = new LobbyChanged
+            LobbyChanged joinedLobbyChange = new LobbyChanged
             {
                 Change = LobbyChangeType.PlayerJoined,
-                Lobby = snapshot,
-                AffectedUserId = player.UserId
+                Lobby = lobbySnapshot,
+                AffectedUserId = joiningPlayer.UserId
             };
-            BroadcastLobbyChanged(subscribersToNotify, joinedChange);
-            return snapshot;
+            BroadcastLobbyChanged(subscribersToNotify, joinedLobbyChange);
+            return lobbySnapshot;
         }
 
-        public void LeaveLobby(int userId)
+        public void LeaveLobby(int leavingUserId)
         {
-            LobbyDetails? snapshot = null;
+            LobbyDetails? lobbySnapshot = null;
             List<IServerStreamWriter<LobbyEvent>> subscribersToNotify = new List<IServerStreamWriter<LobbyEvent>>();
 
             lock (syncLock)
             {
-                if (userToLobbyCode.TryGetValue(userId, out string? lobbyCode)
-                    && roomsByCode.TryGetValue(lobbyCode, out ActiveLobbyRoom? room))
+                if (userToLobbyCode.ContainsKey(leavingUserId))
                 {
-                    RemovePlayerFromRoom(room, userId);
-                    userToLobbyCode.Remove(userId);
+                    string assignedLobbyCode = userToLobbyCode[leavingUserId];
+                    if (roomsByCode.ContainsKey(assignedLobbyCode))
+                    {
+                        ActiveLobbyRoom activeLobbyRoom = roomsByCode[assignedLobbyCode];
+                        RemovePlayerFromRoom(activeLobbyRoom, leavingUserId);
+                        userToLobbyCode.Remove(leavingUserId);
 
-                    if (room.Players.Count > 0)
-                    {
-                        snapshot = BuildLobbyDetails(room);
-                        subscribersToNotify = room.Subscribers.Values.ToList();
-                    }
-                    else
-                    {
-                        roomsByCode.Remove(lobbyCode);
+                        if (activeLobbyRoom.Players.Count > 0)
+                        {
+                            lobbySnapshot = BuildLobbyDetails(activeLobbyRoom);
+                            subscribersToNotify = activeLobbyRoom.Subscribers.Values.ToList();
+                        }
+                        else
+                        {
+                            roomsByCode.Remove(assignedLobbyCode);
+                        }
                     }
                 }
             }
 
-            if (snapshot != null && subscribersToNotify.Count > 0)
+            if (lobbySnapshot != null && subscribersToNotify.Count > 0)
             {
-                LobbyChanged leftChange = new LobbyChanged
+                LobbyChanged leftLobbyChange = new LobbyChanged
                 {
                     Change = LobbyChangeType.PlayerLeft,
-                    Lobby = snapshot,
-                    AffectedUserId = userId
+                    Lobby = lobbySnapshot,
+                    AffectedUserId = leavingUserId
                 };
-                BroadcastLobbyChanged(subscribersToNotify, leftChange);
+                BroadcastLobbyChanged(subscribersToNotify, leftLobbyChange);
             }
         }
 
-        public LobbyDetails? RegisterSubscriber(int userId, IServerStreamWriter<LobbyEvent> responseStream)
+        public LobbyDetails? RegisterSubscriber(int subscriberUserId, IServerStreamWriter<LobbyEvent> responseStream)
         {
             lock (syncLock)
             {
-                if (!userToLobbyCode.TryGetValue(userId, out string? lobbyCode)
-                    || !roomsByCode.TryGetValue(lobbyCode, out ActiveLobbyRoom? room))
+                if (!userToLobbyCode.ContainsKey(subscriberUserId))
                 {
                     return null;
                 }
 
-                room.Subscribers[userId] = responseStream;
-                return BuildLobbyDetails(room);
+                string assignedLobbyCode = userToLobbyCode[subscriberUserId];
+                if (!roomsByCode.ContainsKey(assignedLobbyCode))
+                {
+                    return null;
+                }
+
+                ActiveLobbyRoom activeLobbyRoom = roomsByCode[assignedLobbyCode];
+                activeLobbyRoom.Subscribers[subscriberUserId] = responseStream;
+                return BuildLobbyDetails(activeLobbyRoom);
             }
         }
 
-        public void UnregisterSubscriber(int userId)
+        public void UnregisterSubscriber(int subscriberUserId)
         {
-            LeaveLobby(userId);
+            LeaveLobby(subscriberUserId);
         }
 
-        private void RemovePlayerFromCurrentLobbyInternal(int userId)
+        public int StartMatch(int requestingUserId)
         {
-            if (userToLobbyCode.TryGetValue(userId, out string? currentCode)
-                && roomsByCode.TryGetValue(currentCode, out ActiveLobbyRoom? currentRoom))
+            int targetLobbyId;
+            string targetLobbyCode;
+            List<IServerStreamWriter<LobbyEvent>> subscribersToNotify;
+
+            lock (syncLock)
             {
-                RemovePlayerFromRoom(currentRoom, userId);
-                userToLobbyCode.Remove(userId);
+                if (!userToLobbyCode.ContainsKey(requestingUserId))
+                {
+                    throw new LobbyNotFoundException("The player is not currently in an active lobby.");
+                }
+
+                targetLobbyCode = userToLobbyCode[requestingUserId];
+                if (!roomsByCode.ContainsKey(targetLobbyCode))
+                {
+                    throw new LobbyNotFoundException("The lobby does not exist or is already closed.");
+                }
+
+                ActiveLobbyRoom activeLobbyRoom = roomsByCode[targetLobbyCode];
+                if (activeLobbyRoom.HostUserId != requestingUserId)
+                {
+                    throw new InvalidOperationException("Only the lobby host can start the match.");
+                }
+
+                if (activeLobbyRoom.Players.Count < MinimumPlayersToStart)
+                {
+                    throw new InvalidOperationException("At least 2 players are required to start the match.");
+                }
+
+                targetLobbyId = activeLobbyRoom.LobbyId;
+                subscribersToNotify = activeLobbyRoom.Subscribers.Values.ToList();
+            }
+
+            int createdMatchId = lobbyRepository.CreateMatchInDatabase(targetLobbyId);
+
+            lock (syncLock)
+            {
+                if (roomsByCode.ContainsKey(targetLobbyCode))
+                {
+                    ActiveLobbyRoom activeLobbyRoom = roomsByCode[targetLobbyCode];
+                    activeLobbyRoom.Status = LobbyStatus.InMatch;
+                }
+            }
+
+            LobbyEvent matchStartingEvent = new LobbyEvent
+            {
+                MatchStarting = new MatchStarting
+                {
+                    MatchId = createdMatchId
+                }
+            };
+
+            BroadcastLobbyEvent(subscribersToNotify, matchStartingEvent);
+            return createdMatchId;
+        }
+
+        public void RegisterChatSubscriber(int subscriberUserId, IServerStreamWriter<ChatMessage> responseStream)
+        {
+            lock (syncLock)
+            {
+                if (!userToLobbyCode.ContainsKey(subscriberUserId))
+                {
+                    return;
+                }
+
+                string assignedLobbyCode = userToLobbyCode[subscriberUserId];
+                if (!roomsByCode.ContainsKey(assignedLobbyCode))
+                {
+                    return;
+                }
+
+                ActiveLobbyRoom activeLobbyRoom = roomsByCode[assignedLobbyCode];
+                activeLobbyRoom.ChatSubscribers[subscriberUserId] = responseStream;
             }
         }
 
-        private static void RemovePlayerFromRoom(ActiveLobbyRoom room, int userId)
+        public void UnregisterChatSubscriber(int subscriberUserId)
         {
-            room.Subscribers.Remove(userId);
-            LobbyPlayer? target = room.Players.FirstOrDefault(candidate => candidate.Player.UserId == userId);
-            if (target != null)
+            lock (syncLock)
             {
-                room.Players.Remove(target);
-            }
+                if (!userToLobbyCode.ContainsKey(subscriberUserId))
+                {
+                    return;
+                }
 
-            if (room.Players.Count > 0 && !room.Players.Any(candidate => candidate.IsHost))
-            {
-                room.Players[0].IsHost = true;
-                room.HostUserId = room.Players[0].Player.UserId;
+                string assignedLobbyCode = userToLobbyCode[subscriberUserId];
+                if (!roomsByCode.ContainsKey(assignedLobbyCode))
+                {
+                    return;
+                }
+
+                ActiveLobbyRoom activeLobbyRoom = roomsByCode[assignedLobbyCode];
+                activeLobbyRoom.ChatSubscribers.Remove(subscriberUserId);
             }
         }
 
-        private static ActiveLobbyRoom CreateRoomFromEntity(RiskGame.Models.Lobby dbLobby, int initialHostUserId)
+        public void SendLobbyChatMessage(PlayerSummary senderPlayer, string messageText)
         {
-            RulesVariant variant = string.Equals(dbLobby.RulesVariant, FastRulesVariantName, StringComparison.OrdinalIgnoreCase)
-                ? RulesVariant.Fast
-                : RulesVariant.Standard;
+            if (string.IsNullOrWhiteSpace(messageText))
+            {
+                return;
+            }
+
+            string trimmedMessageText = messageText.Trim();
+            if (trimmedMessageText.Length > MaxChatMessageLength)
+            {
+                throw new ArgumentException("Chat message exceeds the maximum allowed length.");
+            }
+
+            List<IServerStreamWriter<ChatMessage>> chatSubscribersToNotify;
+
+            lock (syncLock)
+            {
+                if (!userToLobbyCode.ContainsKey(senderPlayer.UserId))
+                {
+                    throw new LobbyNotFoundException("The sender is not currently in an active lobby.");
+                }
+
+                string assignedLobbyCode = userToLobbyCode[senderPlayer.UserId];
+                if (!roomsByCode.ContainsKey(assignedLobbyCode))
+                {
+                    throw new LobbyNotFoundException("The lobby does not exist.");
+                }
+
+                ActiveLobbyRoom activeLobbyRoom = roomsByCode[assignedLobbyCode];
+                chatSubscribersToNotify = activeLobbyRoom.ChatSubscribers.Values.ToList();
+            }
+
+            ChatMessage outgoingMessage = new ChatMessage
+            {
+                Scope = ChatScope.Lobby,
+                Text = trimmedMessageText,
+                Sender = senderPlayer,
+                SentAt = Timestamp.FromDateTime(DateTime.UtcNow)
+            };
+
+            BroadcastChatMessage(chatSubscribersToNotify, outgoingMessage);
+        }
+
+        private void RemovePlayerFromCurrentLobbyInternal(int targetUserId)
+        {
+            if (userToLobbyCode.ContainsKey(targetUserId))
+            {
+                string currentLobbyCode = userToLobbyCode[targetUserId];
+                if (roomsByCode.ContainsKey(currentLobbyCode))
+                {
+                    ActiveLobbyRoom currentLobbyRoom = roomsByCode[currentLobbyCode];
+                    RemovePlayerFromRoom(currentLobbyRoom, targetUserId);
+                    userToLobbyCode.Remove(targetUserId);
+                }
+            }
+        }
+
+        private static void RemovePlayerFromRoom(ActiveLobbyRoom activeLobbyRoom, int targetUserId)
+        {
+            activeLobbyRoom.Subscribers.Remove(targetUserId);
+            activeLobbyRoom.ChatSubscribers.Remove(targetUserId);
+            LobbyPlayer? matchingLobbyPlayer = activeLobbyRoom.Players.FirstOrDefault(
+                registeredPlayer => registeredPlayer.Player.UserId == targetUserId);
+
+            if (matchingLobbyPlayer != null)
+            {
+                activeLobbyRoom.Players.Remove(matchingLobbyPlayer);
+            }
+
+            bool hasActiveHost = activeLobbyRoom.Players.Any(registeredPlayer => registeredPlayer.IsHost);
+            if (activeLobbyRoom.Players.Count > 0 && !hasActiveHost)
+            {
+                activeLobbyRoom.Players[0].IsHost = true;
+                activeLobbyRoom.HostUserId = activeLobbyRoom.Players[0].Player.UserId;
+            }
+        }
+
+        private static ActiveLobbyRoom CreateRoomFromEntity(RiskGame.Models.Lobby databaseLobby, int initialHostUserId)
+        {
+            RulesVariant selectedRulesVariant = RulesVariant.Standard;
+            if (string.Equals(databaseLobby.RulesVariant, FastRulesVariantName, StringComparison.OrdinalIgnoreCase))
+            {
+                selectedRulesVariant = RulesVariant.Fast;
+            }
 
             return new ActiveLobbyRoom
             {
-                LobbyId = dbLobby.IdLobby,
-                LobbyCode = dbLobby.LobbyCode,
+                LobbyId = databaseLobby.IdLobby,
+                LobbyCode = databaseLobby.LobbyCode,
                 HostUserId = initialHostUserId,
+                Status = LobbyStatus.Waiting,
                 Rules = new LobbyRules
                 {
-                    RulesVariant = variant,
-                    TurnDurationSeconds = dbLobby.TurnDuration,
+                    RulesVariant = selectedRulesVariant,
+                    TurnDurationSeconds = databaseLobby.TurnDuration,
                     MaxPlayers = MaxPlayersPerLobby,
                     IsPrivate = false
                 }
@@ -189,7 +388,7 @@ namespace RiskGame.Server.Services
 
         private static PlayerColor AssignAvailableColor(IReadOnlyList<LobbyPlayer> existingPlayers)
         {
-            PlayerColor[] allColors = new[]
+            PlayerColor[] availableColors = new[]
             {
                 PlayerColor.Red,
                 PlayerColor.Blue,
@@ -197,60 +396,92 @@ namespace RiskGame.Server.Services
                 PlayerColor.Yellow
             };
 
-            foreach (PlayerColor color in allColors)
+            foreach (PlayerColor candidateColor in availableColors)
             {
-                if (!existingPlayers.Any(player => player.Color == color))
+                bool isColorTaken = existingPlayers.Any(registeredPlayer => registeredPlayer.Color == candidateColor);
+                if (!isColorTaken)
                 {
-                    return color;
+                    return candidateColor;
                 }
             }
 
             return PlayerColor.Red;
         }
 
-        private static LobbyDetails BuildLobbyDetails(ActiveLobbyRoom room)
+        private static LobbyDetails BuildLobbyDetails(ActiveLobbyRoom activeLobbyRoom)
         {
-            LobbyDetails details = new LobbyDetails
+            LobbyDetails lobbyDetails = new LobbyDetails
             {
-                LobbyId = room.LobbyId,
-                LobbyCode = room.LobbyCode,
-                HostUserId = room.HostUserId,
-                Rules = room.Rules.Clone(),
-                Status = LobbyStatus.Waiting
+                LobbyId = activeLobbyRoom.LobbyId,
+                LobbyCode = activeLobbyRoom.LobbyCode,
+                HostUserId = activeLobbyRoom.HostUserId,
+                Rules = activeLobbyRoom.Rules.Clone(),
+                Status = activeLobbyRoom.Status
             };
 
-            foreach (LobbyPlayer player in room.Players)
+            foreach (LobbyPlayer registeredPlayer in activeLobbyRoom.Players)
             {
-                details.Players.Add(player.Clone());
+                lobbyDetails.Players.Add(registeredPlayer.Clone());
             }
 
-            return details;
+            return lobbyDetails;
         }
 
         private static void BroadcastLobbyChanged(
             IReadOnlyList<IServerStreamWriter<LobbyEvent>> subscribers,
             LobbyChanged lobbyChanged)
         {
-            LobbyEvent notification = new LobbyEvent
+            LobbyEvent notificationEvent = new LobbyEvent
             {
                 LobbyChanged = lobbyChanged
             };
 
-            foreach (IServerStreamWriter<LobbyEvent> subscriber in subscribers)
+            BroadcastLobbyEvent(subscribers, notificationEvent);
+        }
+
+        private static void BroadcastLobbyEvent(
+            IReadOnlyList<IServerStreamWriter<LobbyEvent>> subscribers,
+            LobbyEvent notificationEvent)
+        {
+            foreach (IServerStreamWriter<LobbyEvent> subscriberStream in subscribers)
             {
                 Task.Run(() =>
                 {
                     try
                     {
-                        subscriber.WriteAsync(notification).GetAwaiter().GetResult();
+                        subscriberStream.WriteAsync(notificationEvent).GetAwaiter().GetResult();
                     }
-                    catch (InvalidOperationException ex)
+                    catch (InvalidOperationException invalidOperationException)
                     {
-                        JsonLogger.Error(ex, "Could not write lobby notification to subscriber stream.");
+                        JsonLogger.Error(invalidOperationException, "Could not write lobby notification to subscriber stream.");
                     }
-                    catch (RpcException ex)
+                    catch (RpcException rpcException)
                     {
-                        JsonLogger.Error(ex, "Could not write lobby notification to subscriber stream.");
+                        JsonLogger.Error(rpcException, "Could not write lobby notification to subscriber stream.");
+                    }
+                });
+            }
+        }
+
+        private static void BroadcastChatMessage(
+            IReadOnlyList<IServerStreamWriter<ChatMessage>> chatSubscribers,
+            ChatMessage outgoingMessage)
+        {
+            foreach (IServerStreamWriter<ChatMessage> chatSubscriberStream in chatSubscribers)
+            {
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        chatSubscriberStream.WriteAsync(outgoingMessage).GetAwaiter().GetResult();
+                    }
+                    catch (InvalidOperationException invalidOperationException)
+                    {
+                        JsonLogger.Error(invalidOperationException, "Could not write chat message to subscriber stream.");
+                    }
+                    catch (RpcException rpcException)
+                    {
+                        JsonLogger.Error(rpcException, "Could not write chat message to subscriber stream.");
                     }
                 });
             }
@@ -264,11 +495,15 @@ namespace RiskGame.Server.Services
 
             public int HostUserId { get; set; }
 
+            public LobbyStatus Status { get; set; } = LobbyStatus.Waiting;
+
             public LobbyRules Rules { get; init; } = new LobbyRules();
 
             public List<LobbyPlayer> Players { get; } = new List<LobbyPlayer>();
 
             public Dictionary<int, IServerStreamWriter<LobbyEvent>> Subscribers { get; } = new Dictionary<int, IServerStreamWriter<LobbyEvent>>();
+
+            public Dictionary<int, IServerStreamWriter<ChatMessage>> ChatSubscribers { get; } = new Dictionary<int, IServerStreamWriter<ChatMessage>>();
         }
     }
 }

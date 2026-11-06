@@ -19,21 +19,35 @@ namespace RiskGame.Views
             InitializeComponent();
         }
 
-        private void OnConfirmClick(object? sender, RoutedEventArgs e)
+        private void OnConfirmClick(object? sender, RoutedEventArgs routedEventArgs)
         {
-            string email = EmailTextBox.Text ?? string.Empty;
-            string user = UsernameTextBox.Text ?? string.Empty;
-            string password = PasswordTextBox.Text ?? string.Empty;
+            string email = string.Empty;
+            if (EmailTextBox.Text != null)
+            {
+                email = EmailTextBox.Text;
+            }
 
-            RegisterViewModel viewModel = new RegisterViewModel();
+            string username = string.Empty;
+            if (UsernameTextBox.Text != null)
+            {
+                username = UsernameTextBox.Text;
+            }
+
+            string password = string.Empty;
+            if (PasswordTextBox.Text != null)
+            {
+                password = PasswordTextBox.Text;
+            }
+
+            RegisterViewModel registerViewModel = new RegisterViewModel();
             RegisterResult registerResult;
             try
             {
-                registerResult = viewModel.RegisterUser(email, user, password);
+                registerResult = registerViewModel.RegisterUser(email, username, password);
             }
-            catch (DataOperationException ex)
+            catch (DataOperationException dataOperationException)
             {
-                MessageTextBlock.Text = ex.Message;
+                MessageTextBlock.Text = dataOperationException.Message;
                 MessageTextBlock.Foreground = ErrorBrush;
                 MessageTextBlock.IsVisible = true;
                 return;
@@ -50,33 +64,48 @@ namespace RiskGame.Views
             MessageTextBlock.IsVisible = true;
         }
 
-        private static string GetErrorMessage(RegisterResult result)
+        private static string GetErrorMessage(RegisterResult registrationResult)
         {
-            return result switch
+            switch (registrationResult)
             {
-                RegisterResult.EmptyFields => Strings.RegisterErrorEmptyFields,
-                RegisterResult.InvalidEmail => Strings.RegisterErrorInvalidEmail,
-                RegisterResult.InvalidUsername => Strings.RegisterErrorInvalidUsername,
-                RegisterResult.WeakPassword => Strings.RegisterErrorWeakPassword,
-                RegisterResult.UsernameExists => Strings.RegisterErrorUserExists,
-                RegisterResult.EmailExists => Strings.RegisterErrorEmailExists,
-                _ => string.Empty
-            };
+                case RegisterResult.EmptyFields:
+                    return Strings.RegisterErrorEmptyFields;
+                case RegisterResult.InvalidEmail:
+                    return Strings.RegisterErrorInvalidEmail;
+                case RegisterResult.InvalidUsername:
+                    return Strings.RegisterErrorInvalidUsername;
+                case RegisterResult.WeakPassword:
+                    return Strings.RegisterErrorWeakPassword;
+                case RegisterResult.UsernameExists:
+                    return Strings.RegisterErrorUserExists;
+                case RegisterResult.EmailExists:
+                    return Strings.RegisterErrorEmailExists;
+                default:
+                    return string.Empty;
+            }
         }
 
-        private void BackClick(object? sender, RoutedEventArgs e)
+        private void BackClick(object? sender, RoutedEventArgs routedEventArgs)
         {
             NavigateToLogin(null);
         }
 
         private void NavigateToLogin(string? successMessage)
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            if (Application.Current != null &&
+                Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
-                LoginWindow loginWindow = successMessage == null
-                    ? new LoginWindow()
-                    : new LoginWindow(successMessage);
-                desktop.MainWindow = loginWindow;
+                LoginWindow loginWindow;
+                if (successMessage == null)
+                {
+                    loginWindow = new LoginWindow();
+                }
+                else
+                {
+                    loginWindow = new LoginWindow(successMessage);
+                }
+
+                desktopLifetime.MainWindow = loginWindow;
                 loginWindow.Show();
                 this.Close();
             }

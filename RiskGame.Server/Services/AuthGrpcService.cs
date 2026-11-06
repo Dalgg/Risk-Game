@@ -9,68 +9,74 @@ namespace RiskGame.Server.Services
 {
     public class AuthGrpcService : AuthGrpc.AuthGrpcBase
     {
-        private readonly AuthRepositoryService _authRepository;
+        private readonly AuthRepositoryService authRepository;
 
         public AuthGrpcService(AuthRepositoryService authRepository)
         {
-            _authRepository = authRepository;
+            this.authRepository = authRepository;
         }
 
-        public override Task<RegisterResponse> Register(RegisterRequest request, ServerCallContext context)
+        public override Task<RegisterResponse> Register(RegisterRequest registerRequest, ServerCallContext callContext)
         {
             try
             {
-                RegisterResult result = _authRepository.RegisterUser(
-                    request.Email,
-                    request.Username,
-                    request.Password);
+                RegisterResult registrationResult = authRepository.RegisterUser(
+                    registerRequest.Email,
+                    registerRequest.Username,
+                    registerRequest.Password);
 
-                RegisterResponse response = new RegisterResponse
+                RegisterResponse registerResponse = new RegisterResponse
                 {
-                    ResultCode = (int)result,
-                    Message = result.ToString()
+                    ResultCode = (int)registrationResult,
+                    Message = registrationResult.ToString()
                 };
 
-                return Task.FromResult(response);
+                return Task.FromResult(registerResponse);
             }
-            catch (DataOperationException ex)
+            catch (DataOperationException dataOperationException)
             {
-                throw new RpcException(new Status(StatusCode.Unavailable, ex.Message));
+                throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
             }
         }
 
-        public override Task<LoginResponse> Login(LoginRequest request, ServerCallContext context)
+        public override Task<LoginResponse> Login(LoginRequest loginRequest, ServerCallContext callContext)
         {
             try
             {
-                User? user = _authRepository.AuthenticateUser(request.Username, request.Password);
-                if (user == null)
+                User? authenticatedUser = authRepository.AuthenticateUser(loginRequest.Username, loginRequest.Password);
+                if (authenticatedUser == null)
                 {
-                    LoginResponse failedResponse = new LoginResponse
+                    LoginResponse failedLoginResponse = new LoginResponse
                     {
                         IsAuthenticated = false
                     };
-                    return Task.FromResult(failedResponse);
+                    return Task.FromResult(failedLoginResponse);
                 }
 
-                LoginResponse successResponse = new LoginResponse
+                string avatarReference = string.Empty;
+                if (authenticatedUser.AvatarReference != null)
+                {
+                    avatarReference = authenticatedUser.AvatarReference;
+                }
+
+                LoginResponse successLoginResponse = new LoginResponse
                 {
                     IsAuthenticated = true,
                     SessionToken = Guid.NewGuid().ToString("N"),
                     Player = new PlayerDto
                     {
-                        UserId = user.IdUser,
-                        Username = user.Username,
-                        Nickname = user.Nickname,
-                        AvatarReference = user.AvatarReference ?? string.Empty
+                        UserId = authenticatedUser.IdUser,
+                        Username = authenticatedUser.Username,
+                        Nickname = authenticatedUser.Nickname,
+                        AvatarReference = avatarReference
                     }
                 };
 
-                return Task.FromResult(successResponse);
+                return Task.FromResult(successLoginResponse);
             }
-            catch (DataOperationException ex)
+            catch (DataOperationException dataOperationException)
             {
-                throw new RpcException(new Status(StatusCode.Unavailable, ex.Message));
+                throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
             }
         }
     }

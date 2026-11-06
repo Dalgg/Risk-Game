@@ -5,6 +5,8 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Net.Client;
 using RiskGame.Callbacks;
+using RiskGame.Contracts.Chat;
+using RiskGame.Contracts.Common;
 using RiskGame.Contracts.Lobby;
 using RiskGame.Exceptions;
 using RiskGame.Resources;
@@ -18,49 +20,124 @@ namespace RiskGame.ViewModels
         private const string NicknameHeaderKey = "nickname";
         private const string AvatarHeaderKey = "avatar-reference";
         private const string IsGuestHeaderKey = "is-guest";
+        private const int DefaultMaxPlayers = 4;
         private CancellationTokenSource? streamCancellation;
+        private CancellationTokenSource? chatStreamCancellation;
+
+        public LobbyDetails CreateLobby(RulesVariant rulesVariant, int turnDurationSeconds)
+        {
+            try
+            {
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
+                Metadata requestHeaders = BuildPlayerHeaders();
+                LobbyRules lobbyRules = new LobbyRules
+                {
+                    RulesVariant = rulesVariant,
+                    TurnDurationSeconds = turnDurationSeconds,
+                    MaxPlayers = DefaultMaxPlayers,
+                    IsPrivate = false
+                };
+
+                return lobbyClient.CreateLobby(lobbyRules, requestHeaders);
+            }
+            catch (RpcException rpcException)
+            {
+                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while creating lobby.");
+                throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
+            }
+        }
 
         public LobbyDetails JoinLobby(string roomCode)
         {
             try
             {
-                GrpcChannel channel = GrpcChannelProvider.GetChannel();
-                Lobby.LobbyClient client = new Lobby.LobbyClient(channel);
-                Metadata headers = BuildPlayerHeaders();
-                return client.JoinLobby(new StringValue { Value = roomCode }, headers);
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
+                Metadata requestHeaders = BuildPlayerHeaders();
+                return lobbyClient.JoinLobby(new StringValue { Value = roomCode }, requestHeaders);
             }
-            catch (RpcException ex) when (ex.StatusCode == StatusCode.NotFound)
+            catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.NotFound)
             {
-                throw new LobbyNotFoundException(Strings.LobbyErrorNotFound, ex);
+                throw new LobbyNotFoundException(Strings.LobbyErrorNotFound, rpcException);
             }
-            catch (RpcException ex) when (ex.StatusCode == StatusCode.ResourceExhausted)
+            catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.ResourceExhausted)
             {
-                throw new LobbyFullException(Strings.LobbyErrorFull, ex);
+                throw new LobbyFullException(Strings.LobbyErrorFull, rpcException);
             }
-            catch (RpcException ex)
+            catch (RpcException rpcException)
             {
-                JsonLogger.Error(ex, "gRPC communication error (RpcException) while joining lobby {0}.", roomCode);
-                throw new DataOperationException(Strings.LobbyErrorConnectionFailed, ex);
+                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while joining lobby {0}.", roomCode);
+                throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
             }
         }
 
         public void LeaveLobby()
         {
             StopSubscription();
+            StopChatSubscription();
             try
             {
-                GrpcChannel channel = GrpcChannelProvider.GetChannel();
-                Lobby.LobbyClient client = new Lobby.LobbyClient(channel);
-                Metadata headers = BuildPlayerHeaders();
-                _ = client.LeaveLobby(new Empty(), headers);
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
+                Metadata requestHeaders = BuildPlayerHeaders();
+                lobbyClient.LeaveLobby(new Empty(), requestHeaders);
             }
-            catch (RpcException ex)
+            catch (RpcException rpcException)
             {
-                JsonLogger.Error(ex, "gRPC communication error (RpcException) while leaving lobby.");
+                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while leaving lobby.");
             }
         }
 
-        public void SubscribeToEvents(ILobbyCallback callback)
+        public int StartMatch()
+        {
+            try
+            {
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                LobbyRoom.LobbyRoomClient lobbyRoomClient = new LobbyRoom.LobbyRoomClient(grpcChannel);
+                Metadata requestHeaders = BuildPlayerHeaders();
+                Int32Value createdMatchId = lobbyRoomClient.StartMatch(new Empty(), requestHeaders);
+                return createdMatchId.Value;
+            }
+            catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.FailedPrecondition)
+            {
+                throw new InvalidOperationException(rpcException.Status.Detail, rpcException);
+            }
+            catch (RpcException rpcException)
+            {
+                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while starting match.");
+                throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
+            }
+        }
+
+        public void SendMessage(string messageText)
+        {
+            if (string.IsNullOrWhiteSpace(messageText))
+            {
+                return;
+            }
+
+            try
+            {
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                Chat.ChatClient chatClient = new Chat.ChatClient(grpcChannel);
+                Metadata requestHeaders = BuildPlayerHeaders();
+                ChatMessage outgoingMessage = new ChatMessage
+                {
+                    Scope = ChatScope.Lobby,
+                    Text = messageText.Trim()
+                };
+
+                chatClient.SendMessage(outgoingMessage, requestHeaders);
+            }
+            catch (RpcException rpcException)
+            {
+                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while sending lobby chat message.");
+                throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
+            }
+        }
+
+        public void SubscribeToEvents(ILobbyCallback lobbyCallback)
         {
             StopSubscription();
             streamCancellation = new CancellationTokenSource();
@@ -69,32 +146,75 @@ namespace RiskGame.ViewModels
             {
                 try
                 {
-                    GrpcChannel channel = GrpcChannelProvider.GetChannel();
-                    Lobby.LobbyClient client = new Lobby.LobbyClient(channel);
-                    Metadata headers = BuildPlayerHeaders();
+                    GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                    Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
+                    Metadata requestHeaders = BuildPlayerHeaders();
 
-                    using AsyncServerStreamingCall<LobbyEvent> call = client.SubscribeLobbyEvents(
+                    using AsyncServerStreamingCall<LobbyEvent> streamingCall = lobbyClient.SubscribeLobbyEvents(
                         new Empty(),
-                        headers,
+                        requestHeaders,
                         cancellationToken: cancellationToken);
 
-                    while (call.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult())
+                    while (streamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult())
                     {
-                        LobbyEvent currentEvent = call.ResponseStream.Current;
-                        DispatchLobbyEvent(currentEvent, callback);
+                        LobbyEvent currentLobbyEvent = streamingCall.ResponseStream.Current;
+                        DispatchLobbyEvent(currentLobbyEvent, lobbyCallback);
                     }
                 }
-                catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+                catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.Cancelled)
                 {
-                    JsonLogger.Error(ex, "Lobby event stream cancelled by client.");
+                    JsonLogger.Error(rpcException, "Lobby event stream cancelled by client.");
                 }
-                catch (OperationCanceledException ex)
+                catch (OperationCanceledException canceledException)
                 {
-                    JsonLogger.Error(ex, "Lobby event stream subscription operation cancelled.");
+                    JsonLogger.Error(canceledException, "Lobby event stream subscription operation cancelled.");
                 }
-                catch (RpcException ex)
+                catch (RpcException rpcException)
                 {
-                    JsonLogger.Error(ex, "Lobby event stream disconnected with RpcException.");
+                    JsonLogger.Error(rpcException, "Lobby event stream disconnected with RpcException.");
+                }
+            });
+        }
+
+        public void SubscribeChat(IChatCallback chatCallback)
+        {
+            StopChatSubscription();
+            chatStreamCancellation = new CancellationTokenSource();
+            CancellationToken cancellationToken = chatStreamCancellation.Token;
+            Task.Run(() =>
+            {
+                try
+                {
+                    GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                    Chat.ChatClient chatClient = new Chat.ChatClient(grpcChannel);
+                    Metadata requestHeaders = BuildPlayerHeaders();
+                    ChatChannel channelRequest = new ChatChannel
+                    {
+                        Scope = ChatScope.Lobby
+                    };
+
+                    using AsyncServerStreamingCall<ChatMessage> chatStreamingCall = chatClient.SubscribeChat(
+                        channelRequest,
+                        requestHeaders,
+                        cancellationToken: cancellationToken);
+
+                    while (chatStreamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult())
+                    {
+                        ChatMessage incomingMessage = chatStreamingCall.ResponseStream.Current;
+                        chatCallback.MessageReceived(incomingMessage);
+                    }
+                }
+                catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.Cancelled)
+                {
+                    JsonLogger.Error(rpcException, "Chat stream cancelled by client.");
+                }
+                catch (OperationCanceledException canceledException)
+                {
+                    JsonLogger.Error(canceledException, "Chat stream subscription operation cancelled.");
+                }
+                catch (RpcException rpcException)
+                {
+                    JsonLogger.Error(rpcException, "Chat stream disconnected with RpcException.");
                 }
             });
         }
@@ -109,18 +229,28 @@ namespace RiskGame.ViewModels
             }
         }
 
-        private static void DispatchLobbyEvent(LobbyEvent currentEvent, ILobbyCallback callback)
+        public void StopChatSubscription()
         {
-            switch (currentEvent.PayloadCase)
+            if (chatStreamCancellation != null)
+            {
+                chatStreamCancellation.Cancel();
+                chatStreamCancellation.Dispose();
+                chatStreamCancellation = null;
+            }
+        }
+
+        private static void DispatchLobbyEvent(LobbyEvent currentLobbyEvent, ILobbyCallback lobbyCallback)
+        {
+            switch (currentLobbyEvent.PayloadCase)
             {
                 case LobbyEvent.PayloadOneofCase.LobbyChanged:
-                    callback.LobbyChanged(currentEvent.LobbyChanged);
+                    lobbyCallback.LobbyChanged(currentLobbyEvent.LobbyChanged);
                     break;
                 case LobbyEvent.PayloadOneofCase.LobbyClosed:
-                    callback.LobbyClosed(currentEvent.LobbyClosed);
+                    lobbyCallback.LobbyClosed(currentLobbyEvent.LobbyClosed);
                     break;
                 case LobbyEvent.PayloadOneofCase.MatchStarting:
-                    callback.MatchStarting(currentEvent.MatchStarting);
+                    lobbyCallback.MatchStarting(currentLobbyEvent.MatchStarting);
                     break;
                 default:
                     break;
@@ -129,14 +259,20 @@ namespace RiskGame.ViewModels
 
         private static Metadata BuildPlayerHeaders()
         {
-            SessionUser currentUser = SessionService.GetOrCreateCurrentUser();
-            bool isGuest = currentUser.IdUser < 0;
+            SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
+            bool isGuestPlayer = currentSessionUser.IdUser < 0;
+            string avatarReference = string.Empty;
+            if (currentSessionUser.AvatarReference != null)
+            {
+                avatarReference = currentSessionUser.AvatarReference;
+            }
+
             return new Metadata
             {
-                { UserIdHeaderKey, currentUser.IdUser.ToString() },
-                { NicknameHeaderKey, currentUser.Nickname },
-                { AvatarHeaderKey, currentUser.AvatarReference ?? string.Empty },
-                { IsGuestHeaderKey, isGuest.ToString() }
+                { UserIdHeaderKey, currentSessionUser.IdUser.ToString() },
+                { NicknameHeaderKey, currentSessionUser.Nickname },
+                { AvatarHeaderKey, avatarReference },
+                { IsGuestHeaderKey, isGuestPlayer.ToString() }
             };
         }
     }

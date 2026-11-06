@@ -16,7 +16,7 @@ namespace RiskGame.Views
             InitializeComponent();
         }
 
-        private void JoinRoomClick(object? sender, RoutedEventArgs e)
+        private void JoinRoomClick(object? sender, RoutedEventArgs routedEventArgs)
         {
             JoinMessageTextBlock.IsVisible = false;
             RoomCodeTextBox.Text = string.Empty;
@@ -25,17 +25,22 @@ namespace RiskGame.Views
             RoomCodeTextBox.Focus();
         }
 
-        private void CancelJoinRoomClick(object? sender, RoutedEventArgs e)
+        private void CancelJoinRoomClick(object? sender, RoutedEventArgs routedEventArgs)
         {
             JoinMessageTextBlock.IsVisible = false;
             JoinCodeStackPanel.IsVisible = false;
             MenuButtonsStackPanel.IsVisible = true;
         }
 
-        private void ConfirmJoinRoomClick(object? sender, RoutedEventArgs e)
+        private void ConfirmJoinRoomClick(object? sender, RoutedEventArgs routedEventArgs)
         {
-            string roomCode = (RoomCodeTextBox.Text ?? string.Empty).Trim();
-            if (string.IsNullOrWhiteSpace(roomCode))
+            string enteredRoomCode = string.Empty;
+            if (RoomCodeTextBox.Text != null)
+            {
+                enteredRoomCode = RoomCodeTextBox.Text.Trim();
+            }
+
+            if (string.IsNullOrWhiteSpace(enteredRoomCode))
             {
                 ShowJoinError(Strings.RoomsErrorEmptyCode);
                 return;
@@ -46,25 +51,26 @@ namespace RiskGame.Views
 
             try
             {
-                lobbyDetails = lobbyViewModel.JoinLobby(roomCode);
+                lobbyDetails = lobbyViewModel.JoinLobby(enteredRoomCode);
             }
-            catch (LobbyNotFoundException ex)
+            catch (LobbyNotFoundException lobbyNotFoundException)
             {
-                ShowJoinError(ex.Message);
+                ShowJoinError(lobbyNotFoundException.Message);
                 return;
             }
-            catch (LobbyFullException ex)
+            catch (LobbyFullException lobbyFullException)
             {
-                ShowJoinError(ex.Message);
+                ShowJoinError(lobbyFullException.Message);
                 return;
             }
-            catch (DataOperationException ex)
+            catch (DataOperationException dataOperationException)
             {
-                ShowJoinError(ex.Message);
+                ShowJoinError(dataOperationException.Message);
                 return;
             }
 
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            if (Application.Current != null &&
+                Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
                 LobbyWindow lobbyWindow = new LobbyWindow(lobbyDetails, lobbyViewModel);
                 desktopLifetime.MainWindow = lobbyWindow;
@@ -73,15 +79,16 @@ namespace RiskGame.Views
             }
         }
 
-        private void ShowJoinError(string message)
+        private void ShowJoinError(string errorMessage)
         {
-            JoinMessageTextBlock.Text = message;
+            JoinMessageTextBlock.Text = errorMessage;
             JoinMessageTextBlock.IsVisible = true;
         }
 
-        private void BackClick(object? sender, RoutedEventArgs e)
+        private void BackClick(object? sender, RoutedEventArgs routedEventArgs)
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            if (Application.Current != null &&
+                Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
                 MainWindow mainWindow = new MainWindow();
                 desktopLifetime.MainWindow = mainWindow;

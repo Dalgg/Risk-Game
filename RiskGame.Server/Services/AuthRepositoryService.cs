@@ -22,38 +22,39 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                using (RiskGameContext context = new RiskGameContext())
+                using (RiskGameContext databaseContext = new RiskGameContext())
                 {
-                    User? user = context.Users.FirstOrDefault(candidate => candidate.Username == username);
-                    if (user == null)
+                    User? matchingUser = databaseContext.Users.FirstOrDefault(
+                        candidateUser => candidateUser.Username == username);
+                    if (matchingUser == null)
                     {
                         return null;
                     }
 
-                    (bool isValid, bool needsRehash) = PasswordHasher.Verify(password, user.PasswordHash);
-                    if (!isValid)
+                    PasswordVerificationResult verificationResult = PasswordHasher.Verify(password, matchingUser.PasswordHash);
+                    if (!verificationResult.IsValid)
                     {
                         return null;
                     }
 
-                    if (needsRehash)
+                    if (verificationResult.NeedsRehash)
                     {
-                        user.PasswordHash = PasswordHasher.Hash(password);
-                        context.SaveChanges();
+                        matchingUser.PasswordHash = PasswordHasher.Hash(password);
+                        databaseContext.SaveChanges();
                     }
 
-                    return user;
+                    return matchingUser;
                 }
             }
-            catch (DbUpdateException ex)
+            catch (DbUpdateException dbUpdateException)
             {
-                JsonLogger.Error(ex, "Persistence error (DbUpdateException) during login for user {0}.", username);
-                throw new DataOperationException("Database error occurred while updating user credentials.", ex);
+                JsonLogger.Error(dbUpdateException, "Persistence error (DbUpdateException) during login for user {0}.", username);
+                throw new DataOperationException("Database error occurred while updating user credentials.", dbUpdateException);
             }
-            catch (DbException ex)
+            catch (DbException databaseException)
             {
-                JsonLogger.Error(ex, "Connection error (DbException) during login for user {0}.", username);
-                throw new DataOperationException("Database connection error occurred during login.", ex);
+                JsonLogger.Error(databaseException, "Connection error (DbException) during login for user {0}.", username);
+                throw new DataOperationException("Database connection error occurred during login.", databaseException);
             }
         }
 

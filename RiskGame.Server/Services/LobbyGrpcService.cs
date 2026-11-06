@@ -6,6 +6,7 @@ using Grpc.Core;
 using RiskGame.Contracts.Common;
 using RiskGame.Contracts.Lobby;
 using RiskGame.Exceptions;
+using RiskGame.Services;
 
 namespace RiskGame.Server.Services
 {
@@ -26,108 +27,155 @@ namespace RiskGame.Server.Services
             this.sessionManager = sessionManager;
         }
 
-        public override Task<LobbyDetails> JoinLobby(StringValue request, ServerCallContext context)
+        public override Task<LobbyDetails> CreateLobby(LobbyRules rulesRequest, ServerCallContext callContext)
         {
             try
             {
-                PlayerSummary player = ExtractPlayerFromHeaders(context.RequestHeaders);
-                LobbyDetails lobbyDetails = sessionManager.JoinLobby(request.Value, player);
-                return Task.FromResult(lobbyDetails);
+                PlayerSummary hostPlayer = ExtractPlayerFromHeaders(callContext.RequestHeaders);
+                LobbyDetails createdLobbyDetails = sessionManager.CreateLobby(rulesRequest, hostPlayer);
+                return Task.FromResult(createdLobbyDetails);
             }
-            catch (LobbyNotFoundException ex)
+            catch (DataOperationException dataOperationException)
             {
-                throw CreateFaultException(StatusCode.NotFound, FaultCode.LobbyNotFound, ex.Message);
-            }
-            catch (LobbyFullException ex)
-            {
-                throw CreateFaultException(StatusCode.ResourceExhausted, FaultCode.LobbyFull, ex.Message);
-            }
-            catch (DataOperationException ex)
-            {
-                throw CreateFaultException(StatusCode.Unavailable, FaultCode.DatabaseUnavailable, ex.Message);
+                throw CreateFaultException(StatusCode.Unavailable, FaultCode.DatabaseUnavailable, dataOperationException.Message);
             }
         }
 
-        public override Task<Empty> LeaveLobby(Empty request, ServerCallContext context)
+        public override Task<LobbyDetails> JoinLobby(StringValue joinRequest, ServerCallContext callContext)
         {
-            PlayerSummary player = ExtractPlayerFromHeaders(context.RequestHeaders);
-            sessionManager.LeaveLobby(player.UserId);
+            try
+            {
+                PlayerSummary joiningPlayer = ExtractPlayerFromHeaders(callContext.RequestHeaders);
+                LobbyDetails lobbyDetails = sessionManager.JoinLobby(joinRequest.Value, joiningPlayer);
+                return Task.FromResult(lobbyDetails);
+            }
+            catch (LobbyNotFoundException lobbyNotFoundException)
+            {
+                throw CreateFaultException(StatusCode.NotFound, FaultCode.LobbyNotFound, lobbyNotFoundException.Message);
+            }
+            catch (LobbyFullException lobbyFullException)
+            {
+                throw CreateFaultException(StatusCode.ResourceExhausted, FaultCode.LobbyFull, lobbyFullException.Message);
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                throw CreateFaultException(StatusCode.Unavailable, FaultCode.DatabaseUnavailable, dataOperationException.Message);
+            }
+        }
+
+        public override Task<Empty> LeaveLobby(Empty leaveRequest, ServerCallContext callContext)
+        {
+            PlayerSummary leavingPlayer = ExtractPlayerFromHeaders(callContext.RequestHeaders);
+            sessionManager.LeaveLobby(leavingPlayer.UserId);
             return Task.FromResult(new Empty());
         }
 
         public override Task SubscribeLobbyEvents(
-            Empty request,
+            Empty subscribeRequest,
             IServerStreamWriter<LobbyEvent> responseStream,
-            ServerCallContext context)
+            ServerCallContext callContext)
         {
-            PlayerSummary player = ExtractPlayerFromHeaders(context.RequestHeaders);
-            LobbyDetails? initialSnapshot = sessionManager.RegisterSubscriber(player.UserId, responseStream);
+            PlayerSummary subscriberPlayer = ExtractPlayerFromHeaders(callContext.RequestHeaders);
+            LobbyDetails? initialLobbySnapshot = sessionManager.RegisterSubscriber(subscriberPlayer.UserId, responseStream);
 
-            if (initialSnapshot != null)
+            if (initialLobbySnapshot != null)
             {
                 LobbyEvent snapshotEvent = new LobbyEvent
                 {
                     LobbyChanged = new LobbyChanged
                     {
                         Change = LobbyChangeType.Snapshot,
-                        Lobby = initialSnapshot,
-                        AffectedUserId = player.UserId
+                        Lobby = initialLobbySnapshot,
+                        AffectedUserId = subscriberPlayer.UserId
                     }
                 };
 
                 responseStream.WriteAsync(snapshotEvent).GetAwaiter().GetResult();
             }
 
-            context.CancellationToken.WaitHandle.WaitOne();
-            sessionManager.UnregisterSubscriber(player.UserId);
+            callContext.CancellationToken.WaitHandle.WaitOne();
+            sessionManager.UnregisterSubscriber(subscriberPlayer.UserId);
             return Task.CompletedTask;
         }
 
-        private static PlayerSummary ExtractPlayerFromHeaders(Metadata headers)
+        private static PlayerSummary ExtractPlayerFromHeaders(Metadata requestHeaders)
         {
-            int userId = 0;
-            string nickname = DefaultGuestNickname;
+            int parsedUserId = 0;
+            string playerNickname = DefaultGuestNickname;
             string avatarReference = string.Empty;
-            bool isGuest = true;
+            bool isGuestPlayer = true;
 
-            foreach (Metadata.Entry entry in headers)
+            foreach (Metadata.Entry headerEntry in requestHeaders)
             {
-                if (string.Equals(entry.Key, UserIdHeaderKey, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(headerEntry.Key, UserIdHeaderKey, StringComparison.OrdinalIgnoreCase))
                 {
-                    _ = int.TryParse(entry.Value, out userId);
+                    parsedUserId = ParseUserIdOrDefault(headerEntry.Value);
                 }
-                else if (string.Equals(entry.Key, NicknameHeaderKey, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(headerEntry.Key, NicknameHeaderKey, StringComparison.OrdinalIgnoreCase))
                 {
-                    nickname = entry.Value;
+                    playerNickname = headerEntry.Value;
                 }
-                else if (string.Equals(entry.Key, AvatarHeaderKey, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(headerEntry.Key, AvatarHeaderKey, StringComparison.OrdinalIgnoreCase))
                 {
-                    avatarReference = entry.Value;
+                    avatarReference = headerEntry.Value;
                 }
-                else if (string.Equals(entry.Key, IsGuestHeaderKey, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(headerEntry.Key, IsGuestHeaderKey, StringComparison.OrdinalIgnoreCase))
                 {
-                    _ = bool.TryParse(entry.Value, out isGuest);
+                    isGuestPlayer = ParseBooleanOrDefault(headerEntry.Value, true);
                 }
             }
 
-            if (userId == 0)
+            if (parsedUserId == 0)
             {
-                userId = RandomNumberGenerator.GetInt32(BottomUserIdRange, TopUserIdRange);
+                parsedUserId = RandomNumberGenerator.GetInt32(BottomUserIdRange, TopUserIdRange);
             }
 
             return new PlayerSummary
             {
-                UserId = userId,
-                Nickname = nickname,
+                UserId = parsedUserId,
+                Nickname = playerNickname,
                 AvatarReference = avatarReference,
-                IsGuest = isGuest
+                IsGuest = isGuestPlayer
             };
         }
 
-        private static RpcException CreateFaultException(StatusCode statusCode, FaultCode faultCode, string message)
+        private static int ParseUserIdOrDefault(string headerValue)
         {
-            Metadata trailers = new Metadata { { FaultCodeTrailerKey, faultCode.ToString() }};
-            return new RpcException(new Status(statusCode, message), trailers);
+            try
+            {
+                return int.Parse(headerValue);
+            }
+            catch (FormatException formatException)
+            {
+                JsonLogger.Error(formatException, "Invalid user-id header format.");
+                return 0;
+            }
+            catch (OverflowException overflowException)
+            {
+                JsonLogger.Error(overflowException, "Overflow in user-id header value.");
+                return 0;
+            }
+        }
+
+        private static bool ParseBooleanOrDefault(string headerValue, bool defaultValue)
+        {
+            if (string.Equals(headerValue, bool.TrueString, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.Equals(headerValue, bool.FalseString, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            return defaultValue;
+        }
+
+        private static RpcException CreateFaultException(StatusCode statusCode, FaultCode faultCode, string errorMessage)
+        {
+            Metadata faultTrailers = new Metadata { { FaultCodeTrailerKey, faultCode.ToString() } };
+            return new RpcException(new Status(statusCode, errorMessage), faultTrailers);
         }
     }
 }

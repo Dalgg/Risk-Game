@@ -25,28 +25,38 @@ namespace RiskGame.Views
             ShowMessage(successMessage, SuccessBrush);
         }
 
-        private void RegisterClick(object? sender, RoutedEventArgs e)
+        private void RegisterClick(object? sender, RoutedEventArgs routedEventArgs)
         {
             RegisterWindow registerWindow = new RegisterWindow();
             registerWindow.Show();
             this.Close();
         }
 
-        private void BackClick(object? sender, RoutedEventArgs e)
+        private void BackClick(object? sender, RoutedEventArgs routedEventArgs)
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            if (Application.Current != null &&
+                Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
                 MainWindow mainWindow = new MainWindow();
-                desktop.MainWindow = mainWindow;
+                desktopLifetime.MainWindow = mainWindow;
                 mainWindow.Show();
                 this.Close();
             }
         }
 
-        private void OnConfirmLoginClick(object? sender, RoutedEventArgs e)
+        private void OnConfirmLoginClick(object? sender, RoutedEventArgs routedEventArgs)
         {
-            string username = (UserTextBox.Text ?? string.Empty).Trim();
-            string password = PasswordTextBox.Text ?? string.Empty;
+            string username = string.Empty;
+            if (UserTextBox.Text != null)
+            {
+                username = UserTextBox.Text.Trim();
+            }
+
+            string password = string.Empty;
+            if (PasswordTextBox.Text != null)
+            {
+                password = PasswordTextBox.Text;
+            }
 
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
@@ -54,30 +64,31 @@ namespace RiskGame.Views
                 return;
             }
 
-            LoginViewModel viewModel = new LoginViewModel();
-            SessionUser? user;
+            LoginViewModel loginViewModel = new LoginViewModel();
+            SessionUser? authenticatedUser;
             try
             {
-                user = viewModel.AuthenticateUser(username, password);
+                authenticatedUser = loginViewModel.AuthenticateUser(username, password);
             }
-            catch (DataOperationException ex)
+            catch (DataOperationException dataOperationException)
             {
-                ShowMessage(ex.Message, ErrorBrush);
+                ShowMessage(dataOperationException.Message, ErrorBrush);
                 return;
             }
 
-            if (user == null)
+            if (authenticatedUser == null)
             {
                 ShowMessage(Strings.LoginErrorInvalidAuth, ErrorBrush);
                 return;
             }
 
-            SessionService.Login(user);
+            SessionService.Login(authenticatedUser);
 
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            if (Application.Current != null &&
+                Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
                 MainWindow mainWindow = new MainWindow();
-                desktop.MainWindow = mainWindow;
+                desktopLifetime.MainWindow = mainWindow;
                 mainWindow.Show();
                 this.Close();
             }

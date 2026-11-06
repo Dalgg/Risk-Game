@@ -30,10 +30,19 @@ namespace RiskGame.ViewModels
 
         private void RefreshFromSession()
         {
-            SessionUser? user = SessionService.CurrentUser;
-            IsLoggedIn = user != null;
-            LoggedUsername = user?.Username ?? string.Empty;
-            AvatarPath = user?.AvatarReference;
+            SessionUser? currentSessionUser = SessionService.CurrentUser;
+            if (currentSessionUser != null)
+            {
+                IsLoggedIn = true;
+                LoggedUsername = currentSessionUser.Username;
+                AvatarPath = currentSessionUser.AvatarReference;
+            }
+            else
+            {
+                IsLoggedIn = false;
+                LoggedUsername = string.Empty;
+                AvatarPath = null;
+            }
         }
     }
 }

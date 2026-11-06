@@ -8,36 +8,63 @@ namespace RiskGame.Services
     {
         private const string EnvironmentVariableName = "RISKGAME_DB_CONNECTION";
         private const string SettingsFileName = "appsettings.local.json";
+        private const string ConnectionStringsSectionName = "ConnectionStrings";
+        private const string DatabaseConnectionKeyName = "RiskGameDB";
 
         public static string GetConnectionString()
         {
-            string? fromEnvironment = Environment.GetEnvironmentVariable(EnvironmentVariableName);
-            if (!string.IsNullOrWhiteSpace(fromEnvironment))
+            string? connectionFromEnvironment = Environment.GetEnvironmentVariable(EnvironmentVariableName);
+            if (!string.IsNullOrWhiteSpace(connectionFromEnvironment))
             {
-                return fromEnvironment;
+                return connectionFromEnvironment;
             }
 
-            foreach (string directory in new[] { AppContext.BaseDirectory, Directory.GetCurrentDirectory() })
+            string[] candidateDirectories = new[] { AppContext.BaseDirectory, Directory.GetCurrentDirectory() };
+            foreach (string candidateDirectory in candidateDirectories)
             {
-                string path = Path.Combine(directory, SettingsFileName);
-                if (!File.Exists(path))
+                string settingsFilePath = Path.Combine(candidateDirectory, SettingsFileName);
+                if (!File.Exists(settingsFilePath))
                 {
                     continue;
                 }
 
-                using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path));
-                if (document.RootElement.TryGetProperty("ConnectionStrings", out JsonElement section) && section
-                    .TryGetProperty("RiskGameDB", out JsonElement value) 
-                    && value.ValueKind == JsonValueKind.String 
-                    && !string.IsNullOrWhiteSpace(value.GetString()))
+                using JsonDocument jsonDocument = JsonDocument.Parse(File.ReadAllText(settingsFilePath));
+                string? configuredConnectionString = ExtractConnectionString(jsonDocument.RootElement);
+                if (!string.IsNullOrWhiteSpace(configuredConnectionString))
                 {
-                    return value.GetString()!;
+                    return configuredConnectionString;
                 }
             }
 
             throw new InvalidOperationException(
                 $"No se encontró la cadena de conexión. Define la variable de entorno {EnvironmentVariableName} " +
                 $"o crea el archivo {SettingsFileName} a partir de appsettings.example.json.");
+        }
+
+        private static string? ExtractConnectionString(JsonElement rootElement)
+        {
+            if (rootElement.ValueKind != JsonValueKind.Object)
+            {
+                return null;
+            }
+
+            foreach (JsonProperty rootProperty in rootElement.EnumerateObject())
+            {
+                if (string.Equals(rootProperty.Name, ConnectionStringsSectionName, StringComparison.Ordinal)
+                    && rootProperty.Value.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (JsonProperty connectionProperty in rootProperty.Value.EnumerateObject())
+                    {
+                        if (string.Equals(connectionProperty.Name, DatabaseConnectionKeyName, StringComparison.Ordinal)
+                            && connectionProperty.Value.ValueKind == JsonValueKind.String)
+                        {
+                            return connectionProperty.Value.GetString();
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

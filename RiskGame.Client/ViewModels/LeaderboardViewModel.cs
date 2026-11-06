@@ -17,7 +17,7 @@ namespace RiskGame.ViewModels
 
     public class LeaderboardViewModel : ViewModelBase
     {
-        private bool _isDescending;
+        private bool isDescending;
 
         public LeaderboardViewModel()
         {
@@ -29,19 +29,19 @@ namespace RiskGame.ViewModels
         {
             try
             {
-                _ = GrpcChannelProvider.GetChannel();
+                GrpcChannelProvider.GetChannel();
                 Players.Clear();
             }
-            catch (RpcException ex)
+            catch (RpcException rpcException)
             {
-                JsonLogger.Error(ex, "gRPC communication error (RpcException) while loading leaderboard.");
-                throw new DataOperationException(Strings.LeaderboardErrorDatabase, ex);
+                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while loading leaderboard.");
+                throw new DataOperationException(Strings.LeaderboardErrorDatabase, rpcException);
             }
         }
 
         public void ToggleSortDirection()
         {
-            _isDescending = !_isDescending;
+            isDescending = !isDescending;
             LoadGlobalScores();
         }
     }

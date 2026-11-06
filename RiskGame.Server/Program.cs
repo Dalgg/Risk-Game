@@ -32,6 +32,8 @@ namespace RiskGame.Server
 
             app.MapGrpcService<AuthGrpcService>();
             app.MapGrpcService<LobbyGrpcService>();
+            app.MapGrpcService<LobbyRoomGrpcService>();
+            app.MapGrpcService<ChatGrpcService>();
 
             app.Run();
         }

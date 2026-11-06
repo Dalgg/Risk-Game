@@ -13,33 +13,35 @@ namespace RiskGame.ViewModels
         {
             try
             {
-                GrpcChannel channel = GrpcChannelProvider.GetChannel();
-                AuthGrpc.AuthGrpcClient client = new AuthGrpc.AuthGrpcClient(channel);
-                LoginResponse response = client.Login(new LoginRequest
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                AuthGrpc.AuthGrpcClient authClient = new AuthGrpc.AuthGrpcClient(grpcChannel);
+                LoginResponse loginResponse = authClient.Login(new LoginRequest
                 {
                     Username = username,
                     Password = password
                 });
 
-                if (!response.IsAuthenticated || response.Player == null)
+                if (!loginResponse.IsAuthenticated || loginResponse.Player == null)
                 {
                     return null;
                 }
 
-                string? avatar = string.IsNullOrWhiteSpace(response.Player.AvatarReference)
-                    ? null
-                    : response.Player.AvatarReference;
+                string? avatarReference = null;
+                if (!string.IsNullOrWhiteSpace(loginResponse.Player.AvatarReference))
+                {
+                    avatarReference = loginResponse.Player.AvatarReference;
+                }
 
                 return new SessionUser(
-                    response.Player.UserId,
-                    response.Player.Username,
-                    response.Player.Nickname,
-                    avatar);
+                    loginResponse.Player.UserId,
+                    loginResponse.Player.Username,
+                    loginResponse.Player.Nickname,
+                    avatarReference);
             }
-            catch (RpcException ex)
+            catch (RpcException rpcException)
             {
-                JsonLogger.Error(ex, "gRPC communication error (RpcException) during login for user {0}.", username);
-                throw new DataOperationException(Strings.LoginErrorDatabase, ex);
+                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) during login for user {0}.", username);
+                throw new DataOperationException(Strings.LoginErrorDatabase, rpcException);
             }
         }
     }

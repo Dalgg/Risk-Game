@@ -62,23 +62,23 @@ namespace RiskGame.Views
         {
         }
 
-        protected override void OnClosed(EventArgs e)
+        protected override void OnClosed(EventArgs eventArgs)
         {
             EnsureLobbyLeft();
-            base.OnClosed(e);
+            base.OnClosed(eventArgs);
         }
 
-        private void ApplyLobbyDetails(LobbyDetails details)
+        private void ApplyLobbyDetails(LobbyDetails lobbyDetails)
         {
-            RoomCodeTextBlock.Text = string.Format(Strings.LobbyRoomIdFormat, details.LobbyCode);
-            RenderPlayers(details.Players);
+            RoomCodeTextBlock.Text = string.Format(Strings.LobbyRoomIdFormat, lobbyDetails.LobbyCode);
+            RenderPlayers(lobbyDetails.Players);
         }
 
-        private void RenderPlayers(IReadOnlyList<LobbyPlayer> players)
+        private void RenderPlayers(IReadOnlyList<LobbyPlayer> lobbyPlayers)
         {
             PlayersStackPanel.Children.Clear();
 
-            foreach (LobbyPlayer lobbyPlayer in players)
+            foreach (LobbyPlayer lobbyPlayer in lobbyPlayers)
             {
                 Border playerCard = CreatePlayerCard(lobbyPlayer);
                 PlayersStackPanel.Children.Add(playerCard);
@@ -87,8 +87,17 @@ namespace RiskGame.Views
 
         private static Border CreatePlayerCard(LobbyPlayer lobbyPlayer)
         {
-            string displayName = lobbyPlayer.Player?.Nickname ?? Strings.LobbyDefaultPlayerName;
-            string roleText = lobbyPlayer.IsHost ? Strings.LobbyHostRoleLabel : Strings.LobbyConnectedRoleLabel;
+            string displayName = Strings.LobbyDefaultPlayerName;
+            if (lobbyPlayer.Player != null && !string.IsNullOrWhiteSpace(lobbyPlayer.Player.Nickname))
+            {
+                displayName = lobbyPlayer.Player.Nickname;
+            }
+
+            string roleText = Strings.LobbyConnectedRoleLabel;
+            if (lobbyPlayer.IsHost)
+            {
+                roleText = Strings.LobbyHostRoleLabel;
+            }
 
             Grid cardGrid = new Grid
             {
@@ -127,7 +136,7 @@ namespace RiskGame.Views
             };
         }
 
-        private void LeaveLobbyClick(object? sender, RoutedEventArgs e)
+        private void LeaveLobbyClick(object? sender, RoutedEventArgs routedEventArgs)
         {
             EnsureLobbyLeft();
             ReturnToRoomsWindow();
@@ -144,7 +153,8 @@ namespace RiskGame.Views
 
         private void ReturnToRoomsWindow()
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            if (Application.Current != null &&
+                Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
                 RoomsWindow roomsWindow = new RoomsWindow();
                 desktopLifetime.MainWindow = roomsWindow;

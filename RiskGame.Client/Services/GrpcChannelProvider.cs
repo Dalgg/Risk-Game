@@ -9,46 +9,67 @@ namespace RiskGame.Services
     {
         private const string DefaultServerAddress = "http://localhost:5050";
         private const string SettingsFileName = "appsettings.local.json";
-        private static GrpcChannel? s_channel;
+        private const string ServerUrlPropertyName = "GrpcServerUrl";
+        private static GrpcChannel? cachedChannel;
 
         public static GrpcChannel GetChannel()
         {
-            if (s_channel == null)
+            if (cachedChannel == null)
             {
                 string serverAddress = ResolveServerAddress();
-                s_channel = GrpcChannel.ForAddress(serverAddress);
+                cachedChannel = GrpcChannel.ForAddress(serverAddress);
             }
 
-            return s_channel;
+            return cachedChannel;
         }
 
         private static string ResolveServerAddress()
         {
-            foreach (string directory in new[] { AppContext.BaseDirectory, Directory.GetCurrentDirectory() })
+            string[] candidateDirectories = new[] { AppContext.BaseDirectory, Directory.GetCurrentDirectory() };
+            foreach (string candidateDirectory in candidateDirectories)
             {
-                string path = Path.Combine(directory, SettingsFileName);
-                if (!File.Exists(path))
+                string settingsFilePath = Path.Combine(candidateDirectory, SettingsFileName);
+                if (!File.Exists(settingsFilePath))
                 {
                     continue;
                 }
 
                 try
                 {
-                    using JsonDocument document = JsonDocument.Parse(File.ReadAllText(path));
-                    if (document.RootElement.TryGetProperty("GrpcServerUrl", out JsonElement urlElement)
-                        && urlElement.ValueKind == JsonValueKind.String
-                        && !string.IsNullOrWhiteSpace(urlElement.GetString()))
+                    using JsonDocument jsonDocument = JsonDocument.Parse(File.ReadAllText(settingsFilePath));
+                    string? configuredAddress = ExtractServerUrl(jsonDocument.RootElement);
+                    if (!string.IsNullOrWhiteSpace(configuredAddress))
                     {
-                        return urlElement.GetString()!;
+                        return configuredAddress;
                     }
                 }
-                catch (JsonException)
+                catch (JsonException jsonException)
                 {
+                    JsonLogger.Error(jsonException, "Failed to parse local configuration file {0}.", settingsFilePath);
                     return DefaultServerAddress;
                 }
             }
 
             return DefaultServerAddress;
+        }
+
+        private static string? ExtractServerUrl(JsonElement rootElement)
+        {
+            if (rootElement.ValueKind != JsonValueKind.Object)
+            {
+                return null;
+            }
+
+            foreach (JsonProperty jsonProperty in rootElement.EnumerateObject())
+            {
+                if (string.Equals(jsonProperty.Name, ServerUrlPropertyName, StringComparison.Ordinal)
+                    && jsonProperty.Value.ValueKind == JsonValueKind.String)
+                {
+                    return jsonProperty.Value.GetString();
+                }
+            }
+
+            return null;
         }
     }
 }
