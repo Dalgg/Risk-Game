@@ -9,6 +9,29 @@
         <local:ViewLocator />
     </Application.DataTemplates>
 
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <SolidColorBrush x:Key="TextControlBackground">White</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver">White</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextControlBackgroundFocused">White</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextControlForeground">Black</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextControlForegroundPointerOver">Black</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextControlForegroundFocused">Black</SolidColorBrush>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <SolidColorBrush x:Key="TextControlBackground">White</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver">White</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextControlBackgroundFocused">White</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextControlForeground">Black</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextControlForegroundPointerOver">Black</SolidColorBrush>
+                    <SolidColorBrush x:Key="TextControlForegroundFocused">Black</SolidColorBrush>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>
