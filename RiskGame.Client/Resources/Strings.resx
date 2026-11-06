@@ -103,4 +103,11 @@
   <data name="MatchPlayersHeaderLabel" xml:space="preserve"><value>JUGADORES</value></data>
   <data name="MatchBoardPlaceholderLabel" xml:space="preserve"><value>El tablero de juego se mostrará aquí.</value></data>
   <data name="MatchLeaveButton" xml:space="preserve"><value>SALIR DE LA PARTIDA</value></data>
+  <data name="LobbyInviteButton" xml:space="preserve"><value>Invitar</value></data>
+  <data name="LobbyInvitedButton" xml:space="preserve"><value>Enviado</value></data>
+  <data name="LobbyNoFriendsMessage" xml:space="preserve"><value>No tienes amigos agregados.</value></data>
+  <data name="LobbyFriendsGuestDisabled" xml:space="preserve"><value>Inicia sesión para ver a tus amigos.</value></data>
+  <data name="LobbyFriendOnlineStatus" xml:space="preserve"><value>EN LÍNEA</value></data>
+  <data name="LobbyFriendOfflineStatus" xml:space="preserve"><value>DESCONECTADO</value></data>
+  <data name="GlobalGameTitle" xml:space="preserve"><value>Reto de Riesgo</value></data>
 </root>

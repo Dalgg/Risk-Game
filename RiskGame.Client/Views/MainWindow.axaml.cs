@@ -16,7 +16,7 @@ namespace RiskGame.Views
 
         private void ChangeWindow(Window newWindow)
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            if (Application.Current != null && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
                 desktopLifetime.MainWindow = newWindow;
                 newWindow.Show();
@@ -24,32 +24,32 @@ namespace RiskGame.Views
             }
         }
 
-        private void OnSettingsClick(object? sender, RoutedEventArgs e)
+        private void OnSettingsClick(object? sender, RoutedEventArgs routedEventArgs)
         {
             ChangeWindow(new SettingsWindow());
         }
 
-        private void OnLoginClick(object? sender, RoutedEventArgs e)
+        private void OnLoginClick(object? sender, RoutedEventArgs routedEventArgs)
         {
             ChangeWindow(new LoginWindow());
         }
 
-        private void OnRoomsClick(object? sender, RoutedEventArgs e)
+        private void OnRoomsClick(object? sender, RoutedEventArgs routedEventArgs)
         {
             ChangeWindow(new RoomsWindow());
         }
 
-        private void OnLeaderboardClick(object? sender, RoutedEventArgs e)
+        private void OnLeaderboardClick(object? sender, RoutedEventArgs routedEventArgs)
         {
             ChangeWindow(new LeaderboardWindow());
         }
 
-        private void OnExitClick(object? sender, RoutedEventArgs e)
+        private void OnExitClick(object? sender, RoutedEventArgs routedEventArgs)
         {
             Close();
         }
 
-        private void OnProfileClick(object? sender, RoutedEventArgs e)
+        private void OnProfileClick(object? sender, RoutedEventArgs routedEventArgs)
         {
             if (DataContext is MainViewModel viewModel)
             {

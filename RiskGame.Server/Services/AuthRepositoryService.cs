@@ -46,10 +46,10 @@ namespace RiskGame.Server.Services
                     return matchingUser;
                 }
             }
-            catch (DbUpdateException dbUpdateException)
+            catch (DbUpdateException databaseUpdateException)
             {
-                JsonLogger.Error(dbUpdateException, "Persistence error (DbUpdateException) during login for user {0}.", username);
-                throw new DataOperationException("Database error occurred while updating user credentials.", dbUpdateException);
+                JsonLogger.Error(databaseUpdateException, "Persistence error (DbUpdateException) during login for user {0}.", username);
+                throw new DataOperationException("Database error occurred while updating user credentials.", databaseUpdateException);
             }
             catch (DbException databaseException)
             {
@@ -112,15 +112,15 @@ namespace RiskGame.Server.Services
                     return RegisterResult.Success;
                 }
             }
-            catch (DbUpdateException ex)
+            catch (DbUpdateException databaseUpdateException)
             {
-                JsonLogger.Error(ex, "Persistence error (DbUpdateException) while registering user {0}.", normalizedUsername);
-                throw new DataOperationException("A data conflict occurred while registering the account.", ex);
+                JsonLogger.Error(databaseUpdateException, "Persistence error (DbUpdateException) while registering user {0}.", normalizedUsername);
+                throw new DataOperationException("A data conflict occurred while registering the account.", databaseUpdateException);
             }
-            catch (DbException ex)
+            catch (DbException databaseException)
             {
-                JsonLogger.Error(ex, "Connection error (DbException) while registering user {0}.", normalizedUsername);
-                throw new DataOperationException("Could not connect to the database while registering the account.", ex);
+                JsonLogger.Error(databaseException, "Connection error (DbException) while registering user {0}.", normalizedUsername);
+                throw new DataOperationException("Could not connect to the database while registering the account.", databaseException);
             }
         }
     }

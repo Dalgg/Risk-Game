@@ -7,7 +7,7 @@
         Width="800" Height="550"
         x:Class="RiskGame.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Title="Risk Challenge"
+        Title="{x:Static res:Strings.GlobalGameTitle}"
         Background="#D3D3D3">
 
     <Grid>
@@ -30,7 +30,7 @@
         </Button>
 
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,40,0,0" Spacing="5">
-            <TextBlock Text="Risk Challenge" FontSize="42" FontWeight="Normal" HorizontalAlignment="Center" Foreground="Black"/>
+            <TextBlock Text="{x:Static res:Strings.GlobalGameTitle}" FontSize="42" FontWeight="Normal" HorizontalAlignment="Center" Foreground="Black"/>
             <TextBlock Text="{x:Static res:Strings.MainMenuStartButton}" FontSize="20" HorizontalAlignment="Center" Foreground="#333333"/>
         </StackPanel>
 

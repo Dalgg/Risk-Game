@@ -184,5 +184,19 @@ namespace RiskGame.Resources
         public static string MatchBoardPlaceholderLabel => ResourceManager.GetString("MatchBoardPlaceholderLabel", _resourceCulture);
 
         public static string MatchLeaveButton => ResourceManager.GetString("MatchLeaveButton", _resourceCulture);
+
+        public static string LobbyInviteButton => ResourceManager.GetString("LobbyInviteButton", _resourceCulture);
+
+        public static string LobbyInvitedButton => ResourceManager.GetString("LobbyInvitedButton", _resourceCulture);
+
+        public static string LobbyNoFriendsMessage => ResourceManager.GetString("LobbyNoFriendsMessage", _resourceCulture);
+
+        public static string LobbyFriendsGuestDisabled => ResourceManager.GetString("LobbyFriendsGuestDisabled", _resourceCulture);
+
+        public static string LobbyFriendOnlineStatus => ResourceManager.GetString("LobbyFriendOnlineStatus", _resourceCulture);
+
+        public static string LobbyFriendOfflineStatus => ResourceManager.GetString("LobbyFriendOfflineStatus", _resourceCulture);
+
+        public static string GlobalGameTitle => ResourceManager.GetString("GlobalGameTitle", _resourceCulture);
     }
 }

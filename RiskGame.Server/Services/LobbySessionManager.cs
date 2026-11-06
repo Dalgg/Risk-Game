@@ -20,6 +20,7 @@ namespace RiskGame.Server.Services
         private const int MaxChatMessageLength = 120;
         private const string FastRulesVariantName = "Fast";
         private const string StandardRulesVariantName = "Standard";
+        private const int MinimumValidIdentifier = 1;
         private readonly object syncLock = new object();
         private readonly Dictionary<string, ActiveLobbyRoom> roomsByCode = new Dictionary<string, ActiveLobbyRoom>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<int, string> userToLobbyCode = new Dictionary<int, string>();
@@ -326,6 +327,72 @@ namespace RiskGame.Server.Services
             };
 
             BroadcastChatMessage(chatSubscribersToNotify, outgoingMessage);
+        }
+
+        public FriendSummaryList GetFriends(int requestingUserId)
+        {
+            FriendSummaryList summaryList = new FriendSummaryList();
+            if (requestingUserId < MinimumValidIdentifier)
+            {
+                return summaryList;
+            }
+
+            List<RiskGame.Models.User> friendUsers = lobbyRepository.GetAcceptedFriends(requestingUserId);
+
+            lock (syncLock)
+            {
+                foreach (RiskGame.Models.User friendUser in friendUsers)
+                {
+                    bool isOnline = userToLobbyCode.ContainsKey(friendUser.IdUser);
+
+                    string avatarReferenceText = string.Empty;
+                    if (friendUser.AvatarReference != null)
+                    {
+                        avatarReferenceText = friendUser.AvatarReference;
+                    }
+
+                    FriendSummary friendSummary = new FriendSummary
+                    {
+                        UserId = friendUser.IdUser,
+                        Nickname = friendUser.Nickname,
+                        AvatarReference = avatarReferenceText,
+                        IsOnline = isOnline
+                    };
+
+                    summaryList.Friends.Add(friendSummary);
+                }
+            }
+
+            return summaryList;
+        }
+
+        public void InviteFriend(int senderUserId, int recipientUserId)
+        {
+            if (senderUserId < MinimumValidIdentifier || recipientUserId < MinimumValidIdentifier)
+            {
+                throw new ArgumentException("Identifiers must be positive numbers.");
+            }
+
+            int targetLobbyId;
+
+            lock (syncLock)
+            {
+                if (!userToLobbyCode.ContainsKey(senderUserId))
+                {
+                    throw new LobbyNotFoundException("The sender is not currently in an active lobby room.");
+                }
+
+                string assignedLobbyCode = userToLobbyCode[senderUserId];
+                if (!roomsByCode.ContainsKey(assignedLobbyCode))
+                {
+                    throw new LobbyNotFoundException("The lobby room is not available.");
+                }
+
+                ActiveLobbyRoom activeLobbyRoom = roomsByCode[assignedLobbyCode];
+                targetLobbyId = activeLobbyRoom.LobbyId;
+            }
+
+            lobbyRepository.CreateLobbyInvitation(targetLobbyId, senderUserId, recipientUserId);
         }
 
         private void RemovePlayerFromCurrentLobbyInternal(int targetUserId)

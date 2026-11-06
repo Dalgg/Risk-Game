@@ -20,10 +20,17 @@ namespace RiskGame.Views
             InitializeComponent();
 
             bool isEnglishActive = Strings.Culture != null && Strings.Culture.Name == "en-US";
-            LanguageComboBox.SelectedIndex = isEnglishActive ? EnglishOptionIndex : SpanishOptionIndex;
+            if (isEnglishActive)
+            {
+                LanguageComboBox.SelectedIndex = EnglishOptionIndex;
+            }
+            else
+            {
+                LanguageComboBox.SelectedIndex = SpanishOptionIndex;
+            }
         }
 
-        private void OnLanguageChanged(object? sender, SelectionChangedEventArgs e)
+        private void OnLanguageChanged(object? sender, SelectionChangedEventArgs selectionChangedEventArgs)
         {
             if (sender is not ComboBox comboBox)
             {
@@ -42,9 +49,9 @@ namespace RiskGame.Views
             }
         }
 
-        private void BackClick(object? sender, RoutedEventArgs e)
+        private void BackClick(object? sender, RoutedEventArgs routedEventArgs)
         {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            if (Application.Current != null && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
                 MainWindow mainWindow = new MainWindow();
                 desktopLifetime.MainWindow = mainWindow;

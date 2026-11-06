@@ -63,10 +63,10 @@ namespace RiskGame.ViewModels
 
                 return (RegisterResult)response.ResultCode;
             }
-            catch (RpcException ex)
+            catch (RpcException rpcException)
             {
-                JsonLogger.Error(ex, "gRPC communication error (RpcException) while registering user {0}.", normalizedUsername);
-                throw new DataOperationException(Strings.RegisterErrorConnectionFailed, ex);
+                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while registering user {0}.", normalizedUsername);
+                throw new DataOperationException(Strings.RegisterErrorConnectionFailed, rpcException);
             }
         }
     }

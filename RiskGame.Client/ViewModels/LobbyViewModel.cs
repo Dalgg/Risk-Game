@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
@@ -106,6 +107,46 @@ namespace RiskGame.ViewModels
             catch (RpcException rpcException)
             {
                 JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while starting match.");
+                throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
+            }
+        }
+
+        public List<FriendSummary> GetFriends()
+        {
+            try
+            {
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                LobbyRoom.LobbyRoomClient lobbyRoomClient = new LobbyRoom.LobbyRoomClient(grpcChannel);
+                Metadata requestHeaders = BuildPlayerHeaders();
+                FriendSummaryList friendSummaryList = lobbyRoomClient.GetFriends(new Empty(), requestHeaders);
+
+                List<FriendSummary> friends = new List<FriendSummary>();
+                foreach (FriendSummary friend in friendSummaryList.Friends)
+                {
+                    friends.Add(friend);
+                }
+
+                return friends;
+            }
+            catch (RpcException rpcException)
+            {
+                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while loading friends.");
+                throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
+            }
+        }
+
+        public void InviteFriend(int friendUserId)
+        {
+            try
+            {
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                LobbyRoom.LobbyRoomClient lobbyRoomClient = new LobbyRoom.LobbyRoomClient(grpcChannel);
+                Metadata requestHeaders = BuildPlayerHeaders();
+                lobbyRoomClient.InviteFriend(new Int32Value { Value = friendUserId }, requestHeaders);
+            }
+            catch (RpcException rpcException)
+            {
+                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while inviting friend {0}.", friendUserId);
                 throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
             }
         }

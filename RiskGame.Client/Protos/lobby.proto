@@ -19,6 +19,8 @@ service LobbyRoom {
   rpc UpdateRules (LobbyRules) returns (google.protobuf.Empty);
   rpc KickPlayer (google.protobuf.Int32Value) returns (google.protobuf.Empty);
   rpc StartMatch (google.protobuf.Empty) returns (google.protobuf.Int32Value);
+  rpc GetFriends (google.protobuf.Empty) returns (FriendSummaryList);
+  rpc InviteFriend (google.protobuf.Int32Value) returns (google.protobuf.Empty);
 }
 
 enum LobbyStatus {
@@ -82,6 +84,17 @@ message LobbyClosed {
 
 message MatchStarting {
   int32 match_id = 1;
+}
+
+message FriendSummary {
+  int32 user_id = 1;
+  string nickname = 2;
+  string avatar_reference = 3;
+  bool is_online = 4;
+}
+
+message FriendSummaryList {
+  repeated FriendSummary friends = 1;
 }
 
 message LobbyEvent {

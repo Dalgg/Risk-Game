@@ -34,6 +34,8 @@ namespace RiskGame.Views
         private static readonly IBrush PlayerNameBrush = Brushes.White;
         private static readonly IBrush OwnChatMessageBrush = new SolidColorBrush(Color.Parse("#D4A32D"));
         private static readonly IBrush OtherChatMessageBrush = Brushes.White;
+        private static readonly IBrush OnlineBadgeBrush = new SolidColorBrush(Color.Parse("#4CAF50"));
+        private static readonly IBrush OfflineBadgeBrush = new SolidColorBrush(Color.Parse("#8A8E9B"));
         private readonly LobbyViewModel lobbyViewModel;
         private readonly List<LobbyPlayer> currentLobbyPlayers = new List<LobbyPlayer>();
         private bool hasLeftLobby;
@@ -100,6 +102,7 @@ namespace RiskGame.Views
             currentLobbyPlayers.AddRange(lobbyDetails.Players);
 
             RenderPlayers(lobbyDetails.Players);
+            RenderFriends();
             UpdatePlayButtonState(lobbyDetails);
         }
 
@@ -278,6 +281,107 @@ namespace RiskGame.Views
 
             cardGrid.Children.Add(nameBlock);
             cardGrid.Children.Add(roleBlock);
+
+            return new Border
+            {
+                Background = PlayerCardBackground,
+                CornerRadius = new CornerRadius(PlayerCardCornerRadius),
+                Padding = new Thickness(CardHorizontalPadding, CardVerticalPadding),
+                Child = cardGrid
+            };
+        }
+
+        private void RenderFriends()
+        {
+            FriendsStackPanel.Children.Clear();
+
+            SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
+            if (currentSessionUser.IsGuest)
+            {
+                TextBlock guestNoticeBlock = new TextBlock
+                {
+                    Text = Strings.LobbyFriendsGuestDisabled,
+                    Foreground = OtherChatMessageBrush,
+                    FontSize = 13,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(0, 10, 0, 0)
+                };
+                FriendsStackPanel.Children.Add(guestNoticeBlock);
+                return;
+            }
+
+            try
+            {
+                List<FriendSummary> friends = lobbyViewModel.GetFriends();
+                if (friends.Count == 0)
+                {
+                    TextBlock emptyNoticeBlock = new TextBlock
+                    {
+                        Text = Strings.LobbyNoFriendsMessage,
+                        Foreground = OtherChatMessageBrush,
+                        FontSize = 13,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Margin = new Thickness(0, 10, 0, 0)
+                    };
+                    FriendsStackPanel.Children.Add(emptyNoticeBlock);
+                    return;
+                }
+
+                foreach (FriendSummary friend in friends)
+                {
+                    Border friendCard = CreateFriendCard(friend);
+                    FriendsStackPanel.Children.Add(friendCard);
+                }
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                JsonLogger.Error(dataOperationException, "Could not populate friends in lobby window.");
+            }
+        }
+
+        private static Border CreateFriendCard(FriendSummary friendSummary)
+        {
+            string friendDisplayName = Strings.LobbyDefaultPlayerName;
+            if (!string.IsNullOrWhiteSpace(friendSummary.Nickname))
+            {
+                friendDisplayName = friendSummary.Nickname;
+            }
+
+            string statusText = Strings.LobbyFriendOfflineStatus;
+            IBrush statusBrush = OfflineBadgeBrush;
+            if (friendSummary.IsOnline)
+            {
+                statusText = Strings.LobbyFriendOnlineStatus;
+                statusBrush = OnlineBadgeBrush;
+            }
+
+            Grid cardGrid = new Grid
+            {
+                ColumnDefinitions = new ColumnDefinitions("*, Auto")
+            };
+
+            TextBlock nameBlock = new TextBlock
+            {
+                Text = friendDisplayName,
+                Foreground = PlayerNameBrush,
+                FontSize = PlayerNameFontSize,
+                FontWeight = FontWeight.SemiBold,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetColumn(nameBlock, NameColumnIndex);
+
+            TextBlock statusBlock = new TextBlock
+            {
+                Text = statusText,
+                Foreground = statusBrush,
+                FontSize = PlayerRoleFontSize,
+                FontWeight = FontWeight.Bold,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetColumn(statusBlock, RoleColumnIndex);
+
+            cardGrid.Children.Add(nameBlock);
+            cardGrid.Children.Add(statusBlock);
 
             return new Border
             {

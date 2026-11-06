@@ -45,6 +45,43 @@ namespace RiskGame.Server.Services
             }
         }
 
+        public override Task<FriendSummaryList> GetFriends(Empty request, ServerCallContext callContext)
+        {
+            try
+            {
+                int requestingUserId = ExtractUserIdFromHeaders(callContext.RequestHeaders);
+                FriendSummaryList friends = sessionManager.GetFriends(requestingUserId);
+                return Task.FromResult(friends);
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                throw CreateFaultException(StatusCode.Unavailable, FaultCode.DatabaseUnavailable, dataOperationException.Message);
+            }
+        }
+
+        public override Task<Empty> InviteFriend(Int32Value recipientUserRequest, ServerCallContext callContext)
+        {
+            try
+            {
+                int senderUserId = ExtractUserIdFromHeaders(callContext.RequestHeaders);
+                int recipientUserId = recipientUserRequest.Value;
+                sessionManager.InviteFriend(senderUserId, recipientUserId);
+                return Task.FromResult(new Empty());
+            }
+            catch (LobbyNotFoundException lobbyNotFoundException)
+            {
+                throw CreateFaultException(StatusCode.NotFound, FaultCode.LobbyNotFound, lobbyNotFoundException.Message);
+            }
+            catch (ArgumentException argumentException)
+            {
+                throw CreateFaultException(StatusCode.InvalidArgument, FaultCode.InvalidInvitation, argumentException.Message);
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                throw CreateFaultException(StatusCode.Unavailable, FaultCode.DatabaseUnavailable, dataOperationException.Message);
+            }
+        }
+
         private static int ExtractUserIdFromHeaders(Metadata requestHeaders)
         {
             foreach (Metadata.Entry headerEntry in requestHeaders)

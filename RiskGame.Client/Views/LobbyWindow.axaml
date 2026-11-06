@@ -58,7 +58,9 @@
                                HorizontalAlignment="Center"
                                Margin="0,0,0,15" />
 
-                    <StackPanel x:Name="FriendsStackPanel" Grid.Row="1" Spacing="8" />
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="FriendsStackPanel" Spacing="8" />
+                    </ScrollViewer>
                 </Grid>
             </Border>
         </Grid>
@@ -89,7 +91,7 @@
                     <TextBox x:Name="ChatInputTextBox"
                              Grid.Column="0"
                              MaxLength="120"
-                             Watermark="{x:Static res:Strings.LobbyChatPlaceholder}"
+                             PlaceholderText="{x:Static res:Strings.LobbyChatPlaceholder}"
                              VerticalContentAlignment="Center"
                              Height="36"
                              TabIndex="0" />

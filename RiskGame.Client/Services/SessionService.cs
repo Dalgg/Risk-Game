@@ -17,11 +17,6 @@ namespace RiskGame.Services
             CurrentUser = user;
         }
 
-        public static void Login(int idUser, string username, string nickname, string? avatarReference)
-        {
-            CurrentUser = new SessionUser(idUser, username, nickname, avatarReference);
-        }
-
         public static SessionUser GetOrCreateCurrentUser()
         {
             if (CurrentUser == null)
