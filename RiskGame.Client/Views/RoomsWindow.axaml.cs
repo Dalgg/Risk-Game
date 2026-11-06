@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
+using RiskGame.Contracts.Common;
 using RiskGame.Contracts.Lobby;
 using RiskGame.Exceptions;
 using RiskGame.Resources;
@@ -11,9 +12,31 @@ namespace RiskGame.Views
 {
     public partial class RoomsWindow : Window
     {
+        private const int DefaultTurnDurationSeconds = 60;
+
         public RoomsWindow()
         {
             InitializeComponent();
+        }
+
+        private void CreateRoomClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            CreateMessageTextBlock.IsVisible = false;
+
+            LobbyViewModel lobbyViewModel = new LobbyViewModel();
+            LobbyDetails lobbyDetails;
+
+            try
+            {
+                lobbyDetails = lobbyViewModel.CreateLobby(RulesVariant.Standard, DefaultTurnDurationSeconds);
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                ShowCreateError(dataOperationException.Message);
+                return;
+            }
+
+            OpenLobbyWindow(lobbyDetails, lobbyViewModel);
         }
 
         private void JoinRoomClick(object? sender, RoutedEventArgs routedEventArgs)
@@ -69,6 +92,11 @@ namespace RiskGame.Views
                 return;
             }
 
+            OpenLobbyWindow(lobbyDetails, lobbyViewModel);
+        }
+
+        private void OpenLobbyWindow(LobbyDetails lobbyDetails, LobbyViewModel lobbyViewModel)
+        {
             if (Application.Current != null &&
                 Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
@@ -77,6 +105,12 @@ namespace RiskGame.Views
                 lobbyWindow.Show();
                 Close();
             }
+        }
+
+        private void ShowCreateError(string errorMessage)
+        {
+            CreateMessageTextBlock.Text = errorMessage;
+            CreateMessageTextBlock.IsVisible = true;
         }
 
         private void ShowJoinError(string errorMessage)

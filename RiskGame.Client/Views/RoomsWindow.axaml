@@ -4,7 +4,7 @@
         x:Class="RiskGame.Views.RoomsWindow"
         Title="{x:Static res:Strings.RoomsTitleLabel}"
         Width="600"
-        Height="420"
+        Height="480"
         Background="#1E1E1E">
 
     <Border Background="#5C5C5C" Margin="40">
@@ -29,7 +29,8 @@
                         Height="50"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
-                        TabIndex="0" />
+                        TabIndex="0"
+                        Click="CreateRoomClick" />
 
                 <Button Content="{x:Static res:Strings.RoomsJoinRoomButton}"
                         Background="#F4882A"
@@ -55,6 +56,15 @@
                         TabIndex="2"
                         IsCancel="True"
                         Click="BackClick" />
+
+                <TextBlock x:Name="CreateMessageTextBlock"
+                           IsVisible="False"
+                           Foreground="#FF8A8A"
+                           FontSize="13"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           HorizontalAlignment="Center"
+                           Width="260" />
             </StackPanel>
 
             <StackPanel x:Name="JoinCodeStackPanel"

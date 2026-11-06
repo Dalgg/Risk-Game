@@ -92,4 +92,13 @@
   <data name="LobbyErrorNotFound" xml:space="preserve"><value>No active room was found with that code.</value></data>
   <data name="LobbyErrorFull" xml:space="preserve"><value>The room is already full (maximum 4 players).</value></data>
   <data name="LobbyErrorConnectionFailed" xml:space="preserve"><value>Could not connect to the lobby server.</value></data>
+  <data name="LobbyChatHeaderLabel" xml:space="preserve"><value>CHAT</value></data>
+  <data name="LobbyChatPlaceholder" xml:space="preserve"><value>Type a message...</value></data>
+  <data name="LobbyChatSendButton" xml:space="preserve"><value>SEND</value></data>
+  <data name="LobbyChatMessageFormat" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="MatchTitleLabel" xml:space="preserve"><value>MATCH</value></data>
+  <data name="MatchIdFormat" xml:space="preserve"><value>MATCH #{0}</value></data>
+  <data name="MatchPlayersHeaderLabel" xml:space="preserve"><value>PLAYERS</value></data>
+  <data name="MatchBoardPlaceholderLabel" xml:space="preserve"><value>The game board will be shown here.</value></data>
+  <data name="MatchLeaveButton" xml:space="preserve"><value>LEAVE MATCH</value></data>
 </root>

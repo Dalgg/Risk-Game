@@ -166,5 +166,23 @@ namespace RiskGame.Resources
         public static string LobbyErrorFull => ResourceManager.GetString("LobbyErrorFull", _resourceCulture);
 
         public static string LobbyErrorConnectionFailed => ResourceManager.GetString("LobbyErrorConnectionFailed", _resourceCulture);
+
+        public static string LobbyChatHeaderLabel => ResourceManager.GetString("LobbyChatHeaderLabel", _resourceCulture);
+
+        public static string LobbyChatPlaceholder => ResourceManager.GetString("LobbyChatPlaceholder", _resourceCulture);
+
+        public static string LobbyChatSendButton => ResourceManager.GetString("LobbyChatSendButton", _resourceCulture);
+
+        public static string LobbyChatMessageFormat => ResourceManager.GetString("LobbyChatMessageFormat", _resourceCulture);
+
+        public static string MatchTitleLabel => ResourceManager.GetString("MatchTitleLabel", _resourceCulture);
+
+        public static string MatchIdFormat => ResourceManager.GetString("MatchIdFormat", _resourceCulture);
+
+        public static string MatchPlayersHeaderLabel => ResourceManager.GetString("MatchPlayersHeaderLabel", _resourceCulture);
+
+        public static string MatchBoardPlaceholderLabel => ResourceManager.GetString("MatchBoardPlaceholderLabel", _resourceCulture);
+
+        public static string MatchLeaveButton => ResourceManager.GetString("MatchLeaveButton", _resourceCulture);
     }
 }

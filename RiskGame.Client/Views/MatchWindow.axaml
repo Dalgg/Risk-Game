@@ -1,0 +1,77 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:res="using:RiskGame.Resources"
+        x:Class="RiskGame.Views.MatchWindow"
+        Title="{x:Static res:Strings.MatchTitleLabel}"
+        Width="1000"
+        Height="650"
+        Background="#181A25">
+
+    <Grid RowDefinitions="Auto, *, Auto" Margin="20">
+        <StackPanel Grid.Row="0"
+                    HorizontalAlignment="Center"
+                    Spacing="5"
+                    Margin="0,0,0,15">
+            <TextBlock Text="{x:Static res:Strings.MatchTitleLabel}"
+                       FontSize="32"
+                       FontWeight="Bold"
+                       Foreground="White"
+                       HorizontalAlignment="Center" />
+
+            <TextBlock x:Name="MatchIdTextBlock"
+                       FontSize="14"
+                       Foreground="#9EA1B2"
+                       HorizontalAlignment="Center"
+                       LetterSpacing="1" />
+        </StackPanel>
+
+        <Grid Grid.Row="1" ColumnDefinitions="3*, *" Margin="0,10,0,20">
+            <Border Grid.Column="0"
+                    BorderBrush="#2A2F5B"
+                    BorderThickness="2"
+                    CornerRadius="8"
+                    Margin="0,0,10,0"
+                    Padding="15">
+                <TextBlock Text="{x:Static res:Strings.MatchBoardPlaceholderLabel}"
+                           Foreground="#9EA1B2"
+                           FontSize="18"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+            </Border>
+
+            <Border Grid.Column="1"
+                    BorderBrush="#2A2F5B"
+                    BorderThickness="2"
+                    CornerRadius="8"
+                    Margin="10,0,0,0"
+                    Padding="15">
+                <Grid RowDefinitions="Auto, *">
+                    <TextBlock Grid.Row="0"
+                               Text="{x:Static res:Strings.MatchPlayersHeaderLabel}"
+                               Foreground="White"
+                               FontSize="16"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,15" />
+
+                    <StackPanel x:Name="MatchPlayersStackPanel" Grid.Row="1" Spacing="8" />
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Button Grid.Row="2"
+                Content="{x:Static res:Strings.MatchLeaveButton}"
+                Background="#B02C3A"
+                Foreground="White"
+                FontSize="16"
+                FontWeight="Bold"
+                Width="240"
+                Height="45"
+                CornerRadius="6"
+                HorizontalAlignment="Left"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
+                TabIndex="0"
+                IsCancel="True"
+                Click="LeaveMatchClick" />
+    </Grid>
+</Window>

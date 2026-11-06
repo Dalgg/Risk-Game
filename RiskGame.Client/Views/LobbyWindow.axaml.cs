@@ -8,13 +8,16 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using RiskGame.Callbacks;
+using RiskGame.Contracts.Chat;
 using RiskGame.Contracts.Lobby;
+using RiskGame.Exceptions;
 using RiskGame.Resources;
+using RiskGame.Services;
 using RiskGame.ViewModels;
 
 namespace RiskGame.Views
 {
-    public partial class LobbyWindow : Window, ILobbyCallback
+    public partial class LobbyWindow : Window, ILobbyCallback, IChatCallback
     {
         private const int PlayerNameFontSize = 16;
         private const int PlayerRoleFontSize = 12;
@@ -23,11 +26,18 @@ namespace RiskGame.Views
         private const int CardVerticalPadding = 10;
         private const int NameColumnIndex = 0;
         private const int RoleColumnIndex = 1;
+        private const int ChatMessageFontSize = 14;
+        private const int MaxChatMessagesDisplayed = 100;
+        private const int MinimumPlayersToStart = 2;
         private static readonly IBrush PlayerCardBackground = new SolidColorBrush(Color.Parse("#25293A"));
         private static readonly IBrush HostBadgeBrush = new SolidColorBrush(Color.Parse("#D4A32D"));
         private static readonly IBrush PlayerNameBrush = Brushes.White;
+        private static readonly IBrush OwnChatMessageBrush = new SolidColorBrush(Color.Parse("#D4A32D"));
+        private static readonly IBrush OtherChatMessageBrush = Brushes.White;
         private readonly LobbyViewModel lobbyViewModel;
+        private readonly List<LobbyPlayer> currentLobbyPlayers = new List<LobbyPlayer>();
         private bool hasLeftLobby;
+        private bool hasEnteredMatch;
 
         public LobbyWindow()
         {
@@ -40,13 +50,14 @@ namespace RiskGame.Views
             lobbyViewModel = currentLobbyViewModel;
             ApplyLobbyDetails(initialDetails);
             lobbyViewModel.SubscribeToEvents(this);
+            lobbyViewModel.SubscribeChat(this);
         }
 
         public void LobbyChanged(LobbyChanged notification)
         {
             Dispatcher.UIThread.Post(() =>
             {
-                if (notification.Lobby != null)
+                if (!hasEnteredMatch && notification.Lobby != null)
                 {
                     ApplyLobbyDetails(notification.Lobby);
                 }
@@ -55,11 +66,24 @@ namespace RiskGame.Views
 
         public void LobbyClosed(LobbyClosed notification)
         {
-            Dispatcher.UIThread.Post(ReturnToRoomsWindow);
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (!hasEnteredMatch)
+                {
+                    ReturnToRoomsWindow();
+                }
+            });
         }
 
         public void MatchStarting(MatchStarting notification)
         {
+            int startedMatchId = notification.MatchId;
+            Dispatcher.UIThread.Post(() => OpenMatchWindow(startedMatchId));
+        }
+
+        public void MessageReceived(ChatMessage incomingMessage)
+        {
+            Dispatcher.UIThread.Post(() => AppendChatMessage(incomingMessage));
         }
 
         protected override void OnClosed(EventArgs eventArgs)
@@ -71,7 +95,135 @@ namespace RiskGame.Views
         private void ApplyLobbyDetails(LobbyDetails lobbyDetails)
         {
             RoomCodeTextBlock.Text = string.Format(Strings.LobbyRoomIdFormat, lobbyDetails.LobbyCode);
+
+            currentLobbyPlayers.Clear();
+            currentLobbyPlayers.AddRange(lobbyDetails.Players);
+
             RenderPlayers(lobbyDetails.Players);
+            UpdatePlayButtonState(lobbyDetails);
+        }
+
+        private void UpdatePlayButtonState(LobbyDetails lobbyDetails)
+        {
+            SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
+            bool isCurrentUserHost = lobbyDetails.HostUserId == currentSessionUser.IdUser;
+
+            LobbyPlayButton.IsVisible = isCurrentUserHost;
+            LobbyPlayButton.IsEnabled = isCurrentUserHost && lobbyDetails.Players.Count >= MinimumPlayersToStart;
+        }
+
+        private void AppendChatMessage(ChatMessage incomingMessage)
+        {
+            string senderName = Strings.LobbyDefaultPlayerName;
+            bool isOwnMessage = false;
+
+            if (incomingMessage.Sender != null)
+            {
+                if (!string.IsNullOrWhiteSpace(incomingMessage.Sender.Nickname))
+                {
+                    senderName = incomingMessage.Sender.Nickname;
+                }
+
+                SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
+                isOwnMessage = incomingMessage.Sender.UserId == currentSessionUser.IdUser;
+            }
+
+            IBrush messageBrush = OtherChatMessageBrush;
+            if (isOwnMessage)
+            {
+                messageBrush = OwnChatMessageBrush;
+            }
+
+            TextBlock messageBlock = new TextBlock
+            {
+                Text = string.Format(Strings.LobbyChatMessageFormat, senderName, incomingMessage.Text),
+                Foreground = messageBrush,
+                FontSize = ChatMessageFontSize,
+                TextWrapping = TextWrapping.Wrap
+            };
+
+            ChatMessagesStackPanel.Children.Add(messageBlock);
+
+            if (ChatMessagesStackPanel.Children.Count > MaxChatMessagesDisplayed)
+            {
+                ChatMessagesStackPanel.Children.RemoveAt(0);
+            }
+
+            Dispatcher.UIThread.Post(() => ChatScrollViewer.ScrollToEnd(), DispatcherPriority.Background);
+        }
+
+        private void ShowLobbyMessage(string messageText)
+        {
+            LobbyMessageTextBlock.Text = messageText;
+            LobbyMessageTextBlock.IsVisible = true;
+        }
+
+        private void OpenMatchWindow(int startedMatchId)
+        {
+            if (hasEnteredMatch)
+            {
+                return;
+            }
+
+            hasEnteredMatch = true;
+            hasLeftLobby = true;
+            lobbyViewModel.StopSubscription();
+            lobbyViewModel.StopChatSubscription();
+
+            if (Application.Current != null &&
+                Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            {
+                MatchWindow matchWindow = new MatchWindow(startedMatchId, currentLobbyPlayers);
+                desktopLifetime.MainWindow = matchWindow;
+                matchWindow.Show();
+                Close();
+            }
+        }
+
+        private void PlayClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            LobbyMessageTextBlock.IsVisible = false;
+
+            try
+            {
+                lobbyViewModel.StartMatch();
+            }
+            catch (InvalidOperationException invalidOperationException)
+            {
+                JsonLogger.Error(invalidOperationException, "The match could not be started from the lobby window.");
+                ShowLobbyMessage(Strings.RoomsErrorNotEnoughPlayers);
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                ShowLobbyMessage(dataOperationException.Message);
+            }
+        }
+
+        private void SendChatMessageClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            string messageText = string.Empty;
+            if (ChatInputTextBox.Text != null)
+            {
+                messageText = ChatInputTextBox.Text.Trim();
+            }
+
+            if (string.IsNullOrWhiteSpace(messageText))
+            {
+                return;
+            }
+
+            LobbyMessageTextBlock.IsVisible = false;
+
+            try
+            {
+                lobbyViewModel.SendMessage(messageText);
+                ChatInputTextBox.Text = string.Empty;
+                ChatInputTextBox.Focus();
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                ShowLobbyMessage(dataOperationException.Message);
+            }
         }
 
         private void RenderPlayers(IReadOnlyList<LobbyPlayer> lobbyPlayers)

@@ -94,4 +94,13 @@
   <data name="LobbyErrorNotFound" xml:space="preserve"><value>No se encontró ninguna sala activa con ese código.</value></data>
   <data name="LobbyErrorFull" xml:space="preserve"><value>La sala ya está llena (máximo 4 jugadores).</value></data>
   <data name="LobbyErrorConnectionFailed" xml:space="preserve"><value>No se pudo conectar con el servidor de salas.</value></data>
+  <data name="LobbyChatHeaderLabel" xml:space="preserve"><value>CHAT</value></data>
+  <data name="LobbyChatPlaceholder" xml:space="preserve"><value>Escribe un mensaje...</value></data>
+  <data name="LobbyChatSendButton" xml:space="preserve"><value>ENVIAR</value></data>
+  <data name="LobbyChatMessageFormat" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="MatchTitleLabel" xml:space="preserve"><value>PARTIDA</value></data>
+  <data name="MatchIdFormat" xml:space="preserve"><value>PARTIDA #{0}</value></data>
+  <data name="MatchPlayersHeaderLabel" xml:space="preserve"><value>JUGADORES</value></data>
+  <data name="MatchBoardPlaceholderLabel" xml:space="preserve"><value>El tablero de juego se mostrará aquí.</value></data>
+  <data name="MatchLeaveButton" xml:space="preserve"><value>SALIR DE LA PARTIDA</value></data>
 </root>
