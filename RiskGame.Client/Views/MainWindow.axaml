@@ -35,10 +35,6 @@
         </StackPanel>
 
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="25" Margin="0,60,0,0">
-            <Button Content="{x:Static res:Strings.MainMenuSinglePlayerButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
-                VerticalContentAlignment="Center" Background="#333333" Foreground="White" CornerRadius="8"
-                    FontSize="18"/>
-
             <Button Content="{x:Static res:Strings.MainMenuRoomsButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center" Background="#333333" Foreground="White" CornerRadius="8"
                     FontSize="18" Click="OnRoomsClick"/>
