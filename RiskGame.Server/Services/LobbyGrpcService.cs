@@ -75,11 +75,11 @@ namespace RiskGame.Server.Services
             IServerStreamWriter<LobbyEvent> responseStream,
             ServerCallContext callContext)
         {
-            PlayerSummary subscriberPlayer = ExtractPlayerFromHeaders(callContext.RequestHeaders);
-            LobbyDetails? initialLobbySnapshot = sessionManager.RegisterSubscriber(subscriberPlayer.UserId, responseStream);
-
-            if (initialLobbySnapshot != null)
+            try
             {
+                PlayerSummary subscriberPlayer = ExtractPlayerFromHeaders(callContext.RequestHeaders);
+                LobbyDetails initialLobbySnapshot = sessionManager.RegisterSubscriber(subscriberPlayer.UserId, responseStream);
+
                 LobbyEvent snapshotEvent = new LobbyEvent
                 {
                     LobbyChanged = new LobbyChanged
@@ -91,11 +91,15 @@ namespace RiskGame.Server.Services
                 };
 
                 responseStream.WriteAsync(snapshotEvent).GetAwaiter().GetResult();
-            }
 
-            callContext.CancellationToken.WaitHandle.WaitOne();
-            sessionManager.UnregisterSubscriber(subscriberPlayer.UserId);
-            return Task.CompletedTask;
+                callContext.CancellationToken.WaitHandle.WaitOne();
+                sessionManager.UnregisterSubscriber(subscriberPlayer.UserId);
+                return Task.CompletedTask;
+            }
+            catch (LobbyNotFoundException lobbyNotFoundException)
+            {
+                throw CreateFaultException(StatusCode.NotFound, FaultCode.LobbyNotFound, lobbyNotFoundException.Message);
+            }
         }
 
         private static PlayerSummary ExtractPlayerFromHeaders(Metadata requestHeaders)

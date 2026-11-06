@@ -16,6 +16,7 @@ namespace RiskGame.Server.Services
         private const int LobbyCodeLength = 6;
         private const int MaxCodeGenerationAttempts = 10;
         private const int MinimumValidIdentifier = 1;
+        private const int MinutesForExpiration = 30;
 
         public Lobby GetActiveLobbyByCode(string lobbyCode)
         {
@@ -183,7 +184,7 @@ namespace RiskGame.Server.Services
                 {
                     string uniqueInvitationCode = GenerateUniqueLobbyCode(databaseContext);
                     DateTime currentDateTime = DateTime.Now;
-                    DateTime expirationDateTime = currentDateTime.AddMinutes(30);
+                    DateTime expirationDateTime = currentDateTime.AddMinutes(MinutesForExpiration);
 
                     LobbyInvitation newInvitationEntity = new LobbyInvitation
                     {

@@ -9,6 +9,7 @@ using RiskGame.Contracts.Common;
 using RiskGame.Contracts.Lobby;
 using RiskGame.Exceptions;
 using RiskGame.Services;
+using Lobby = RiskGame.Models.Lobby;
 
 namespace RiskGame.Server.Services
 {
@@ -45,7 +46,7 @@ namespace RiskGame.Server.Services
                 turnDurationSeconds = requestedRules.TurnDurationSeconds;
             }
 
-            RiskGame.Models.Lobby createdDatabaseLobby = lobbyRepository.CreateLobbyInDatabase(
+            Lobby createdDatabaseLobby = lobbyRepository.CreateLobbyInDatabase(
                 rulesVariantName,
                 turnDurationSeconds);
 
@@ -60,7 +61,7 @@ namespace RiskGame.Server.Services
                 normalizedLobbyCode = lobbyCode.Trim();
             }
 
-            RiskGame.Models.Lobby databaseLobby = lobbyRepository.GetActiveLobbyByCode(normalizedLobbyCode);
+            Lobby databaseLobby = lobbyRepository.GetActiveLobbyByCode(normalizedLobbyCode);
             LobbyDetails lobbySnapshot;
             List<IServerStreamWriter<LobbyEvent>> subscribersToNotify;
 
@@ -163,19 +164,19 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public LobbyDetails? RegisterSubscriber(int subscriberUserId, IServerStreamWriter<LobbyEvent> responseStream)
+        public LobbyDetails RegisterSubscriber(int subscriberUserId, IServerStreamWriter<LobbyEvent> responseStream)
         {
             lock (syncLock)
             {
                 if (!userToLobbyCode.ContainsKey(subscriberUserId))
                 {
-                    return null;
+                    throw new LobbyNotFoundException("The player is not currently in an active lobby.");
                 }
 
                 string assignedLobbyCode = userToLobbyCode[subscriberUserId];
                 if (!roomsByCode.ContainsKey(assignedLobbyCode))
                 {
-                    return null;
+                    throw new LobbyNotFoundException("The lobby does not exist or is already closed.");
                 }
 
                 ActiveLobbyRoom activeLobbyRoom = roomsByCode[assignedLobbyCode];
@@ -252,13 +253,13 @@ namespace RiskGame.Server.Services
             {
                 if (!userToLobbyCode.ContainsKey(subscriberUserId))
                 {
-                    return;
+                    throw new LobbyNotFoundException("The player is not currently in an active lobby.");
                 }
 
                 string assignedLobbyCode = userToLobbyCode[subscriberUserId];
                 if (!roomsByCode.ContainsKey(assignedLobbyCode))
                 {
-                    return;
+                    throw new LobbyNotFoundException("The lobby does not exist or is already closed.");
                 }
 
                 ActiveLobbyRoom activeLobbyRoom = roomsByCode[assignedLobbyCode];
@@ -270,19 +271,15 @@ namespace RiskGame.Server.Services
         {
             lock (syncLock)
             {
-                if (!userToLobbyCode.ContainsKey(subscriberUserId))
+                if (userToLobbyCode.ContainsKey(subscriberUserId))
                 {
-                    return;
+                    string assignedLobbyCode = userToLobbyCode[subscriberUserId];
+                    if (roomsByCode.ContainsKey(assignedLobbyCode))
+                    {
+                        ActiveLobbyRoom activeLobbyRoom = roomsByCode[assignedLobbyCode];
+                        activeLobbyRoom.ChatSubscribers.Remove(subscriberUserId);
+                    }
                 }
-
-                string assignedLobbyCode = userToLobbyCode[subscriberUserId];
-                if (!roomsByCode.ContainsKey(assignedLobbyCode))
-                {
-                    return;
-                }
-
-                ActiveLobbyRoom activeLobbyRoom = roomsByCode[assignedLobbyCode];
-                activeLobbyRoom.ChatSubscribers.Remove(subscriberUserId);
             }
         }
 
@@ -290,7 +287,7 @@ namespace RiskGame.Server.Services
         {
             if (string.IsNullOrWhiteSpace(messageText))
             {
-                return;
+                throw new ArgumentException("Chat message cannot be empty or whitespace.");
             }
 
             string trimmedMessageText = messageText.Trim();
@@ -429,7 +426,7 @@ namespace RiskGame.Server.Services
             }
         }
 
-        private static ActiveLobbyRoom CreateRoomFromEntity(RiskGame.Models.Lobby databaseLobby, int initialHostUserId)
+        private static ActiveLobbyRoom CreateRoomFromEntity(Lobby databaseLobby, int initialHostUserId)
         {
             RulesVariant selectedRulesVariant = RulesVariant.Standard;
             if (string.Equals(databaseLobby.RulesVariant, FastRulesVariantName, StringComparison.OrdinalIgnoreCase))

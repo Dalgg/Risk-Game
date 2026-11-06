@@ -50,12 +50,19 @@ namespace RiskGame.Server.Services
             IServerStreamWriter<ChatMessage> responseStream,
             ServerCallContext callContext)
         {
-            PlayerSummary subscriberPlayer = ExtractPlayerFromHeaders(callContext.RequestHeaders);
-            sessionManager.RegisterChatSubscriber(subscriberPlayer.UserId, responseStream);
+            try
+            {
+                PlayerSummary subscriberPlayer = ExtractPlayerFromHeaders(callContext.RequestHeaders);
+                sessionManager.RegisterChatSubscriber(subscriberPlayer.UserId, responseStream);
 
-            callContext.CancellationToken.WaitHandle.WaitOne();
-            sessionManager.UnregisterChatSubscriber(subscriberPlayer.UserId);
-            return Task.CompletedTask;
+                callContext.CancellationToken.WaitHandle.WaitOne();
+                sessionManager.UnregisterChatSubscriber(subscriberPlayer.UserId);
+                return Task.CompletedTask;
+            }
+            catch (LobbyNotFoundException lobbyNotFoundException)
+            {
+                throw CreateFaultException(StatusCode.FailedPrecondition, FaultCode.NotInLobby, lobbyNotFoundException.Message);
+            }
         }
 
         private static PlayerSummary ExtractPlayerFromHeaders(Metadata requestHeaders)
