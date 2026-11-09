@@ -32,7 +32,7 @@
   <data name="RegisterSuccess" xml:space="preserve"><value>Account created. You can now log in.</value></data>
 
   <data name="MainMenuStartButton" xml:space="preserve"><value>Play</value></data>
-  <data name="MainMenuRoomsButton" xml:space="preserve"><value>Rooms</value></data>
+  <data name="MainMenuRoomsButton" xml:space="preserve"><value>Play rooms</value></data>
   <data name="MainMenuLeaderboardButton" xml:space="preserve"><value>Leaderboard</value></data>
   <data name="MainMenuExitButton" xml:space="preserve"><value>Exit</value></data>
 

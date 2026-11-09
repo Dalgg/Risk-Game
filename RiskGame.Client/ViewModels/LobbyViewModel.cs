@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Net.Client;
 using RiskGame.Callbacks;
@@ -17,11 +16,8 @@ namespace RiskGame.ViewModels
 {
     public class LobbyViewModel : ViewModelBase
     {
-        private const string UserIdHeaderKey = "user-id";
-        private const string NicknameHeaderKey = "nickname";
-        private const string AvatarHeaderKey = "avatar-reference";
-        private const string IsGuestHeaderKey = "is-guest";
         private const int DefaultMaxPlayers = 4;
+        private const int MinimumValidMatchId = 1;
         private CancellationTokenSource? streamCancellation;
         private CancellationTokenSource? chatStreamCancellation;
 
@@ -31,16 +27,19 @@ namespace RiskGame.ViewModels
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                 Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
-                Metadata requestHeaders = BuildPlayerHeaders();
-                LobbyRules lobbyRules = new LobbyRules
+                CreateLobbyRequest createRequest = new CreateLobbyRequest
                 {
-                    RulesVariant = rulesVariant,
-                    TurnDurationSeconds = turnDurationSeconds,
-                    MaxPlayers = DefaultMaxPlayers,
-                    IsPrivate = false
+                    Player = BuildCurrentPlayerSummary(),
+                    Rules = new LobbyRules
+                    {
+                        RulesVariant = rulesVariant,
+                        TurnDurationSeconds = turnDurationSeconds,
+                        MaxPlayers = DefaultMaxPlayers,
+                        IsPrivate = false
+                    }
                 };
 
-                return lobbyClient.CreateLobby(lobbyRules, requestHeaders);
+                return lobbyClient.CreateLobby(createRequest);
             }
             catch (RpcException rpcException)
             {
@@ -55,8 +54,13 @@ namespace RiskGame.ViewModels
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                 Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
-                Metadata requestHeaders = BuildPlayerHeaders();
-                return lobbyClient.JoinLobby(new StringValue { Value = roomCode }, requestHeaders);
+                JoinLobbyRequest joinRequest = new JoinLobbyRequest
+                {
+                    LobbyCode = roomCode,
+                    Player = BuildCurrentPlayerSummary()
+                };
+
+                return lobbyClient.JoinLobby(joinRequest);
             }
             catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.NotFound)
             {
@@ -81,8 +85,8 @@ namespace RiskGame.ViewModels
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                 Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
-                Metadata requestHeaders = BuildPlayerHeaders();
-                lobbyClient.LeaveLobby(new Empty(), requestHeaders);
+                UserLobbyRequest leaveRequest = BuildUserLobbyRequest();
+                lobbyClient.LeaveLobby(leaveRequest);
             }
             catch (RpcException rpcException)
             {
@@ -95,10 +99,10 @@ namespace RiskGame.ViewModels
             try
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
-                LobbyRoom.LobbyRoomClient lobbyRoomClient = new LobbyRoom.LobbyRoomClient(grpcChannel);
-                Metadata requestHeaders = BuildPlayerHeaders();
-                Int32Value createdMatchId = lobbyRoomClient.StartMatch(new Empty(), requestHeaders);
-                return createdMatchId.Value;
+                Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
+                UserLobbyRequest startRequest = BuildUserLobbyRequest();
+                StartMatchResponse startResponse = lobbyClient.StartMatch(startRequest);
+                return startResponse.MatchId;
             }
             catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.FailedPrecondition)
             {
@@ -116,9 +120,9 @@ namespace RiskGame.ViewModels
             try
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
-                LobbyRoom.LobbyRoomClient lobbyRoomClient = new LobbyRoom.LobbyRoomClient(grpcChannel);
-                Metadata requestHeaders = BuildPlayerHeaders();
-                FriendSummaryList friendSummaryList = lobbyRoomClient.GetFriends(new Empty(), requestHeaders);
+                Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
+                UserLobbyRequest friendsRequest = BuildUserLobbyRequest();
+                FriendSummaryList friendSummaryList = lobbyClient.GetFriends(friendsRequest);
 
                 List<FriendSummary> friends = new List<FriendSummary>();
                 foreach (FriendSummary friend in friendSummaryList.Friends)
@@ -139,10 +143,16 @@ namespace RiskGame.ViewModels
         {
             try
             {
+                SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
-                LobbyRoom.LobbyRoomClient lobbyRoomClient = new LobbyRoom.LobbyRoomClient(grpcChannel);
-                Metadata requestHeaders = BuildPlayerHeaders();
-                lobbyRoomClient.InviteFriend(new Int32Value { Value = friendUserId }, requestHeaders);
+                Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
+                InviteFriendRequest inviteRequest = new InviteFriendRequest
+                {
+                    SenderUserId = currentSessionUser.IdUser,
+                    RecipientUserId = friendUserId
+                };
+
+                lobbyClient.InviteFriend(inviteRequest);
             }
             catch (RpcException rpcException)
             {
@@ -162,14 +172,13 @@ namespace RiskGame.ViewModels
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                 Chat.ChatClient chatClient = new Chat.ChatClient(grpcChannel);
-                Metadata requestHeaders = BuildPlayerHeaders();
                 ChatMessage outgoingMessage = new ChatMessage
                 {
-                    Scope = ChatScope.Lobby,
-                    Text = messageText.Trim()
+                    Text = messageText.Trim(),
+                    Sender = BuildCurrentPlayerSummary()
                 };
 
-                chatClient.SendMessage(outgoingMessage, requestHeaders);
+                chatClient.SendMessage(outgoingMessage);
             }
             catch (RpcException rpcException)
             {
@@ -189,11 +198,10 @@ namespace RiskGame.ViewModels
                 {
                     GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                     Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
-                    Metadata requestHeaders = BuildPlayerHeaders();
+                    UserLobbyRequest subscribeRequest = BuildUserLobbyRequest();
 
                     using AsyncServerStreamingCall<LobbyEvent> streamingCall = lobbyClient.SubscribeLobbyEvents(
-                        new Empty(),
-                        requestHeaders,
+                        subscribeRequest,
                         cancellationToken: cancellationToken);
 
                     while (streamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult())
@@ -226,17 +234,16 @@ namespace RiskGame.ViewModels
             {
                 try
                 {
+                    SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
                     GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                     Chat.ChatClient chatClient = new Chat.ChatClient(grpcChannel);
-                    Metadata requestHeaders = BuildPlayerHeaders();
                     ChatChannel channelRequest = new ChatChannel
                     {
-                        Scope = ChatScope.Lobby
+                        UserId = currentSessionUser.IdUser
                     };
 
                     using AsyncServerStreamingCall<ChatMessage> chatStreamingCall = chatClient.SubscribeChat(
                         channelRequest,
-                        requestHeaders,
                         cancellationToken: cancellationToken);
 
                     while (chatStreamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult())
@@ -282,38 +289,42 @@ namespace RiskGame.ViewModels
 
         private static void DispatchLobbyEvent(LobbyEvent currentLobbyEvent, ILobbyCallback lobbyCallback)
         {
-            switch (currentLobbyEvent.PayloadCase)
+            if (currentLobbyEvent.StartedMatchId >= MinimumValidMatchId)
             {
-                case LobbyEvent.PayloadOneofCase.LobbyChanged:
-                    lobbyCallback.LobbyChanged(currentLobbyEvent.LobbyChanged);
-                    break;
-                case LobbyEvent.PayloadOneofCase.LobbyClosed:
-                    lobbyCallback.LobbyClosed(currentLobbyEvent.LobbyClosed);
-                    break;
-                case LobbyEvent.PayloadOneofCase.MatchStarting:
-                    lobbyCallback.MatchStarting(currentLobbyEvent.MatchStarting);
-                    break;
-                default:
-                    break;
+                lobbyCallback.MatchStarting(currentLobbyEvent.StartedMatchId);
+                return;
+            }
+
+            if (currentLobbyEvent.Lobby != null)
+            {
+                lobbyCallback.LobbyUpdated(currentLobbyEvent.Lobby);
             }
         }
 
-        private static Metadata BuildPlayerHeaders()
+        private static UserLobbyRequest BuildUserLobbyRequest()
         {
             SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
-            bool isGuestPlayer = currentSessionUser.IdUser < 0;
+            return new UserLobbyRequest
+            {
+                UserId = currentSessionUser.IdUser
+            };
+        }
+
+        private static PlayerSummary BuildCurrentPlayerSummary()
+        {
+            SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
             string avatarReference = string.Empty;
             if (currentSessionUser.AvatarReference != null)
             {
                 avatarReference = currentSessionUser.AvatarReference;
             }
 
-            return new Metadata
+            return new PlayerSummary
             {
-                { UserIdHeaderKey, currentSessionUser.IdUser.ToString() },
-                { NicknameHeaderKey, currentSessionUser.Nickname },
-                { AvatarHeaderKey, avatarReference },
-                { IsGuestHeaderKey, isGuestPlayer.ToString() }
+                UserId = currentSessionUser.IdUser,
+                Nickname = currentSessionUser.Nickname,
+                AvatarReference = avatarReference,
+                IsGuest = currentSessionUser.IsGuest
             };
         }
     }

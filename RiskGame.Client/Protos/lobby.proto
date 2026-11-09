@@ -3,24 +3,16 @@ option csharp_namespace = "RiskGame.Contracts.Lobby";
 package riskgame.lobby;
 
 import "google/protobuf/empty.proto";
-import "google/protobuf/wrappers.proto";
 import "common.proto";
 
 service Lobby {
-  rpc CreateLobby (LobbyRules) returns (LobbyDetails);
-  rpc GetPublicLobbies (google.protobuf.Empty) returns (LobbyList);
-  rpc JoinLobby (google.protobuf.StringValue) returns (LobbyDetails);
-  rpc LeaveLobby (google.protobuf.Empty) returns (google.protobuf.Empty);
-  rpc SubscribeLobbyEvents (google.protobuf.Empty) returns (stream LobbyEvent);
-}
-
-service LobbyRoom {
-  rpc SetReady (google.protobuf.BoolValue) returns (google.protobuf.Empty);
-  rpc UpdateRules (LobbyRules) returns (google.protobuf.Empty);
-  rpc KickPlayer (google.protobuf.Int32Value) returns (google.protobuf.Empty);
-  rpc StartMatch (google.protobuf.Empty) returns (google.protobuf.Int32Value);
-  rpc GetFriends (google.protobuf.Empty) returns (FriendSummaryList);
-  rpc InviteFriend (google.protobuf.Int32Value) returns (google.protobuf.Empty);
+  rpc CreateLobby (CreateLobbyRequest) returns (LobbyDetails);
+  rpc JoinLobby (JoinLobbyRequest) returns (LobbyDetails);
+  rpc LeaveLobby (UserLobbyRequest) returns (google.protobuf.Empty);
+  rpc StartMatch (UserLobbyRequest) returns (StartMatchResponse);
+  rpc GetFriends (UserLobbyRequest) returns (FriendSummaryList);
+  rpc InviteFriend (InviteFriendRequest) returns (google.protobuf.Empty);
+  rpc SubscribeLobbyEvents (UserLobbyRequest) returns (stream LobbyEvent);
 }
 
 enum LobbyStatus {
@@ -28,21 +20,6 @@ enum LobbyStatus {
   LOBBY_STATUS_STARTING = 1;
   LOBBY_STATUS_IN_MATCH = 2;
   LOBBY_STATUS_CLOSED = 3;
-}
-
-enum LobbyChangeType {
-  LOBBY_CHANGE_TYPE_PLAYER_JOINED = 0;
-  LOBBY_CHANGE_TYPE_PLAYER_LEFT = 1;
-  LOBBY_CHANGE_TYPE_PLAYER_KICKED = 2;
-  LOBBY_CHANGE_TYPE_PLAYER_READY_CHANGED = 3;
-  LOBBY_CHANGE_TYPE_RULES_UPDATED = 4;
-  LOBBY_CHANGE_TYPE_SNAPSHOT = 5;
-}
-
-enum LobbyCloseReason {
-  LOBBY_CLOSE_REASON_HOST_CANCELLED = 0;
-  LOBBY_CLOSE_REASON_EMPTY = 1;
-  LOBBY_CLOSE_REASON_MATCH_FINISHED = 2;
 }
 
 message LobbyRules {
@@ -68,21 +45,26 @@ message LobbyDetails {
   repeated LobbyPlayer players = 6;
 }
 
-message LobbyList {
-  repeated LobbyDetails lobbies = 1;
+message CreateLobbyRequest {
+  LobbyRules rules = 1;
+  riskgame.common.PlayerSummary player = 2;
 }
 
-message LobbyChanged {
-  LobbyChangeType change = 1;
-  LobbyDetails lobby = 2;
-  optional int32 affected_user_id = 3;
+message JoinLobbyRequest {
+  string lobby_code = 1;
+  riskgame.common.PlayerSummary player = 2;
 }
 
-message LobbyClosed {
-  LobbyCloseReason reason = 1;
+message UserLobbyRequest {
+  int32 user_id = 1;
 }
 
-message MatchStarting {
+message InviteFriendRequest {
+  int32 sender_user_id = 1;
+  int32 recipient_user_id = 2;
+}
+
+message StartMatchResponse {
   int32 match_id = 1;
 }
 
@@ -98,9 +80,6 @@ message FriendSummaryList {
 }
 
 message LobbyEvent {
-  oneof payload {
-    LobbyChanged lobby_changed = 1;
-    LobbyClosed lobby_closed = 2;
-    MatchStarting match_starting = 3;
-  }
+  LobbyDetails lobby = 1;
+  int32 started_match_id = 2;
 }

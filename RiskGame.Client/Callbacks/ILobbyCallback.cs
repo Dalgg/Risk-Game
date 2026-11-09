@@ -4,8 +4,8 @@ namespace RiskGame.Callbacks
 {
     public interface ILobbyCallback
     {
-        void LobbyChanged(LobbyChanged notification);
-        void LobbyClosed(LobbyClosed notification);
-        void MatchStarting(MatchStarting notification);
+        void LobbyUpdated(LobbyDetails lobbyDetails);
+
+        void MatchStarting(int matchId);
     }
 }

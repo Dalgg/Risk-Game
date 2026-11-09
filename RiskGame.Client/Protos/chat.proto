@@ -11,20 +11,12 @@ service Chat {
   rpc SubscribeChat (ChatChannel) returns (stream ChatMessage);
 }
 
-enum ChatScope {
-  CHAT_SCOPE_LOBBY = 0;
-  CHAT_SCOPE_MATCH = 1;
-  CHAT_SCOPE_PRIVATE = 2;
-}
-
 message ChatChannel {
-  ChatScope scope = 1;
+  int32 user_id = 1;
 }
 
 message ChatMessage {
-  ChatScope scope = 1;
-  optional int32 recipient_user_id = 2;
-  string text = 3;
-  riskgame.common.PlayerSummary sender = 4;
-  google.protobuf.Timestamp sent_at = 5;
+  string text = 1;
+  riskgame.common.PlayerSummary sender = 2;
+  google.protobuf.Timestamp sent_at = 3;
 }

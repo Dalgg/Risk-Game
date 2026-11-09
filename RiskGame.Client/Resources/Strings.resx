@@ -33,7 +33,7 @@
   <data name="RegisterSuccess" xml:space="preserve"><value>Cuenta creada. Ya puedes iniciar sesión.</value></data>
 
   <data name="MainMenuStartButton" xml:space="preserve"><value>Jugar</value></data>
-  <data name="MainMenuRoomsButton" xml:space="preserve"><value>Salas</value></data>
+  <data name="MainMenuRoomsButton" xml:space="preserve"><value>Salas de juego</value></data>
   <data name="MainMenuLeaderboardButton" xml:space="preserve"><value>Marcadores</value></data>
   <data name="MainMenuExitButton" xml:space="preserve"><value>Salir</value></data>
 

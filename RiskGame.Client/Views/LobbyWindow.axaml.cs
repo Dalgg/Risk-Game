@@ -55,31 +55,19 @@ namespace RiskGame.Views
             lobbyViewModel.SubscribeChat(this);
         }
 
-        public void LobbyChanged(LobbyChanged notification)
+        public void LobbyUpdated(LobbyDetails lobbyDetails)
         {
             Dispatcher.UIThread.Post(() =>
             {
-                if (!hasEnteredMatch && notification.Lobby != null)
+                if (!hasEnteredMatch && lobbyDetails != null)
                 {
-                    ApplyLobbyDetails(notification.Lobby);
+                    ApplyLobbyDetails(lobbyDetails);
                 }
             });
         }
 
-        public void LobbyClosed(LobbyClosed notification)
+        public void MatchStarting(int startedMatchId)
         {
-            Dispatcher.UIThread.Post(() =>
-            {
-                if (!hasEnteredMatch)
-                {
-                    ReturnToRoomsWindow();
-                }
-            });
-        }
-
-        public void MatchStarting(MatchStarting notification)
-        {
-            int startedMatchId = notification.MatchId;
             Dispatcher.UIThread.Post(() => OpenMatchWindow(startedMatchId));
         }
 

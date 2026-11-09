@@ -113,13 +113,7 @@ namespace RiskGame.Server.Services
                 subscribersToNotify = activeLobbyRoom.Subscribers.Values.ToList();
             }
 
-            LobbyChanged joinedLobbyChange = new LobbyChanged
-            {
-                Change = LobbyChangeType.PlayerJoined,
-                Lobby = lobbySnapshot,
-                AffectedUserId = joiningPlayer.UserId
-            };
-            BroadcastLobbyChanged(subscribersToNotify, joinedLobbyChange);
+            BroadcastLobbySnapshot(subscribersToNotify, lobbySnapshot);
             return lobbySnapshot;
         }
 
@@ -154,13 +148,7 @@ namespace RiskGame.Server.Services
 
             if (lobbySnapshot != null && subscribersToNotify.Count > 0)
             {
-                LobbyChanged leftLobbyChange = new LobbyChanged
-                {
-                    Change = LobbyChangeType.PlayerLeft,
-                    Lobby = lobbySnapshot,
-                    AffectedUserId = leavingUserId
-                };
-                BroadcastLobbyChanged(subscribersToNotify, leftLobbyChange);
+                BroadcastLobbySnapshot(subscribersToNotify, lobbySnapshot);
             }
         }
 
@@ -237,10 +225,7 @@ namespace RiskGame.Server.Services
 
             LobbyEvent matchStartingEvent = new LobbyEvent
             {
-                MatchStarting = new MatchStarting
-                {
-                    MatchId = createdMatchId
-                }
+                StartedMatchId = createdMatchId
             };
 
             BroadcastLobbyEvent(subscribersToNotify, matchStartingEvent);
@@ -317,7 +302,6 @@ namespace RiskGame.Server.Services
 
             ChatMessage outgoingMessage = new ChatMessage
             {
-                Scope = ChatScope.Lobby,
                 Text = trimmedMessageText,
                 Sender = senderPlayer,
                 SentAt = Timestamp.FromDateTime(DateTime.UtcNow)
@@ -491,13 +475,13 @@ namespace RiskGame.Server.Services
             return lobbyDetails;
         }
 
-        private static void BroadcastLobbyChanged(
+        private static void BroadcastLobbySnapshot(
             IReadOnlyList<IServerStreamWriter<LobbyEvent>> subscribers,
-            LobbyChanged lobbyChanged)
+            LobbyDetails lobbySnapshot)
         {
             LobbyEvent notificationEvent = new LobbyEvent
             {
-                LobbyChanged = lobbyChanged
+                Lobby = lobbySnapshot
             };
 
             BroadcastLobbyEvent(subscribers, notificationEvent);
