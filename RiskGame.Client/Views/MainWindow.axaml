@@ -56,7 +56,7 @@
 
         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,60,60,0" Spacing="40">
 
-            <Button Background="Transparent" BorderThickness="0" Padding="0" >
+            <Button Background="Transparent" BorderThickness="0" Padding="0" Click="OnFriendsClick">
                 <StackPanel Spacing="10">
                     <Border Width="80" Height="80" Background="White" CornerRadius="4">
                         <Image Source="/Assets/friends.png" Stretch="Uniform" Margin="10"/>

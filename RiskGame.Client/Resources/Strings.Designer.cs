@@ -218,5 +218,27 @@ namespace RiskGame.Resources
 
         public static string ProfileStatisticUnavailable => ResourceManager.GetString("ProfileStatisticUnavailable", _resourceCulture);
         public static string ViewNotFound => ResourceManager.GetString("ViewNotFound", _resourceCulture);
+        public static string FriendsTitle => ResourceManager.GetString("FriendsTitle", _resourceCulture);
+
+        public static string FriendsEmpty => ResourceManager.GetString("FriendsEmpty", _resourceCulture);
+
+        public static string FriendsLoading => ResourceManager.GetString("FriendsLoading", _resourceCulture);
+
+        public static string FriendsLoadError => ResourceManager.GetString("FriendsLoadError", _resourceCulture);
+
+        public static string FriendsUsernameRequired => ResourceManager.GetString("FriendsUsernameRequired", _resourceCulture);
+
+        public static string FriendsSending => ResourceManager.GetString("FriendsSending", _resourceCulture);
+
+        public static string FriendsRequestSent => ResourceManager.GetString("FriendsRequestSent", _resourceCulture);
+
+        public static string FriendsRequestRejected => ResourceManager.GetString("FriendsRequestRejected", _resourceCulture);
+
+        public static string FriendsLoginRequired => ResourceManager.GetString("FriendsLoginRequired", _resourceCulture);
+
+        public static string FriendsUsernamePlaceholder => ResourceManager.GetString("FriendsUsernamePlaceholder", _resourceCulture);
+
+        public static string FriendsAdd => ResourceManager.GetString("FriendsAdd", _resourceCulture);
+
     }
 }

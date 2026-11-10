@@ -1,0 +1,128 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:res="using:RiskGame.Resources"
+        xmlns:vm="using:RiskGame.ViewModels"
+        x:Class="RiskGame.Views.FriendsWindow" x:DataType="vm:FriendsViewModel"
+        Title="{x:Static res:Strings.FriendsTitle}" Width="{StaticResource WindowWidth}"
+            Height="{StaticResource WindowHeight}"
+        MinWidth="{StaticResource WindowWidth}" MinHeight="{StaticResource WindowHeight}"
+            Background="{StaticResource WindowBackground}" Loaded="OnWindowLoaded"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <x:Double x:Key="WindowWidth">600</x:Double>
+        <x:Double x:Key="WindowHeight">550</x:Double>
+        <x:Double x:Key="TitleFontSize">26</x:Double>
+        <x:Double x:Key="FriendNameFontSize">18</x:Double>
+        <x:Double x:Key="FriendStatusFontSize">12</x:Double>
+        <x:Double x:Key="AvatarSize">45</x:Double>
+        <x:Double x:Key="StatusIndicatorSize">12</x:Double>
+        <x:Double x:Key="ActionButtonWidth">150</x:Double>
+        <x:Double x:Key="RefreshButtonWidth">130</x:Double>
+        <x:Double x:Key="ActionButtonHeight">45</x:Double>
+        <x:Double x:Key="ActionSpacing">15</x:Double>
+        <x:Double x:Key="StatusSpacing">8</x:Double>
+        <Thickness x:Key="WindowMargin">10</Thickness>
+        <Thickness x:Key="ContentMargin">20</Thickness>
+        <Thickness x:Key="ListPadding">15</Thickness>
+        <Thickness x:Key="FriendPadding">10</Thickness>
+        <Thickness x:Key="TitleMargin">0,0,0,20</Thickness>
+        <Thickness x:Key="FriendMargin">0,0,0,10</Thickness>
+        <Thickness x:Key="AvatarMargin">0,0,15,0</Thickness>
+        <Thickness x:Key="StatusMargin">10,0,0,0</Thickness>
+        <Thickness x:Key="MessageMargin">0,10</Thickness>
+        <Thickness x:Key="ActionsMargin">0,20,0,0</Thickness>
+        <Thickness x:Key="WindowBorderThickness">2</Thickness>
+        <Thickness x:Key="ListBorderThickness">1.5</Thickness>
+        <Thickness x:Key="FriendBorderThickness">1</Thickness>
+        <CornerRadius x:Key="PanelCornerRadius">6</CornerRadius>
+        <CornerRadius x:Key="AvatarCornerRadius">4</CornerRadius>
+        <SolidColorBrush x:Key="WindowBackground">#151722</SolidColorBrush>
+        <SolidColorBrush x:Key="PanelBorderBrush">#353A5A</SolidColorBrush>
+        <SolidColorBrush x:Key="FriendBackground">#252A40</SolidColorBrush>
+        <SolidColorBrush x:Key="AvatarBackground">#E0E2E8</SolidColorBrush>
+        <SolidColorBrush x:Key="OnlineBrush">#34C759</SolidColorBrush>
+        <SolidColorBrush x:Key="OfflineBrush">#8A8D98</SolidColorBrush>
+        <SolidColorBrush x:Key="AddButtonBackground">#3273B2</SolidColorBrush>
+        <SolidColorBrush x:Key="BackButtonBackground">#A12431</SolidColorBrush>
+    </Window.Resources>
+    <Window.Styles>
+        <Style Selector="TextBlock"><Setter Property="Foreground" Value="White"/></Style>
+        <Style Selector="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="{StaticResource PanelCornerRadius}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Ellipse"><Setter Property="Fill" Value="{StaticResource OfflineBrush}"/></Style>
+        <Style Selector="Ellipse.online"><Setter Property="Fill" Value="{StaticResource OnlineBrush}"/></Style>
+    </Window.Styles>
+    <Border BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="{StaticResource WindowBorderThickness}"
+        CornerRadius="{StaticResource PanelCornerRadius}" Margin="{StaticResource WindowMargin}">
+        <Grid RowDefinitions="Auto,*,Auto,Auto,Auto" Margin="{StaticResource ContentMargin}">
+            <TextBlock Text="{x:Static res:Strings.FriendsTitle}" FontSize="{StaticResource TitleFontSize}"
+                FontWeight="Bold"
+                       HorizontalAlignment="Center" Margin="{StaticResource TitleMargin}"/>
+            <Border Grid.Row="1" BorderBrush="{StaticResource PanelBorderBrush}"
+                BorderThickness="{StaticResource ListBorderThickness}" CornerRadius="{StaticResource PanelCornerRadius}"
+                Padding="{StaticResource ListPadding}">
+                <Grid>
+                    <ScrollViewer TabIndex="1" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding Friends}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:FriendListItem">
+                                    <Border Background="{StaticResource FriendBackground}"
+                                        BorderBrush="{StaticResource PanelBorderBrush}"
+                                        BorderThickness="{StaticResource FriendBorderThickness}"
+                                            CornerRadius="{StaticResource PanelCornerRadius}"
+                                                Padding="{StaticResource FriendPadding}"
+                                                Margin="{StaticResource FriendMargin}">
+                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                            <Border Width="{StaticResource AvatarSize}"
+                                                Height="{StaticResource AvatarSize}"
+                                                CornerRadius="{StaticResource AvatarCornerRadius}"
+                                                    Background="{StaticResource AvatarBackground}" ClipToBounds="True"
+                                                        Margin="{StaticResource AvatarMargin}">
+                                                <Image Source="{Binding AvatarPath}" Stretch="UniformToFill"/>
+                                            </Border>
+                                            <TextBlock Grid.Column="1" Text="{Binding Nickname}"
+                                                FontSize="{StaticResource FriendNameFontSize}"
+                                                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                Spacing="{StaticResource StatusSpacing}"
+                                                        VerticalAlignment="Center"
+                                                            Margin="{StaticResource StatusMargin}">
+                                                <Ellipse Width="{StaticResource StatusIndicatorSize}"
+                                                    Height="{StaticResource StatusIndicatorSize}"
+                                                    Classes.online="{Binding IsOnline}"/>
+                                                <TextBlock Text="{Binding StatusText}"
+                                                    FontSize="{StaticResource FriendStatusFontSize}"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    <TextBlock Text="{x:Static res:Strings.FriendsEmpty}" IsVisible="{Binding ShowEmptyMessage}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                </Grid>
+            </Border>
+            <TextBlock Grid.Row="2" Text="{Binding StatusMessage}" TextWrapping="Wrap"
+                Margin="{StaticResource MessageMargin}"/>
+            <TextBox Grid.Row="3" Text="{Binding TargetUsername, Mode=TwoWay}" TabIndex="2"
+                     PlaceholderText="{x:Static res:Strings.FriendsUsernamePlaceholder}"/>
+            <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center"
+                        Spacing="{StaticResource ActionSpacing}" Margin="{StaticResource ActionsMargin}">
+                <Button Content="{x:Static res:Strings.FriendsAdd}" Command="{Binding SendRequestCommand}"
+                        Background="{StaticResource AddButtonBackground}" Width="{StaticResource ActionButtonWidth}"
+                            Height="{StaticResource ActionButtonHeight}" TabIndex="3" HotKey="Enter"/>
+                <Button x:Name="RefreshButton" Content="{x:Static res:Strings.ProfileRefresh}"
+                        Command="{Binding RefreshCommand}" Width="{StaticResource RefreshButtonWidth}"
+                            Height="{StaticResource ActionButtonHeight}" TabIndex="0"/>
+                <Button Content="{x:Static res:Strings.ProfileBack}" Click="OnBackClick"
+                    Background="{StaticResource BackButtonBackground}"
+                        Width="{StaticResource ActionButtonWidth}" Height="{StaticResource ActionButtonHeight}"
+                            TabIndex="4" HotKey="Escape"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

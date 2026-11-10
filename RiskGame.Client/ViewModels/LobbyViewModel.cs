@@ -117,26 +117,7 @@ namespace RiskGame.ViewModels
 
         public List<FriendSummary> GetFriends()
         {
-            try
-            {
-                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
-                Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
-                UserLobbyRequest friendsRequest = BuildUserLobbyRequest();
-                FriendSummaryList friendSummaryList = lobbyClient.GetFriends(friendsRequest);
-
-                List<FriendSummary> friends = new List<FriendSummary>();
-                foreach (FriendSummary friend in friendSummaryList.Friends)
-                {
-                    friends.Add(friend);
-                }
-
-                return friends;
-            }
-            catch (RpcException rpcException)
-            {
-                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while loading friends.");
-                throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
-            }
+            return FriendsViewModel.GetFriends();
         }
 
         public void InviteFriend(int friendUserId)
@@ -163,27 +144,25 @@ namespace RiskGame.ViewModels
 
         public void SendMessage(string messageText)
         {
-            if (string.IsNullOrWhiteSpace(messageText))
+            if (!string.IsNullOrWhiteSpace(messageText))
             {
-                return;
-            }
-
-            try
-            {
-                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
-                Chat.ChatClient chatClient = new Chat.ChatClient(grpcChannel);
-                ChatMessage outgoingMessage = new ChatMessage
+                try
                 {
-                    Text = messageText.Trim(),
-                    Sender = BuildCurrentPlayerSummary()
-                };
+                    GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                    Chat.ChatClient chatClient = new Chat.ChatClient(grpcChannel);
+                    ChatMessage outgoingMessage = new ChatMessage
+                    {
+                        Text = messageText.Trim(),
+                        Sender = BuildCurrentPlayerSummary()
+                    };
 
-                chatClient.SendMessage(outgoingMessage);
-            }
-            catch (RpcException rpcException)
-            {
-                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while sending lobby chat message.");
-                throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
+                    chatClient.SendMessage(outgoingMessage);
+                }
+                catch (RpcException rpcException)
+                {
+                    JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while sending lobby chat message.");
+                    throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
+                }
             }
         }
 
@@ -292,10 +271,8 @@ namespace RiskGame.ViewModels
             if (currentLobbyEvent.StartedMatchId >= MinimumValidMatchId)
             {
                 lobbyCallback.MatchStarting(currentLobbyEvent.StartedMatchId);
-                return;
             }
-
-            if (currentLobbyEvent.Lobby != null)
+            else if (currentLobbyEvent.Lobby != null)
             {
                 lobbyCallback.LobbyUpdated(currentLobbyEvent.Lobby);
             }

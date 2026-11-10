@@ -12,4 +12,15 @@
 <data name="ProfileLoadError" xml:space="preserve"><value>No se pudo cargar el perfil. Comprueba la conexión e inténtalo de nuevo.</value></data>
 <data name="ProfileRefresh" xml:space="preserve"><value>Actualizar</value></data>
   <data name="ProfileStatisticUnavailable" xml:space="preserve"><value>—</value></data>
+  <data name="FriendsTitle" xml:space="preserve"><value>AMIGOS</value></data>
+  <data name="FriendsEmpty" xml:space="preserve"><value>Aún no tienes amigos agregados.</value></data>
+  <data name="FriendsLoading" xml:space="preserve"><value>Cargando amigos…</value></data>
+  <data name="FriendsLoadError" xml:space="preserve"><value>No se pudo completar la operación. Comprueba la conexión e inténtalo de nuevo.</value></data>
+  <data name="FriendsUsernameRequired" xml:space="preserve"><value>Escribe el nombre de usuario de tu amigo.</value></data>
+  <data name="FriendsSending" xml:space="preserve"><value>Enviando solicitud…</value></data>
+  <data name="FriendsRequestSent" xml:space="preserve"><value>Solicitud enviada. Aparecerá en la lista cuando la amistad sea aceptada.</value></data>
+  <data name="FriendsRequestRejected" xml:space="preserve"><value>No se pudo enviar: revisa el usuario, si ya son amigos o si hay una solicitud pendiente.</value></data>
+  <data name="FriendsLoginRequired" xml:space="preserve"><value>Inicia sesión nuevamente para enviar solicitudes.</value></data>
+  <data name="FriendsUsernamePlaceholder" xml:space="preserve"><value>Nombre de usuario del amigo</value></data>
+  <data name="FriendsAdd" xml:space="preserve"><value>AÑADIR +</value></data>
 </root>

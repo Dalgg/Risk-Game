@@ -119,4 +119,15 @@
   <data name="ProfileRefresh" xml:space="preserve"><value>Refresh</value></data>
   <data name="ProfileStatisticUnavailable" xml:space="preserve"><value>—</value></data>
   <data name="ViewNotFound" xml:space="preserve"><value>The requested view could not be found.</value></data>
+  <data name="FriendsTitle" xml:space="preserve"><value>FRIENDS</value></data>
+  <data name="FriendsEmpty" xml:space="preserve"><value>You have no friends yet.</value></data>
+  <data name="FriendsLoading" xml:space="preserve"><value>Loading friends...</value></data>
+  <data name="FriendsLoadError" xml:space="preserve"><value>Could not complete the operation. Check the connection and try again.</value></data>
+  <data name="FriendsUsernameRequired" xml:space="preserve"><value>Enter the username of your friend.</value></data>
+  <data name="FriendsSending" xml:space="preserve"><value>Sending request...</value></data>
+  <data name="FriendsRequestSent" xml:space="preserve"><value>Request sent. Your friend will appear once the friendship is accepted.</value></data>
+  <data name="FriendsRequestRejected" xml:space="preserve"><value>Could not send: check the username, existing friendships or pending requests.</value></data>
+  <data name="FriendsLoginRequired" xml:space="preserve"><value>Sign in again to send friend requests.</value></data>
+  <data name="FriendsUsernamePlaceholder" xml:space="preserve"><value>Username of your friend</value></data>
+  <data name="FriendsAdd" xml:space="preserve"><value>ADD +</value></data>
 </root>

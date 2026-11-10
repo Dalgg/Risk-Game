@@ -1,0 +1,15 @@
+syntax = "proto3";
+option csharp_namespace = "RiskGame.Contracts.Friend";
+package riskgame.friend;
+
+import "google/protobuf/empty.proto";
+
+service Friend {
+  rpc SendFriendRequest (FriendRequest) returns (google.protobuf.Empty);
+}
+
+message FriendRequest {
+  int32 user_id = 1;
+  string target_username = 2;
+  string session_token = 3;
+}
