@@ -28,7 +28,7 @@ namespace RiskGame.Server.Services
         private readonly LobbyRepositoryService lobbyRepository;
         private readonly ProfileSessionRegistry sessionRegistry;        
 
-        public LobbySessionManager(LobbyRepositoryService lobbyRepository)
+        public LobbySessionManager(LobbyRepositoryService lobbyRepository, ProfileSessionRegistry sessionRegistry)
         {
             this.lobbyRepository = lobbyRepository;
             this.sessionRegistry = sessionRegistry;

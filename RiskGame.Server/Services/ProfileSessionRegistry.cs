@@ -63,19 +63,20 @@ namespace RiskGame.Server.Services
             throw new InvalidSessionException("A valid session is required.");
         }
     
-    public bool IsUserOnline(int userId)
+        public bool IsUserOnline(int userId)
         {
             bool isOnline = false;
             lock (sessionLock)
             {
-                foreach (KeyValuePair<String, RegisteredSession> session in sessionsByToken)
+                foreach (KeyValuePair<string, RegisteredSession> session in sessionsByToken)
                 {
-                    if(session.Value.UserId == userId && session.Value.ExpiresAt > DateTime.UtcNow)
+                    if (session.Value.UserId == userId && session.Value.ExpiresAt > DateTime.UtcNow)
                     {
                         isOnline = true;
                     }
                 }
             }
+
             return isOnline;
         }
     }
