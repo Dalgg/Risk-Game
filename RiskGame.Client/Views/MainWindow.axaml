@@ -20,7 +20,7 @@
         <Button IsVisible="{Binding IsLoggedIn}"
                 HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20"
                 Background="#333333" Foreground="White" CornerRadius="8" Padding="10"
-                Click="OnProfileClick">
+                Command="{Binding OpenProfileCommand}">
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <Border Width="40" Height="40" CornerRadius="20" ClipToBounds="True" Background="White">
                     <Image Source="/Assets/default_avatar.png" Stretch="UniformToFill"/>

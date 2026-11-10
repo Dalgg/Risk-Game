@@ -18,7 +18,7 @@ namespace RiskGame.Server.Services
             @"^[A-Za-z0-9._\-]{3,50}$",
             RegexOptions.Compiled);
 
-        public User? AuthenticateUser(string username, string password)
+        public User AuthenticateUser(string username, string password)
         {
             try
             {
@@ -28,13 +28,13 @@ namespace RiskGame.Server.Services
                         candidateUser => candidateUser.Username == username);
                     if (matchingUser == null)
                     {
-                        return null;
+                        throw new InvalidCredentialsException("Invalid username or password.");
                     }
 
                     PasswordVerificationResult verificationResult = PasswordHasher.Verify(password, matchingUser.PasswordHash);
                     if (!verificationResult.IsValid)
                     {
-                        return null;
+                        throw new InvalidCredentialsException("Invalid username or password.");
                     }
 
                     if (verificationResult.NeedsRehash)

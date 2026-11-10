@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using RiskGame.ViewModels;
+using RiskGame.Resources;
 
 namespace RiskGame
 {
@@ -15,7 +16,7 @@ namespace RiskGame
         {
             if (param is null)
             {
-                return null;
+                return new ContentControl();
             }
 
             string viewName = param.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
@@ -23,7 +24,7 @@ namespace RiskGame
 
             if (viewType == null)
             {
-                return new TextBlock { Text = "Not Found: " + viewName };
+                return new TextBlock { Text = Strings.ViewNotFound };
             }
 
             return (Control)Activator.CreateInstance(viewType)!;

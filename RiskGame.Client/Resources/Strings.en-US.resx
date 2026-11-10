@@ -108,4 +108,15 @@
   <data name="LobbyFriendOnlineStatus" xml:space="preserve"><value>ONLINE</value></data>
   <data name="LobbyFriendOfflineStatus" xml:space="preserve"><value>OFFLINE</value></data>
   <data name="GlobalGameTitle" xml:space="preserve"><value>Risk Challenge</value></data>
+  <data name="ProfileTitle" xml:space="preserve"><value>USER PROFILE</value></data>
+  <data name="ProfileIdentifier" xml:space="preserve"><value>ID:</value></data>
+  <data name="ProfileMatchesPlayed" xml:space="preserve"><value>Matches played:</value></data>
+  <data name="ProfileMatchesWon" xml:space="preserve"><value>Matches won:</value></data>
+  <data name="ProfileBack" xml:space="preserve"><value>BACK</value></data>
+  <data name="ProfileChangePassword" xml:space="preserve"><value>CHANGE PASSWORD</value></data>
+  <data name="ProfilePasswordPending" xml:space="preserve"><value>Password changes are not available yet.</value></data>
+  <data name="ProfileLoadError" xml:space="preserve"><value>Could not load your profile. Check the connection and try again.</value></data>
+  <data name="ProfileRefresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="ProfileStatisticUnavailable" xml:space="preserve"><value>—</value></data>
+  <data name="ViewNotFound" xml:space="preserve"><value>The requested view could not be found.</value></data>
 </root>

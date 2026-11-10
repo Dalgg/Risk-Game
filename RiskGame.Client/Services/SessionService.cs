@@ -23,7 +23,7 @@ namespace RiskGame.Services
             {
                 int guestNumber = RandomNumberGenerator.GetInt32(BottomUserIdRange, TopUserIdRange);
                 string guestAlias = $"{GuestPrefix}{guestNumber}";
-                CurrentUser = new SessionUser(-guestNumber, guestAlias, guestAlias, null);
+                CurrentUser = new SessionUser(-guestNumber, guestAlias, guestAlias);
             }
 
             return CurrentUser;

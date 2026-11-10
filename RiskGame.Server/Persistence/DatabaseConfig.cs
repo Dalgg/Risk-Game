@@ -45,7 +45,7 @@ namespace RiskGame.Services
         {
             if (rootElement.ValueKind != JsonValueKind.Object)
             {
-                return null;
+                return string.Empty;
             }
 
             foreach (JsonProperty rootProperty in rootElement.EnumerateObject())
@@ -64,7 +64,7 @@ namespace RiskGame.Services
                 }
             }
 
-            return null;
+            return string.Empty;
         }
     }
 }

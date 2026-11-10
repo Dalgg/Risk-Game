@@ -72,6 +72,7 @@ namespace RiskGame.Views
             }
             catch (DataOperationException dataOperationException)
             {
+                JsonLogger.Error(dataOperationException, "Could not sign in the requested player.");
                 ShowMessage(dataOperationException.Message, ErrorBrush);
                 return;
             }

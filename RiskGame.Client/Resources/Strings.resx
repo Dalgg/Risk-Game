@@ -110,4 +110,15 @@
   <data name="LobbyFriendOnlineStatus" xml:space="preserve"><value>EN LÍNEA</value></data>
   <data name="LobbyFriendOfflineStatus" xml:space="preserve"><value>DESCONECTADO</value></data>
   <data name="GlobalGameTitle" xml:space="preserve"><value>Reto de Riesgo</value></data>
+  <data name="ProfileTitle" xml:space="preserve"><value>PERFIL DE USUARIO</value></data>
+  <data name="ProfileIdentifier" xml:space="preserve"><value>ID:</value></data>
+  <data name="ProfileMatchesPlayed" xml:space="preserve"><value>Partidas jugadas:</value></data>
+  <data name="ProfileMatchesWon" xml:space="preserve"><value>Partidas ganadas:</value></data>
+  <data name="ProfileBack" xml:space="preserve"><value>REGRESAR</value></data>
+  <data name="ProfileChangePassword" xml:space="preserve"><value>CAMBIAR CONTRASEÑA</value></data>
+  <data name="ProfilePasswordPending" xml:space="preserve"><value>Cambio de contraseña pendiente de implementación.</value></data>
+  <data name="ProfileLoadError" xml:space="preserve"><value>No se pudo cargar el perfil. Comprueba la conexión e inténtalo de nuevo.</value></data>
+  <data name="ProfileRefresh" xml:space="preserve"><value>Actualizar</value></data>
+  <data name="ProfileStatisticUnavailable" xml:space="preserve"><value>—</value></data>
+  <data name="ViewNotFound" xml:space="preserve"><value>No se pudo encontrar la vista solicitada.</value></data>
 </root>

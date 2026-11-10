@@ -1,0 +1,20 @@
+syntax = "proto3";
+option csharp_namespace = "RiskGame.Contracts.Profile";
+package riskgame.profile;
+
+service Profile {
+  rpc GetProfile (ProfileQuery) returns (UserProfile);
+}
+
+message ProfileQuery {
+  int32 user_id = 1;
+  string session_token = 2;
+}
+
+message UserProfile {
+  int32 user_id = 1;
+  string username = 2;
+  string avatar_reference = 3;
+  int32 matches_played = 4;
+  int32 matches_won = 5;
+}

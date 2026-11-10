@@ -16,7 +16,8 @@ namespace RiskGame.Views
 
         private void ChangeWindow(Window newWindow)
         {
-            if (Application.Current != null && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            if (Application.Current != null
+            && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
                 desktopLifetime.MainWindow = newWindow;
                 newWindow.Show();
@@ -49,12 +50,5 @@ namespace RiskGame.Views
             Close();
         }
 
-        private void OnProfileClick(object? sender, RoutedEventArgs routedEventArgs)
-        {
-            if (DataContext is MainViewModel viewModel)
-            {
-                viewModel.Logout();
-            }
-        }
     }
 }

@@ -9,7 +9,7 @@ namespace RiskGame.ViewModels
 {
     public class LoginViewModel : ViewModelBase
     {
-        public SessionUser? AuthenticateUser(string username, string password)
+        public SessionUser AuthenticateUser(string username, string password)
         {
             try
             {
@@ -21,22 +21,30 @@ namespace RiskGame.ViewModels
                     Password = password
                 });
 
-                if (!loginResponse.IsAuthenticated || loginResponse.Player == null)
+                SessionUser authenticatedUser;
+                if (loginResponse.IsAuthenticated && loginResponse.Player != null)
                 {
-                    return null;
+                    string? avatarReference = null;
+                    if (!string.IsNullOrWhiteSpace(loginResponse.Player.AvatarReference))
+                    {
+                        avatarReference = loginResponse.Player.AvatarReference;
+                    }
+
+                    authenticatedUser = new SessionUser(
+                        loginResponse.Player.UserId,
+                        loginResponse.Player.Username,
+                        loginResponse.Player.Nickname)
+                    {
+                        AvatarReference = avatarReference,
+                        SessionToken = loginResponse.SessionToken
+                    };
+                }
+                else
+                {
+                    throw new DataOperationException(Strings.LoginErrorInvalidAuth);
                 }
 
-                string? avatarReference = null;
-                if (!string.IsNullOrWhiteSpace(loginResponse.Player.AvatarReference))
-                {
-                    avatarReference = loginResponse.Player.AvatarReference;
-                }
-
-                return new SessionUser(
-                    loginResponse.Player.UserId,
-                    loginResponse.Player.Username,
-                    loginResponse.Player.Nickname,
-                    avatarReference);
+                return authenticatedUser;
             }
             catch (RpcException rpcException)
             {

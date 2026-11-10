@@ -23,6 +23,8 @@ namespace RiskGame.Server
             });
 
             builder.Services.AddGrpc();
+            builder.Services.AddSingleton<ProfileSessionRegistry>();
+            builder.Services.AddScoped<IProfileRepository, ProfileRepositoryService>();
             builder.Services.AddSingleton<AuthRepositoryService>();
             builder.Services.AddSingleton<ScoreboardRepositoryService>();
             builder.Services.AddSingleton<LobbyRepositoryService>();
@@ -31,6 +33,7 @@ namespace RiskGame.Server
             WebApplication app = builder.Build();
 
             app.MapGrpcService<AuthGrpcService>();
+            app.MapGrpcService<ProfileGrpcService>();
             app.MapGrpcService<LobbyGrpcService>();
             app.MapGrpcService<ChatGrpcService>();
 

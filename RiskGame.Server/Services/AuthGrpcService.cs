@@ -4,16 +4,19 @@ using Grpc.Core;
 using RiskGame.Contracts.Auth;
 using RiskGame.Exceptions;
 using RiskGame.Models;
+using RiskGame.Services;
 
 namespace RiskGame.Server.Services
 {
     public class AuthGrpcService : AuthGrpc.AuthGrpcBase
     {
         private readonly AuthRepositoryService authRepository;
+        private readonly ProfileSessionRegistry profileSessions;
 
-        public AuthGrpcService(AuthRepositoryService authRepository)
+        public AuthGrpcService(AuthRepositoryService authRepository, ProfileSessionRegistry sessions)
         {
             this.authRepository = authRepository;
+            profileSessions = sessions;
         }
 
         public override Task<RegisterResponse> Register(RegisterRequest registerRequest, ServerCallContext callContext)
@@ -35,6 +38,7 @@ namespace RiskGame.Server.Services
             }
             catch (DataOperationException dataOperationException)
             {
+                JsonLogger.Error(dataOperationException, "Registration failed during data access.");
                 throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
             }
         }
@@ -43,15 +47,7 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                User? authenticatedUser = authRepository.AuthenticateUser(loginRequest.Username, loginRequest.Password);
-                if (authenticatedUser == null)
-                {
-                    LoginResponse failedLoginResponse = new LoginResponse
-                    {
-                        IsAuthenticated = false
-                    };
-                    return Task.FromResult(failedLoginResponse);
-                }
+                User authenticatedUser = authRepository.AuthenticateUser(loginRequest.Username, loginRequest.Password);
 
                 string avatarReference = string.Empty;
                 if (authenticatedUser.AvatarReference != null)
@@ -62,7 +58,7 @@ namespace RiskGame.Server.Services
                 LoginResponse successLoginResponse = new LoginResponse
                 {
                     IsAuthenticated = true,
-                    SessionToken = Guid.NewGuid().ToString("N"),
+                    SessionToken = profileSessions.Register(authenticatedUser.IdUser),
                     Player = new PlayerDto
                     {
                         UserId = authenticatedUser.IdUser,
@@ -76,6 +72,11 @@ namespace RiskGame.Server.Services
             }
             catch (DataOperationException dataOperationException)
             {
+                JsonLogger.Error(dataOperationException, "Login failed during data access.");
+                if (dataOperationException is InvalidCredentialsException)
+                {
+                    return Task.FromResult(new LoginResponse { IsAuthenticated = false });
+                }
                 throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
             }
         }

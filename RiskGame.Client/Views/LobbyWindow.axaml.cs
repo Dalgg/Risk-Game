@@ -423,9 +423,8 @@ namespace RiskGame.Views
 
         private void InviteFriendClick(object? sender, RoutedEventArgs routedEventArgs)
         {
-            if (sender is Button invitationButton)
+            if (sender is Button invitationButton && invitationButton.Tag is int friendUserId)
             {
-                int friendUserId = (int)invitationButton.Tag;
                 try
                 {                   
                     lobbyViewModel.InviteFriend(friendUserId);

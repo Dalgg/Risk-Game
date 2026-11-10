@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using RiskGame.Services;
 
 namespace RiskGame.ViewModels
@@ -7,13 +8,13 @@ namespace RiskGame.ViewModels
     {
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsGuest))]
-        private bool _isLoggedIn;
+        private bool isLoggedIn;
 
         [ObservableProperty]
-        private string _loggedUsername = string.Empty;
+        private string loggedUsername = string.Empty;
 
         [ObservableProperty]
-        private string? _avatarPath;
+        private string? avatarPath;
 
         public MainViewModel()
         {
@@ -21,6 +22,13 @@ namespace RiskGame.ViewModels
         }
 
         public bool IsGuest => !IsLoggedIn;
+
+        [RelayCommand]
+        private void OpenProfile()
+        {
+            ProfileNavigationService navigation = new ProfileNavigationService();
+            navigation.OpenProfile();
+        }
 
         public void Logout()
         {
@@ -31,7 +39,7 @@ namespace RiskGame.ViewModels
         private void RefreshFromSession()
         {
             SessionUser? currentSessionUser = SessionService.CurrentUser;
-            if (currentSessionUser != null)
+            if (currentSessionUser != null && !currentSessionUser.IsGuest)
             {
                 IsLoggedIn = true;
                 LoggedUsername = currentSessionUser.Username;

@@ -198,5 +198,25 @@ namespace RiskGame.Resources
         public static string LobbyFriendOfflineStatus => ResourceManager.GetString("LobbyFriendOfflineStatus", _resourceCulture);
 
         public static string GlobalGameTitle => ResourceManager.GetString("GlobalGameTitle", _resourceCulture);
+        public static string ProfileTitle => ResourceManager.GetString("ProfileTitle", _resourceCulture);
+
+        public static string ProfileIdentifier => ResourceManager.GetString("ProfileIdentifier", _resourceCulture);
+
+        public static string ProfileMatchesPlayed => ResourceManager.GetString("ProfileMatchesPlayed", _resourceCulture);
+
+        public static string ProfileMatchesWon => ResourceManager.GetString("ProfileMatchesWon", _resourceCulture);
+
+        public static string ProfileBack => ResourceManager.GetString("ProfileBack", _resourceCulture);
+
+        public static string ProfileChangePassword => ResourceManager.GetString("ProfileChangePassword", _resourceCulture);
+
+        public static string ProfilePasswordPending => ResourceManager.GetString("ProfilePasswordPending", _resourceCulture);
+
+        public static string ProfileLoadError => ResourceManager.GetString("ProfileLoadError", _resourceCulture);
+
+        public static string ProfileRefresh => ResourceManager.GetString("ProfileRefresh", _resourceCulture);
+
+        public static string ProfileStatisticUnavailable => ResourceManager.GetString("ProfileStatisticUnavailable", _resourceCulture);
+        public static string ViewNotFound => ResourceManager.GetString("ViewNotFound", _resourceCulture);
     }
 }
