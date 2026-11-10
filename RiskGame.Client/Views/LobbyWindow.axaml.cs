@@ -26,6 +26,7 @@ namespace RiskGame.Views
         private const int CardVerticalPadding = 10;
         private const int NameColumnIndex = 0;
         private const int RoleColumnIndex = 1;
+        private const int InvitationColumnIndex = 2;
         private const int ChatMessageFontSize = 14;
         private const int MaxChatMessagesDisplayed = 100;
         private const int MinimumPlayersToStart = 2;
@@ -327,7 +328,7 @@ namespace RiskGame.Views
             }
         }
 
-        private static Border CreateFriendCard(FriendSummary friendSummary)
+        private Border CreateFriendCard(FriendSummary friendSummary)
         {
             string friendDisplayName = Strings.LobbyDefaultPlayerName;
             if (!string.IsNullOrWhiteSpace(friendSummary.Nickname))
@@ -345,7 +346,7 @@ namespace RiskGame.Views
 
             Grid cardGrid = new Grid
             {
-                ColumnDefinitions = new ColumnDefinitions("*, Auto")
+                ColumnDefinitions = new ColumnDefinitions("*, Auto, Auto")
             };
 
             TextBlock nameBlock = new TextBlock
@@ -368,8 +369,21 @@ namespace RiskGame.Views
             };
             Grid.SetColumn(statusBlock, RoleColumnIndex);
 
+            Button invitationButton = new Button
+            {
+                Content = Strings.LobbyInviteButton,
+                Tag = friendSummary.UserId,
+                Foreground = statusBrush,
+                FontSize = PlayerRoleFontSize,
+                FontWeight = FontWeight.Bold,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            invitationButton.Click += InviteFriendClick;
+            Grid.SetColumn(invitationButton, InvitationColumnIndex);
+
             cardGrid.Children.Add(nameBlock);
             cardGrid.Children.Add(statusBlock);
+            cardGrid.Children.Add(invitationButton);
 
             return new Border
             {
@@ -404,6 +418,25 @@ namespace RiskGame.Views
                 desktopLifetime.MainWindow = roomsWindow;
                 roomsWindow.Show();
                 Close();
+            }
+        }
+
+        private void InviteFriendClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            if (sender is Button invitationButton)
+            {
+                int friendUserId = (int)invitationButton.Tag;
+                try
+                {                   
+                    lobbyViewModel.InviteFriend(friendUserId);
+                    invitationButton.Content = Strings.LobbyInvitedButton;
+                    invitationButton.IsEnabled = false;
+                }
+                catch (DataOperationException dataOperationException)
+                {
+                    JsonLogger.Error(dataOperationException, "Could not send lobby invitation to friend {0}.", friendUserId);
+                    ShowLobbyMessage(dataOperationException.Message);
+                }
             }
         }
     }
