@@ -26,10 +26,12 @@ namespace RiskGame.Server.Services
         private readonly Dictionary<string, ActiveLobbyRoom> roomsByCode = new Dictionary<string, ActiveLobbyRoom>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<int, string> userToLobbyCode = new Dictionary<int, string>();
         private readonly LobbyRepositoryService lobbyRepository;
+        private readonly ProfileSessionRegistry sessionRegistry;        
 
         public LobbySessionManager(LobbyRepositoryService lobbyRepository)
         {
             this.lobbyRepository = lobbyRepository;
+            this.sessionRegistry = sessionRegistry;
         }
 
         public LobbyDetails CreateLobby(LobbyRules requestedRules, PlayerSummary hostPlayer)
@@ -324,8 +326,7 @@ namespace RiskGame.Server.Services
             {
                 foreach (RiskGame.Models.User friendUser in friendUsers)
                 {
-                    bool isOnline = userToLobbyCode.ContainsKey(friendUser.IdUser);
-
+                    bool isOnline = sessionRegistry.IsUserOnline(friendUser.IdUser) || userToLobbyCode.ContainsKey(friendUser.IdUser);
                     string avatarReferenceText = string.Empty;
                     if (friendUser.AvatarReference != null)
                     {
