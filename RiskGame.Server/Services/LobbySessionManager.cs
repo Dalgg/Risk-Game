@@ -377,6 +377,20 @@ namespace RiskGame.Server.Services
             lobbyRepository.CreateLobbyInvitation(targetLobbyId, senderUserId, recipientUserId);
         }
 
+        public void BroadcastPresenceUpdate()
+        {
+            lock (syncLock)
+            {
+                foreach (ActiveLobbyRoom activeLobbyRoom in roomsByCode.Values)
+                {
+                    LobbyDetails lobbySnapshot = BuildLobbyDetails(activeLobbyRoom);
+                    List<IServerStreamWriter<LobbyEvent>> subscribersToNotify =
+                        activeLobbyRoom.Subscribers.Values.ToList();
+                    BroadcastLobbySnapshot(subscribersToNotify, lobbySnapshot);
+                }
+            }
+        }
+
         private void RemovePlayerFromCurrentLobbyInternal(int targetUserId)
         {
             if (userToLobbyCode.ContainsKey(targetUserId))
@@ -494,21 +508,26 @@ namespace RiskGame.Server.Services
         {
             foreach (IServerStreamWriter<LobbyEvent> subscriberStream in subscribers)
             {
-                Task.Run(() =>
+                Task.Run(() => WriteLobbyEvent(subscriberStream, notificationEvent));
+            }
+        }
+
+        private static void WriteLobbyEvent(IServerStreamWriter<LobbyEvent> subscriberStream, LobbyEvent notificationEvent)
+        {
+            try
+            {
+                lock (subscriberStream)
                 {
-                    try
-                    {
-                        subscriberStream.WriteAsync(notificationEvent).GetAwaiter().GetResult();
-                    }
-                    catch (InvalidOperationException invalidOperationException)
-                    {
-                        JsonLogger.Error(invalidOperationException, "Could not write lobby notification to subscriber stream.");
-                    }
-                    catch (RpcException rpcException)
-                    {
-                        JsonLogger.Error(rpcException, "Could not write lobby notification to subscriber stream.");
-                    }
-                });
+                    subscriberStream.WriteAsync(notificationEvent).GetAwaiter().GetResult();
+                }
+            }
+            catch (InvalidOperationException invalidOperationException)
+            {
+                JsonLogger.Error(invalidOperationException, "Could not write lobby notification to subscriber stream.");
+            }
+            catch (RpcException rpcException)
+            {
+                JsonLogger.Error(rpcException, "Could not write lobby notification to subscriber stream.");
             }
         }
 

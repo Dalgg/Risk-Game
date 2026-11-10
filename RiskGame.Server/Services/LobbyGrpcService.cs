@@ -134,7 +134,10 @@ namespace RiskGame.Server.Services
                     Lobby = initialLobbySnapshot
                 };
 
-                responseStream.WriteAsync(snapshotEvent).GetAwaiter().GetResult();
+                lock (responseStream)
+                {
+                    responseStream.WriteAsync(snapshotEvent).GetAwaiter().GetResult();
+                }
 
                 callContext.CancellationToken.WaitHandle.WaitOne();
                 sessionManager.UnregisterSubscriber(subscribeRequest.UserId);

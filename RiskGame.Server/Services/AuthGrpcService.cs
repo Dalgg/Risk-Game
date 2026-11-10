@@ -13,11 +13,16 @@ namespace RiskGame.Server.Services
     {
         private readonly AuthRepositoryService authRepository;
         private readonly ProfileSessionRegistry profileSessions;
+        private readonly LobbySessionManager lobbySessionManager;
 
-        public AuthGrpcService(AuthRepositoryService authRepository, ProfileSessionRegistry sessions)
+        public AuthGrpcService(
+            AuthRepositoryService authRepository,
+            ProfileSessionRegistry sessions,
+            LobbySessionManager lobbySessionManager)
         {
             this.authRepository = authRepository;
             profileSessions = sessions;
+            this.lobbySessionManager = lobbySessionManager;
         }
 
         public override Task<RegisterResponse> Register(RegisterRequest registerRequest, ServerCallContext callContext)
@@ -69,6 +74,7 @@ namespace RiskGame.Server.Services
                     }
                 };
 
+                lobbySessionManager.BroadcastPresenceUpdate();
                 return Task.FromResult(successLoginResponse);
             }
             catch (DataOperationException dataOperationException)
@@ -85,6 +91,7 @@ namespace RiskGame.Server.Services
         public override Task<Empty> Logout(LogoutRequest logoutRequest, ServerCallContext callContext)
         {
             profileSessions.RemoveSession(logoutRequest.SessionToken);
+            lobbySessionManager.BroadcastPresenceUpdate();
             return Task.FromResult(new Empty());
         }
     }
