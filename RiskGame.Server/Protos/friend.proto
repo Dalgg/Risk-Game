@@ -6,6 +6,29 @@ import "google/protobuf/empty.proto";
 
 service Friend {
   rpc SendFriendRequest (FriendRequest) returns (google.protobuf.Empty);
+  rpc GetPendingRequests (FriendInboxRequest) returns (PendingFriendRequestList);
+  rpc RespondToRequest (FriendRequestReply) returns (google.protobuf.Empty);
+}
+
+message FriendInboxRequest {
+  int32 user_id = 1;
+  string session_token = 2;
+}
+
+message PendingFriendRequest {
+  int32 request_id = 1;
+  string sender_username = 2;
+}
+
+message PendingFriendRequestList {
+  repeated PendingFriendRequest requests = 1;
+}
+
+message FriendRequestReply {
+  int32 user_id = 1;
+  string session_token = 2;
+  int32 request_id = 3;
+  bool accept = 4;
 }
 
 message FriendRequest {

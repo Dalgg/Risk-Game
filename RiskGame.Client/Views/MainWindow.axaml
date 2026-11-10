@@ -10,7 +10,17 @@
         Title="{x:Static res:Strings.GlobalGameTitle}"
         Background="#D3D3D3">
 
+    <Window.Resources>
+        <Thickness x:Key="InboxButtonMargin">0,20,20,0</Thickness>
+        <Thickness x:Key="InboxButtonPadding">15,10</Thickness>
+        <CornerRadius x:Key="InboxButtonCornerRadius">8</CornerRadius>
+    </Window.Resources>
     <Grid>
+        <Button Content="{x:Static res:Strings.InboxTitle}" Click="OnInboxClick"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                Margin="{StaticResource InboxButtonMargin}" Padding="{StaticResource InboxButtonPadding}"
+                CornerRadius="{StaticResource InboxButtonCornerRadius}"
+                Background="#333333" Foreground="White"/>
         <Button Content="{x:Static res:Strings.LoginTitleLabel}" 
                 IsVisible="{Binding IsGuest}"
                 HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20"

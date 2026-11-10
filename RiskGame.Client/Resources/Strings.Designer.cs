@@ -240,5 +240,25 @@ namespace RiskGame.Resources
 
         public static string FriendsAdd => ResourceManager.GetString("FriendsAdd", _resourceCulture);
 
+        public static string InboxTitle => ResourceManager.GetString("InboxTitle", _resourceCulture);
+
+        public static string InboxFriendRequests => ResourceManager.GetString("InboxFriendRequests", _resourceCulture);
+
+        public static string InboxLoading => ResourceManager.GetString("InboxLoading", _resourceCulture);
+
+        public static string InboxEmpty => ResourceManager.GetString("InboxEmpty", _resourceCulture);
+
+        public static string InboxSelectRequest => ResourceManager.GetString("InboxSelectRequest", _resourceCulture);
+
+        public static string InboxSaving => ResourceManager.GetString("InboxSaving", _resourceCulture);
+
+        public static string InboxAccept => ResourceManager.GetString("InboxAccept", _resourceCulture);
+
+        public static string InboxReject => ResourceManager.GetString("InboxReject", _resourceCulture);
+
+        public static string InboxConnectionError => ResourceManager.GetString("InboxConnectionError", _resourceCulture);
+
+        public static string InboxRequestUnavailable => ResourceManager.GetString("InboxRequestUnavailable", _resourceCulture);
+
     }
 }

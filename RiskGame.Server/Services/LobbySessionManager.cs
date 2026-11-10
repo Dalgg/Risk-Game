@@ -326,7 +326,7 @@ namespace RiskGame.Server.Services
             {
                 foreach (RiskGame.Models.User friendUser in friendUsers)
                 {
-                    bool isOnline = sessionRegistry.IsUserOnline(friendUser.IdUser) || userToLobbyCode.ContainsKey(friendUser.IdUser);
+                    bool isOnline = sessionRegistry.IsUserOnline(friendUser.IdUser);
                     string avatarReferenceText = string.Empty;
                     if (friendUser.AvatarReference != null)
                     {

@@ -30,6 +30,33 @@ namespace RiskGame.Server.Services
             }
         }
 
+        public override Task<PendingFriendRequestList> GetPendingRequests(
+            FriendInboxRequest inboxRequest, ServerCallContext callContext)
+        {
+            try
+            {
+                return Task.FromResult(friendSessionManager.GetPendingRequests(inboxRequest));
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                JsonLogger.Error(dataOperationException, "Could not read the friendship inbox.");
+                throw CreateRpcException(dataOperationException);
+            }
+        }
+
+        public override Task<Empty> RespondToRequest(FriendRequestReply requestReply, ServerCallContext callContext)
+        {
+            try
+            {
+                friendSessionManager.RespondToRequest(requestReply);
+                return Task.FromResult(new Empty());
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                JsonLogger.Error(dataOperationException, "Could not respond to a pending friendship request.");
+                throw CreateRpcException(dataOperationException);
+            }
+        }
         private RpcException CreateRpcException(DataOperationException dataOperationException)
         {
             StatusCode statusCode = StatusCode.Unavailable;
@@ -43,5 +70,6 @@ namespace RiskGame.Server.Services
             }
             return new RpcException(new Status(statusCode, dataOperationException.Message));
         }
+
     }
 }

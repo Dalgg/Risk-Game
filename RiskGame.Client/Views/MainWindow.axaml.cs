@@ -37,13 +37,29 @@ namespace RiskGame.Views
             if (currentSessionUser == null || currentSessionUser.IsGuest)
             {
                 ChangeWindow(new LoginWindow());
-                return;
             }
-            ChangeWindow(new FriendsWindow());
+            else
+            {
+                ChangeWindow(new FriendsWindow());
+            }
+        }
+
+        private void OnInboxClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            SessionUser? currentSessionUser = SessionService.CurrentUser;
+            if (currentSessionUser == null || currentSessionUser.IsGuest)
+            {
+                ChangeWindow(new LoginWindow());
+            }
+            else
+            {
+                ChangeWindow(new InboxWindow());
+            }
         }
 
         private void OnLoginClick(object? sender, RoutedEventArgs routedEventArgs)
         {
+            SessionService.Logout();
             ChangeWindow(new LoginWindow());
         }
 

@@ -2,6 +2,7 @@ using System.Globalization;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using RiskGame.Services;
 using RiskGame.ViewModels;
 using RiskGame.Views;
 
@@ -20,6 +21,7 @@ namespace RiskGame
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
+                desktopLifetime.Exit += OnApplicationExit;
                 desktopLifetime.MainWindow = new MainWindow
                 {
                     DataContext = new MainViewModel(),
@@ -27,6 +29,11 @@ namespace RiskGame
             }
 
             base.OnFrameworkInitializationCompleted();
+        }
+
+        private void OnApplicationExit(object? sender, ControlledApplicationLifetimeExitEventArgs exitEventArgs)
+        {
+            SessionService.Logout();
         }
     }
 }

@@ -22,7 +22,7 @@ namespace RiskGame.Server.Services
                 List<string> expiredTokens = new List<string>();
                 foreach (KeyValuePair<string, RegisteredSession> session in sessionsByToken)
                 {
-                    if (session.Value.ExpiresAt <= DateTime.UtcNow)
+                    if (session.Value.ExpiresAt <= DateTime.UtcNow || session.Value.UserId == userId)
                     {
                         expiredTokens.Add(session.Key);
                     }
@@ -78,6 +78,17 @@ namespace RiskGame.Server.Services
             }
 
             return isOnline;
+        }
+
+        public void RemoveSession(string token)
+        {
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                lock (sessionLock)
+                {
+                    sessionsByToken.Remove(token);
+                }
+            }
         }
     }
 }

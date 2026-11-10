@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using RiskGame.Contracts.Auth;
 using RiskGame.Exceptions;
@@ -79,6 +80,12 @@ namespace RiskGame.Server.Services
                 }
                 throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
             }
+        }
+
+        public override Task<Empty> Logout(LogoutRequest logoutRequest, ServerCallContext callContext)
+        {
+            profileSessions.RemoveSession(logoutRequest.SessionToken);
+            return Task.FromResult(new Empty());
         }
     }
 }

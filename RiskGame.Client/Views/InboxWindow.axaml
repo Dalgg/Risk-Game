@@ -1,0 +1,75 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:RiskGame.ViewModels" xmlns:res="using:RiskGame.Resources"
+        xmlns:friend="using:RiskGame.Contracts.Friend"
+        x:Class="RiskGame.Views.InboxWindow" x:DataType="vm:InboxViewModel"
+        Title="{x:Static res:Strings.InboxTitle}" Loaded="OnWindowLoaded"
+        Width="{StaticResource InboxWidth}" Height="{StaticResource InboxHeight}"
+        MinWidth="{StaticResource InboxWidth}" MinHeight="{StaticResource InboxHeight}"
+        Background="{StaticResource InboxBackground}" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <x:Double x:Key="InboxWidth">600</x:Double>
+        <x:Double x:Key="InboxHeight">480</x:Double>
+        <x:Double x:Key="TitleFontSize">26</x:Double>
+        <x:Double x:Key="RequestFontSize">18</x:Double>
+        <x:Double x:Key="ActionWidth">120</x:Double>
+        <x:Double x:Key="ActionHeight">40</x:Double>
+        <x:Double x:Key="ActionSpacing">10</x:Double>
+        <Thickness x:Key="ContentPadding">20</Thickness>
+        <Thickness x:Key="SectionMargin">0,10</Thickness>
+        <Thickness x:Key="RequestPadding">10</Thickness>
+        <Thickness x:Key="PanelBorderThickness">2</Thickness>
+        <CornerRadius x:Key="PanelCornerRadius">6</CornerRadius>
+        <SolidColorBrush x:Key="InboxBackground">#151722</SolidColorBrush>
+        <SolidColorBrush x:Key="PanelBorderBrush">#353A5A</SolidColorBrush>
+        <SolidColorBrush x:Key="RequestBackground">#252A40</SolidColorBrush>
+        <SolidColorBrush x:Key="AcceptBackground">#3273B2</SolidColorBrush>
+        <SolidColorBrush x:Key="RejectBackground">#A12431</SolidColorBrush>
+    </Window.Resources>
+    <Window.Styles>
+        <Style Selector="TextBlock"><Setter Property="Foreground" Value="White"/></Style>
+        <Style Selector="Button">
+            <Setter Property="Width" Value="{StaticResource ActionWidth}"/>
+            <Setter Property="Height" Value="{StaticResource ActionHeight}"/>
+            <Setter Property="CornerRadius" Value="{StaticResource PanelCornerRadius}"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </Window.Styles>
+    <Border Margin="{StaticResource RequestPadding}" Padding="{StaticResource ContentPadding}"
+            BorderThickness="{StaticResource PanelBorderThickness}" BorderBrush="{StaticResource PanelBorderBrush}"
+            CornerRadius="{StaticResource PanelCornerRadius}">
+        <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
+            <TextBlock Text="{x:Static res:Strings.InboxTitle}" FontSize="{StaticResource TitleFontSize}"
+                       FontWeight="Bold" HorizontalAlignment="Center"/>
+            <TextBlock Grid.Row="1" Text="{x:Static res:Strings.InboxFriendRequests}"
+                       Margin="{StaticResource SectionMargin}"/>
+            <ListBox Grid.Row="2" ItemsSource="{Binding Requests}" SelectedItem="{Binding SelectedRequest}"
+                     TabIndex="1" Background="{StaticResource InboxBackground}"
+                     AutomationProperties.Name="{x:Static res:Strings.InboxFriendRequests}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate x:DataType="friend:PendingFriendRequest">
+                        <Border Background="{StaticResource RequestBackground}"
+                                CornerRadius="{StaticResource PanelCornerRadius}"
+                                Padding="{StaticResource RequestPadding}">
+                            <TextBlock Text="{Binding SenderUsername}" FontSize="{StaticResource RequestFontSize}"/>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+            <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" TextWrapping="Wrap"
+                       Margin="{StaticResource SectionMargin}"/>
+            <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource ActionSpacing}"
+                        HorizontalAlignment="Center">
+                <Button Content="{x:Static res:Strings.InboxAccept}" Command="{Binding AcceptCommand}"
+                        TabIndex="2" HotKey="Enter" Background="{StaticResource AcceptBackground}"/>
+                <Button Content="{x:Static res:Strings.InboxReject}" Command="{Binding RejectCommand}"
+                        TabIndex="3" Background="{StaticResource RejectBackground}"/>
+                <Button x:Name="RefreshButton" Content="{x:Static res:Strings.ProfileRefresh}"
+                        Command="{Binding RefreshCommand}" TabIndex="0"/>
+                <Button Content="{x:Static res:Strings.ProfileBack}" Click="OnBackClick"
+                        TabIndex="4" HotKey="Escape"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
