@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:RiskGame.ViewModels" xmlns:res="using:RiskGame.Resources"
         xmlns:friend="using:RiskGame.Contracts.Friend"
+        xmlns:invitation="using:RiskGame.Contracts.Invitation"
         x:Class="RiskGame.Views.InboxWindow" x:DataType="vm:InboxViewModel"
         Title="{x:Static res:Strings.InboxTitle}" Loaded="OnWindowLoaded"
         Width="{StaticResource InboxWidth}" Height="{StaticResource InboxHeight}"
@@ -42,21 +43,47 @@
         <Grid RowDefinitions="Auto,Auto,*,Auto,Auto">
             <TextBlock Text="{x:Static res:Strings.InboxTitle}" FontSize="{StaticResource TitleFontSize}"
                        FontWeight="Bold" HorizontalAlignment="Center"/>
-            <TextBlock Grid.Row="1" Text="{x:Static res:Strings.InboxFriendRequests}"
-                       Margin="{StaticResource SectionMargin}"/>
-            <ListBox Grid.Row="2" ItemsSource="{Binding Requests}" SelectedItem="{Binding SelectedRequest}"
-                     TabIndex="1" Background="{StaticResource InboxBackground}"
-                     AutomationProperties.Name="{x:Static res:Strings.InboxFriendRequests}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="friend:PendingFriendRequest">
-                        <Border Background="{StaticResource RequestBackground}"
-                                CornerRadius="{StaticResource PanelCornerRadius}"
-                                Padding="{StaticResource RequestPadding}">
-                            <TextBlock Text="{Binding SenderUsername}" FontSize="{StaticResource RequestFontSize}"/>
-                        </Border>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+            <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}"
+                        IsEnabled="{Binding CanNavigate}" Margin="{StaticResource SectionMargin}">
+                <TabItem Header="{x:Static res:Strings.InboxFriendRequests}">
+                    <ListBox ItemsSource="{Binding Requests}" SelectedItem="{Binding SelectedRequest, Mode=TwoWay}"
+                             TabIndex="1" Background="{StaticResource InboxBackground}"
+                             AutomationProperties.Name="{x:Static res:Strings.InboxFriendRequests}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="friend:PendingFriendRequest">
+                                <Border Background="{StaticResource RequestBackground}"
+                                        CornerRadius="{StaticResource PanelCornerRadius}"
+                                        Padding="{StaticResource RequestPadding}">
+                                    <TextBlock Text="{Binding SenderUsername}" FontSize="{StaticResource RequestFontSize}"/>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </TabItem>
+                <TabItem Header="{x:Static res:Strings.InboxLobbyInvitations}">
+                    <ListBox ItemsSource="{Binding Invitations}"
+                             SelectedItem="{Binding SelectedInvitation, Mode=TwoWay}"
+                             Background="{StaticResource InboxBackground}" TabIndex="1"
+                             AutomationProperties.Name="{x:Static res:Strings.InboxLobbyInvitations}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="invitation:PendingInvitation">
+                                <Border Background="{StaticResource RequestBackground}"
+                                        CornerRadius="{StaticResource PanelCornerRadius}"
+                                        Padding="{StaticResource RequestPadding}">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding SenderUsername}"
+                                                   FontSize="{StaticResource RequestFontSize}"/>
+                                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource ActionSpacing}">
+                                            <TextBlock Text="{x:Static res:Strings.InboxLobbyCode}"/>
+                                            <TextBlock Text="{Binding LobbyCode}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </TabItem>
+            </TabControl>
             <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" TextWrapping="Wrap"
                        Margin="{StaticResource SectionMargin}"/>
             <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="{StaticResource ActionSpacing}"
@@ -68,7 +95,7 @@
                 <Button x:Name="RefreshButton" Content="{x:Static res:Strings.ProfileRefresh}"
                         Command="{Binding RefreshCommand}" TabIndex="0"/>
                 <Button Content="{x:Static res:Strings.ProfileBack}" Click="OnBackClick"
-                        TabIndex="4" HotKey="Escape"/>
+                        TabIndex="4" HotKey="Escape" IsEnabled="{Binding CanNavigate}"/>
             </StackPanel>
         </Grid>
     </Border>

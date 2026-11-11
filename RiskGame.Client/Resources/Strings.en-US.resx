@@ -133,11 +133,14 @@
   <data name="InboxTitle" xml:space="preserve"><value>INBOX</value></data>
   <data name="InboxFriendRequests" xml:space="preserve"><value>Received friend requests</value></data>
   <data name="InboxLoading" xml:space="preserve"><value>Loading notifications...</value></data>
-  <data name="InboxEmpty" xml:space="preserve"><value>You have no pending friend requests.</value></data>
-  <data name="InboxSelectRequest" xml:space="preserve"><value>Select a request to accept or reject it.</value></data>
+  <data name="InboxEmpty" xml:space="preserve"><value>You have no pending notifications.</value></data>
+  <data name="InboxSelectRequest" xml:space="preserve"><value>Select a request or invitation to accept or reject it.</value></data>
   <data name="InboxSaving" xml:space="preserve"><value>Saving response...</value></data>
   <data name="InboxAccept" xml:space="preserve"><value>ACCEPT</value></data>
   <data name="InboxReject" xml:space="preserve"><value>REJECT</value></data>
   <data name="InboxConnectionError" xml:space="preserve"><value>Could not complete the operation. Check the connection and try again.</value></data>
   <data name="InboxRequestUnavailable" xml:space="preserve"><value>The request is no longer pending or is unavailable for your account. Refresh the inbox.</value></data>
+  <data name="InboxLobbyInvitations" xml:space="preserve"><value>Lobby invitations</value></data>
+  <data name="InboxLobbyCode" xml:space="preserve"><value>Lobby:</value></data>
+  <data name="InboxInvitationUnavailable" xml:space="preserve"><value>Could not join: the invitation expired, the lobby is full or closed, or the match has started. Refresh the inbox.</value></data>
 </root>

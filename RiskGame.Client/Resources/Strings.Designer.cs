@@ -260,5 +260,11 @@ namespace RiskGame.Resources
 
         public static string InboxRequestUnavailable => ResourceManager.GetString("InboxRequestUnavailable", _resourceCulture);
 
+        public static string InboxLobbyInvitations => ResourceManager.GetString("InboxLobbyInvitations", _resourceCulture);
+
+        public static string InboxLobbyCode => ResourceManager.GetString("InboxLobbyCode", _resourceCulture);
+
+        public static string InboxInvitationUnavailable => ResourceManager.GetString("InboxInvitationUnavailable", _resourceCulture);
+
     }
 }

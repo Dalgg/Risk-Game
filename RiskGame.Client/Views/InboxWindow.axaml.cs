@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -15,7 +16,9 @@ namespace RiskGame.Views
             SessionUser? currentSessionUser = SessionService.CurrentUser;
             if (currentSessionUser != null && !currentSessionUser.IsGuest)
             {
-                DataContext = new InboxViewModel(currentSessionUser);
+                InboxViewModel inboxViewModel = new InboxViewModel(currentSessionUser);
+                inboxViewModel.LobbyJoined += OnLobbyJoined;
+                DataContext = inboxViewModel;
             }
         }
 
@@ -38,6 +41,27 @@ namespace RiskGame.Views
                 mainWindow.Show();
                 Close();
             }
+        }
+
+        private void OnLobbyJoined(object? sender, LobbyJoinedEventArgs lobbyJoinedEventArgs)
+        {
+            if (Application.Current != null
+                && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            {
+                LobbyWindow lobbyWindow = new LobbyWindow(lobbyJoinedEventArgs.LobbyDetails, new LobbyViewModel());
+                desktopLifetime.MainWindow = lobbyWindow;
+                lobbyWindow.Show();
+                Close();
+            }
+        }
+
+        protected override void OnClosed(EventArgs eventArgs)
+        {
+            if (DataContext is InboxViewModel inboxViewModel)
+            {
+                inboxViewModel.LobbyJoined -= OnLobbyJoined;
+            }
+            base.OnClosed(eventArgs);
         }
     }
 }

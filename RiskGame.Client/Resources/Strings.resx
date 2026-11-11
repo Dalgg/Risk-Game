@@ -135,11 +135,14 @@
   <data name="InboxTitle" xml:space="preserve"><value>BUZÓN</value></data>
   <data name="InboxFriendRequests" xml:space="preserve"><value>Solicitudes de amistad recibidas</value></data>
   <data name="InboxLoading" xml:space="preserve"><value>Cargando notificaciones…</value></data>
-  <data name="InboxEmpty" xml:space="preserve"><value>No tienes solicitudes de amistad pendientes.</value></data>
-  <data name="InboxSelectRequest" xml:space="preserve"><value>Selecciona una solicitud para aceptarla o rechazarla.</value></data>
+  <data name="InboxEmpty" xml:space="preserve"><value>No tienes notificaciones pendientes.</value></data>
+  <data name="InboxSelectRequest" xml:space="preserve"><value>Selecciona una solicitud o invitación para aceptarla o rechazarla.</value></data>
   <data name="InboxSaving" xml:space="preserve"><value>Guardando respuesta…</value></data>
   <data name="InboxAccept" xml:space="preserve"><value>ACEPTAR</value></data>
   <data name="InboxReject" xml:space="preserve"><value>RECHAZAR</value></data>
   <data name="InboxConnectionError" xml:space="preserve"><value>No se pudo completar la operación. Comprueba la conexión e inténtalo de nuevo.</value></data>
   <data name="InboxRequestUnavailable" xml:space="preserve"><value>La solicitud ya no está pendiente o no está disponible para tu cuenta. Actualiza el buzón.</value></data>
+  <data name="InboxLobbyInvitations" xml:space="preserve"><value>Invitaciones a salas</value></data>
+  <data name="InboxLobbyCode" xml:space="preserve"><value>Sala:</value></data>
+  <data name="InboxInvitationUnavailable" xml:space="preserve"><value>No se pudo entrar: la invitación venció, la sala está llena, cerrada o la partida ya comenzó. Actualiza el buzón.</value></data>
 </root>

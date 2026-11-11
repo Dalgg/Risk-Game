@@ -1,0 +1,33 @@
+syntax = "proto3";
+option csharp_namespace = "RiskGame.Contracts.Invitation";
+package riskgame.invitation;
+
+import "google/protobuf/empty.proto";
+import "lobby.proto";
+
+service Invitation {
+  rpc GetPendingInvitations (InvitationInboxRequest) returns (PendingInvitationList);
+  rpc AcceptInvitation (InvitationAction) returns (riskgame.lobby.LobbyDetails);
+  rpc RejectInvitation (InvitationAction) returns (google.protobuf.Empty);
+}
+
+message InvitationInboxRequest {
+  int32 user_id = 1;
+  string session_token = 2;
+}
+
+message InvitationAction {
+  int32 user_id = 1;
+  string session_token = 2;
+  int32 invitation_id = 3;
+}
+
+message PendingInvitation {
+  int32 invitation_id = 1;
+  string sender_username = 2;
+  string lobby_code = 3;
+}
+
+message PendingInvitationList {
+  repeated PendingInvitation invitations = 1;
+}

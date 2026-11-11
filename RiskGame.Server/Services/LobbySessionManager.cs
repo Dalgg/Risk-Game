@@ -119,6 +119,37 @@ namespace RiskGame.Server.Services
             return lobbySnapshot;
         }
 
+        public LobbyDetails JoinInvitedLobby(int lobbyId, PlayerSummary joiningPlayer)
+        {
+            lock (syncLock)
+            {
+                ActiveLobbyRoom? activeLobbyRoom = roomsByCode.Values
+                    .FirstOrDefault(room => room.LobbyId == lobbyId);
+                if (activeLobbyRoom == null || activeLobbyRoom.Status != LobbyStatus.Waiting)
+                {
+                    throw new InvitationUnavailableException("The invited lobby is closed or has already started.");
+                }
+                if (activeLobbyRoom.Players.Count >= MaxPlayersPerLobby)
+                {
+                    throw new InvitationUnavailableException("The invited lobby is full.");
+                }
+                try
+                {
+                    return JoinLobby(activeLobbyRoom.LobbyCode, joiningPlayer);
+                }
+                catch (LobbyFullException lobbyFullException)
+                {
+                    JsonLogger.Error(lobbyFullException, "Could not join the invited lobby because it is full.");
+                    throw new InvitationUnavailableException("The invited lobby is full.");
+                }
+                catch (LobbyNotFoundException lobbyNotFoundException)
+                {
+                    JsonLogger.Error(lobbyNotFoundException, "The invited lobby is no longer available.");
+                    throw new InvitationUnavailableException("The invited lobby is no longer available.");
+                }
+            }
+        }
+
         public void LeaveLobby(int leavingUserId)
         {
             LobbyDetails? lobbySnapshot = null;
