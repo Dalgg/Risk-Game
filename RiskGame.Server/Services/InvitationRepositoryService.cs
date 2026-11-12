@@ -20,10 +20,11 @@ namespace RiskGame.Server.Services
             try
             {
                 using RiskGameContext databaseContext = new RiskGameContext();
+                DateTime currentServerDateTime = DateTime.Now;
                 PendingInvitationList invitations = new PendingInvitationList();
                 invitations.Invitations.AddRange(databaseContext.LobbyInvitations.AsNoTracking()
                     .Where(invitation => invitation.IdRecipient == userId && invitation.Status == PendingStatus
-                        && invitation.ExpirationDate > DateTime.Now)
+                        && invitation.ExpirationDate > currentServerDateTime)
                     .Where(invitation => invitation.IdLobbyNavigation.ClosureDate == null)
                     .OrderBy(invitation => invitation.SentDate).ThenBy(invitation => invitation.IdInvitation)
                     .Select(invitation => new PendingInvitation
@@ -74,8 +75,9 @@ namespace RiskGame.Server.Services
                 int updatedInvitations;
                 if (accepted)
                 {
+                    DateTime currentServerDateTime = DateTime.Now;
                     updatedInvitations = matchingInvitations
-                        .Where(invitation => invitation.ExpirationDate > DateTime.Now)
+                        .Where(invitation => invitation.ExpirationDate > currentServerDateTime)
                         .ExecuteUpdate(properties => properties.SetProperty(invitation => invitation.Status,
                             AcceptedStatus));
                 }
