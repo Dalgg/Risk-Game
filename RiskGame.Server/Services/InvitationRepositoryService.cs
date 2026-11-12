@@ -20,7 +20,7 @@ namespace RiskGame.Server.Services
             try
             {
                 using RiskGameContext databaseContext = new RiskGameContext();
-                DateTime currentServerDateTime = DateTime.Now;
+                DateTime currentServerDateTime = DateTime.UtcNow;
                 PendingInvitationList invitations = new PendingInvitationList();
                 invitations.Invitations.AddRange(databaseContext.LobbyInvitations.AsNoTracking()
                     .Where(invitation => invitation.IdRecipient == userId && invitation.Status == PendingStatus
@@ -51,7 +51,7 @@ namespace RiskGame.Server.Services
                     .Include(invitationRecord => invitationRecord.IdRecipientNavigation)
                     .FirstOrDefault(invitationRecord => invitationRecord.IdInvitation == invitationId
                         && invitationRecord.IdRecipient == userId && invitationRecord.Status == PendingStatus);
-                if (invitation == null || invitation.ExpirationDate <= DateTime.Now)
+                if (invitation == null || invitation.ExpirationDate <= DateTime.UtcNow)
                 {
                     throw new InvitationUnavailableException("The pending invitation is unavailable or expired.");
                 }
@@ -75,7 +75,7 @@ namespace RiskGame.Server.Services
                 int updatedInvitations;
                 if (accepted)
                 {
-                    DateTime currentServerDateTime = DateTime.Now;
+                    DateTime currentServerDateTime = DateTime.UtcNow;
                     updatedInvitations = matchingInvitations
                         .Where(invitation => invitation.ExpirationDate > currentServerDateTime)
                         .ExecuteUpdate(properties => properties.SetProperty(invitation => invitation.Status,

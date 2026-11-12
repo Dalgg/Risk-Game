@@ -183,7 +183,7 @@ namespace RiskGame.Server.Services
                 using (RiskGameContext databaseContext = new RiskGameContext())
                 {
                     string uniqueInvitationCode = GenerateUniqueLobbyCode(databaseContext);
-                    DateTime currentDateTime = DateTime.Now;
+                    DateTime currentDateTime = DateTime.UtcNow;
                     DateTime expirationDateTime = currentDateTime.AddMinutes(MinutesForExpiration);
 
                     LobbyInvitation newInvitationEntity = new LobbyInvitation
