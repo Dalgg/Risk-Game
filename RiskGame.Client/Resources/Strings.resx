@@ -176,7 +176,7 @@
   <data name="MatchDiceSeparator" xml:space="preserve"><value> · </value></data>
   <data name="MatchPairSeparator" xml:space="preserve"><value> + </value></data>
   <data name="MatchPairOptionFormat" xml:space="preserve"><value>{0}: ({1}) = {2} | ({3}) = {4}</value></data>
-  <data name="MatchChoosePairPrompt" xml:space="preserve"><value>El jugador del turno debe elegir una agrupación (teclas 1, 2 o 3).</value></data>
+  <data name="MatchChoosePairPrompt" xml:space="preserve"><value>El jugador del turno debe elegir una agrupación.</value></data>
   <data name="MatchSelectedPairFormat" xml:space="preserve"><value>Agrupación {0} elegida.</value></data>
   <data name="MatchActionRejected" xml:space="preserve"><value>No se pudo realizar la acción: verifica el turno y la tirada actual.</value></data>
 </root>

@@ -29,7 +29,7 @@ namespace RiskGame.Server.Services
                 client.EnableSsl = true;
                 client.Timeout = TimeoutMilliseconds;
                 client.UseDefaultCredentials = false;
-                client.Credentials = new NetworkCredential(UserVariable, PasswordVariable);
+                client.Credentials = new NetworkCredential(user, password);
                 using MailMessage mailMessage = new MailMessage(user, recipientEmail);
                 mailMessage.Subject = EmailStrings.VerificationSubject;
                 mailMessage.Body = string.Format(EmailStrings.VerificationBody, verificationCode);

@@ -174,7 +174,7 @@
   <data name="MatchDiceSeparator" xml:space="preserve"><value> · </value></data>
   <data name="MatchPairSeparator" xml:space="preserve"><value> + </value></data>
   <data name="MatchPairOptionFormat" xml:space="preserve"><value>{0}: ({1}) = {2} | ({3}) = {4}</value></data>
-  <data name="MatchChoosePairPrompt" xml:space="preserve"><value>The current player must choose a grouping (keys 1, 2 or 3).</value></data>
+  <data name="MatchChoosePairPrompt" xml:space="preserve"><value>The current player must choose a grouping.</value></data>
   <data name="MatchSelectedPairFormat" xml:space="preserve"><value>Grouping {0} selected.</value></data>
   <data name="MatchActionRejected" xml:space="preserve"><value>The action could not be completed: check the turn and current roll.</value></data>
 </root>
