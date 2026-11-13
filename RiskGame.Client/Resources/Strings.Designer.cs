@@ -314,5 +314,25 @@ namespace RiskGame.Resources
 
         public static string MatchBoardLabel => ResourceManager.GetString("MatchBoardLabel", _resourceCulture);
 
+        public static string MatchRollDice => ResourceManager.GetString("MatchRollDice", _resourceCulture);
+
+        public static string MatchNoRoll => ResourceManager.GetString("MatchNoRoll", _resourceCulture);
+
+        public static string MatchRollPrompt => ResourceManager.GetString("MatchRollPrompt", _resourceCulture);
+
+        public static string MatchDiceFormat => ResourceManager.GetString("MatchDiceFormat", _resourceCulture);
+
+        public static string MatchDiceSeparator => ResourceManager.GetString("MatchDiceSeparator", _resourceCulture);
+
+        public static string MatchPairSeparator => ResourceManager.GetString("MatchPairSeparator", _resourceCulture);
+
+        public static string MatchPairOptionFormat => ResourceManager.GetString("MatchPairOptionFormat", _resourceCulture);
+
+        public static string MatchChoosePairPrompt => ResourceManager.GetString("MatchChoosePairPrompt", _resourceCulture);
+
+        public static string MatchSelectedPairFormat => ResourceManager.GetString("MatchSelectedPairFormat", _resourceCulture);
+
+        public static string MatchActionRejected => ResourceManager.GetString("MatchActionRejected", _resourceCulture);
+
     }
 }

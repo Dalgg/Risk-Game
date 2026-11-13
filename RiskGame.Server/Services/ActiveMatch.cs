@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using RiskGame.Contracts.Common;
 using RiskGame.Contracts.Lobby;
+using RiskGame.Exceptions;
 
 namespace RiskGame.Server.Services
 {
@@ -14,6 +16,7 @@ namespace RiskGame.Server.Services
         private const int CentralColumnHeight = 13;
         private const int ColumnHeightDifference = 2;
         private const long InitialRevision = 1;
+        private const int NoSelectedPair = 0;
 
         public ActiveMatch(int matchId, LobbyDetails lobbyDetails)
         {
@@ -54,6 +57,47 @@ namespace RiskGame.Server.Services
         public IReadOnlyList<MatchColumn> Columns { get; }
 
         public long Revision { get; private set; } = InitialRevision;
+
+        public long RollId { get; private set; }
+
+        public IReadOnlyList<int> Dice { get; private set; } = Array.Empty<int>();
+
+        public IReadOnlyList<DicePairCombination> PairOptions { get; private set; } =
+            Array.Empty<DicePairCombination>();
+
+        public bool AwaitingPairChoice { get; private set; }
+
+        public int SelectedPairIndex { get; private set; }
+
+        public void ApplyRoll(IReadOnlyList<int> dice, long expectedRollId)
+        {
+            if (AwaitingPairChoice || expectedRollId != RollId)
+            {
+                throw new MatchActionException("The previous roll is pending or the request is outdated.");
+            }
+            IReadOnlyList<DicePairCombination> combinations = DicePairGenerator.BuildCombinations(dice);
+            Dice = new List<int>(dice).AsReadOnly();
+            PairOptions = combinations;
+            RollId++;
+            SelectedPairIndex = NoSelectedPair;
+            AwaitingPairChoice = true;
+            Revision++;
+        }
+
+        public void ChoosePair(long rollId, int pairIndex)
+        {
+            if (!AwaitingPairChoice || rollId != RollId)
+            {
+                throw new MatchActionException("This roll no longer accepts a pair choice.");
+            }
+            if (!PairOptions.Any(combination => combination.PairIndex == pairIndex))
+            {
+                throw new MatchActionException("The selected pair is not part of the current roll.");
+            }
+            SelectedPairIndex = pairIndex;
+            AwaitingPairChoice = false;
+            Revision++;
+        }
 
         public void UpdateConnection(int userId, bool isConnected)
         {

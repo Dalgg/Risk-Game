@@ -5,6 +5,7 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using RiskGame.Callbacks;
 using RiskGame.Contracts.Match;
+using RiskGame.Exceptions;
 using RiskGame.Resources;
 using RiskGame.Services;
 
@@ -12,7 +13,59 @@ namespace RiskGame.ViewModels
 {
     public sealed class MatchViewModel : ViewModelBase
     {
+        private const int ActionTimeoutSeconds = 10;
         private CancellationTokenSource? streamCancellation;
+
+        public BoardState RollDice(int matchId, long expectedRollId)
+        {
+            SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
+            RollDiceRequest request = new RollDiceRequest
+            {
+                MatchId = matchId, UserId = currentSessionUser.IdUser,
+                SessionToken = currentSessionUser.SessionToken, ExpectedRollId = expectedRollId
+            };
+            try
+            {
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                Match.MatchClient matchClient = new Match.MatchClient(grpcChannel);
+                return matchClient.RollDice(request, deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds));
+            }
+            catch (RpcException rpcException)
+            {
+                JsonLogger.Error(rpcException, "Could not roll dice for the current match.");
+                throw new DataOperationException(GetActionError(rpcException), rpcException);
+            }
+        }
+
+        public BoardState ChooseDicePair(int matchId, long rollId, int pairIndex)
+        {
+            SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
+            PairChoice request = new PairChoice
+            {
+                MatchId = matchId, UserId = currentSessionUser.IdUser,
+                SessionToken = currentSessionUser.SessionToken, RollId = rollId, PairIndex = pairIndex
+            };
+            try
+            {
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                Match.MatchClient matchClient = new Match.MatchClient(grpcChannel);
+                return matchClient.ChooseDicePair(request, deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds));
+            }
+            catch (RpcException rpcException)
+            {
+                JsonLogger.Error(rpcException, "Could not choose a dice pair for the current match.");
+                throw new DataOperationException(GetActionError(rpcException), rpcException);
+            }
+        }
+
+        private string GetActionError(RpcException rpcException)
+        {
+            if (rpcException.StatusCode == StatusCode.FailedPrecondition)
+            {
+                return Strings.MatchActionRejected;
+            }
+            return GetStreamError(rpcException);
+        }
 
         public void Subscribe(int matchId, IMatchCallback matchCallback)
         {

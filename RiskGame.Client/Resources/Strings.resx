@@ -169,4 +169,14 @@
   <data name="MatchParticipantDisconnected" xml:space="preserve"><value>Sin conexión a la partida</value></data>
   <data name="MatchReconnect" xml:space="preserve"><value>RECONECTAR</value></data>
   <data name="MatchBoardLabel" xml:space="preserve"><value>Tablero de la partida</value></data>
+  <data name="MatchRollDice" xml:space="preserve"><value>TIRAR DADOS (R)</value></data>
+  <data name="MatchNoRoll" xml:space="preserve"><value>Todavía no hay una tirada.</value></data>
+  <data name="MatchRollPrompt" xml:space="preserve"><value>El jugador del turno puede tirar los cuatro dados.</value></data>
+  <data name="MatchDiceFormat" xml:space="preserve"><value>Dados: {0}</value></data>
+  <data name="MatchDiceSeparator" xml:space="preserve"><value> · </value></data>
+  <data name="MatchPairSeparator" xml:space="preserve"><value> + </value></data>
+  <data name="MatchPairOptionFormat" xml:space="preserve"><value>{0}: ({1}) = {2} | ({3}) = {4}</value></data>
+  <data name="MatchChoosePairPrompt" xml:space="preserve"><value>El jugador del turno debe elegir una agrupación (teclas 1, 2 o 3).</value></data>
+  <data name="MatchSelectedPairFormat" xml:space="preserve"><value>Agrupación {0} elegida.</value></data>
+  <data name="MatchActionRejected" xml:space="preserve"><value>No se pudo realizar la acción: verifica el turno y la tirada actual.</value></data>
 </root>

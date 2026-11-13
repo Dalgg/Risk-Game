@@ -167,4 +167,14 @@
   <data name="MatchParticipantDisconnected" xml:space="preserve"><value>Disconnected from the match</value></data>
   <data name="MatchReconnect" xml:space="preserve"><value>RECONNECT</value></data>
   <data name="MatchBoardLabel" xml:space="preserve"><value>Match board</value></data>
+  <data name="MatchRollDice" xml:space="preserve"><value>ROLL DICE (R)</value></data>
+  <data name="MatchNoRoll" xml:space="preserve"><value>No dice have been rolled yet.</value></data>
+  <data name="MatchRollPrompt" xml:space="preserve"><value>The current player can roll the four dice.</value></data>
+  <data name="MatchDiceFormat" xml:space="preserve"><value>Dice: {0}</value></data>
+  <data name="MatchDiceSeparator" xml:space="preserve"><value> · </value></data>
+  <data name="MatchPairSeparator" xml:space="preserve"><value> + </value></data>
+  <data name="MatchPairOptionFormat" xml:space="preserve"><value>{0}: ({1}) = {2} | ({3}) = {4}</value></data>
+  <data name="MatchChoosePairPrompt" xml:space="preserve"><value>The current player must choose a grouping (keys 1, 2 or 3).</value></data>
+  <data name="MatchSelectedPairFormat" xml:space="preserve"><value>Grouping {0} selected.</value></data>
+  <data name="MatchActionRejected" xml:space="preserve"><value>The action could not be completed: check the turn and current roll.</value></data>
 </root>

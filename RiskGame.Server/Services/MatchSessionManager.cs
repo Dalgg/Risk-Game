@@ -69,24 +69,8 @@ namespace RiskGame.Server.Services
         {
             lock (matchLock)
             {
-                ActiveMatch activeMatch = GetActiveMatch(subscription.MatchId);
-                MatchParticipant? participant = activeMatch.Participants
-                    .FirstOrDefault(player => player.UserId == subscription.UserId);
-                if (participant == null)
-                {
-                    throw new InvalidSessionException("The player does not belong to the requested match.");
-                }
-                if (participant.UserId >= MinimumValidIdentifier)
-                {
-                    if (sessionRegistry.GetUserId(subscription.SessionToken) != participant.UserId)
-                    {
-                        throw new InvalidSessionException("The session does not belong to the requested participant.");
-                    }
-                }
-                else if (!participant.IsGuest || participant.UserId == InvalidPlayerIdentifier)
-                {
-                    throw new InvalidSessionException("A valid guest participant is required.");
-                }
+                ActiveMatch activeMatch = GetAuthorizedMatch(subscription.MatchId, subscription.UserId,
+                    subscription.SessionToken);
                 subscribersByMatchId[subscription.MatchId][subscription.UserId] = responseStream;
                 activeMatch.UpdateConnection(subscription.UserId, true);
             }
@@ -123,6 +107,65 @@ namespace RiskGame.Server.Services
             throw new MatchNotFoundException("The active match is not available on this server.");
         }
 
+        private ActiveMatch GetAuthorizedMatch(int matchId, int userId, string sessionToken)
+        {
+            ActiveMatch activeMatch = GetActiveMatch(matchId);
+            MatchParticipant? participant = activeMatch.Participants
+                .FirstOrDefault(player => player.UserId == userId);
+            if (participant == null)
+            {
+                throw new InvalidSessionException("The player does not belong to the requested match.");
+            }
+            if (participant.UserId >= MinimumValidIdentifier)
+            {
+                if (sessionRegistry.GetUserId(sessionToken) != participant.UserId)
+                {
+                    throw new InvalidSessionException("The session does not belong to the requested participant.");
+                }
+            }
+            else if (!participant.IsGuest || participant.UserId == InvalidPlayerIdentifier)
+            {
+                throw new InvalidSessionException("A valid guest participant is required.");
+            }
+            return activeMatch;
+        }
+
+        public BoardState RollDice(RollDiceRequest request)
+        {
+            BoardState boardState;
+            lock (matchLock)
+            {
+                ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
+                ValidateTurn(activeMatch, request.UserId);
+                activeMatch.ApplyRoll(DiceRoller.RollFourDice(), request.ExpectedRollId);
+                boardState = BuildBoardState(activeMatch);
+            }
+            BroadcastBoardState(request.MatchId);
+            return boardState;
+        }
+
+        public BoardState ChooseDicePair(PairChoice request)
+        {
+            BoardState boardState;
+            lock (matchLock)
+            {
+                ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
+                ValidateTurn(activeMatch, request.UserId);
+                activeMatch.ChoosePair(request.RollId, request.PairIndex);
+                boardState = BuildBoardState(activeMatch);
+            }
+            BroadcastBoardState(request.MatchId);
+            return boardState;
+        }
+
+        private void ValidateTurn(ActiveMatch activeMatch, int userId)
+        {
+            if (activeMatch.CurrentTurnUserId != userId)
+            {
+                throw new MatchActionException("Only the current player can roll or choose a pair.");
+            }
+        }
+
         private void BroadcastBoardState(int matchId)
         {
             BoardState boardState;
@@ -146,8 +189,24 @@ namespace RiskGame.Server.Services
                 CurrentTurnUserId = activeMatch.CurrentTurnUserId,
                 RulesVariant = activeMatch.RulesVariant,
                 TurnDurationSeconds = activeMatch.TurnDurationSeconds,
-                Revision = activeMatch.Revision
+                Revision = activeMatch.Revision,
+                RollId = activeMatch.RollId,
+                AwaitingPairChoice = activeMatch.AwaitingPairChoice,
+                SelectedPairIndex = activeMatch.SelectedPairIndex
             };
+            boardState.Dice.AddRange(activeMatch.Dice);
+            foreach (DicePairCombination combination in activeMatch.PairOptions)
+            {
+                PairOption pairOption = new PairOption
+                {
+                    PairIndex = combination.PairIndex,
+                    FirstSum = combination.FirstSum,
+                    SecondSum = combination.SecondSum
+                };
+                pairOption.FirstPairDice.AddRange(combination.FirstPairDice);
+                pairOption.SecondPairDice.AddRange(combination.SecondPairDice);
+                boardState.PairOptions.Add(pairOption);
+            }
             foreach (MatchParticipant participant in activeMatch.Participants)
             {
                 boardState.Players.Add(new BoardPlayer
