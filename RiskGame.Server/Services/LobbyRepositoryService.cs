@@ -62,7 +62,7 @@ namespace RiskGame.Server.Services
                         LobbyCode = generatedCode,
                         RulesVariant = rulesVariantName,
                         TurnDuration = turnDurationSeconds,
-                        CreationDate = DateTime.Now,
+                        CreationDate = DateTime.UtcNow,
                         ClosureDate = null
                     };
 
@@ -92,7 +92,7 @@ namespace RiskGame.Server.Services
                     Match newMatchEntity = new Match
                     {
                         IdLobby = lobbyId,
-                        StartDate = DateTime.Now,
+                        StartDate = DateTime.UtcNow,
                         EndDate = null,
                         EndReason = null
                     };

@@ -56,7 +56,7 @@ namespace RiskGame.Models
                 entity.Property(e => e.IdUser1).HasColumnName("id_user_1");
                 entity.Property(e => e.IdUser2).HasColumnName("id_user_2");
                 entity.Property(e => e.RequestDate)
-                    .HasDefaultValueSql("(getdate())")
+                    .HasDefaultValueSql("(getutcdate())")
                     .HasColumnType("datetime")
                     .HasColumnName("request_date");
                 entity.Property(e => e.Status)
@@ -90,7 +90,7 @@ namespace RiskGame.Models
                     .HasColumnType("datetime")
                     .HasColumnName("closure_date");
                 entity.Property(e => e.CreationDate)
-                    .HasDefaultValueSql("(getdate())")
+                    .HasDefaultValueSql("(getutcdate())")
                     .HasColumnType("datetime")
                     .HasColumnName("creation_date");
                 entity.Property(e => e.LobbyCode)
@@ -129,7 +129,7 @@ namespace RiskGame.Models
                     .IsUnicode(false)
                     .HasColumnName("recipient_email");
                 entity.Property(e => e.SentDate)
-                    .HasDefaultValueSql("(getdate())")
+                    .HasDefaultValueSql("(getutcdate())")
                     .HasColumnType("datetime")
                     .HasColumnName("sent_date");
                 entity.Property(e => e.Status)
@@ -167,7 +167,7 @@ namespace RiskGame.Models
                     .HasColumnName("end_reason");
                 entity.Property(e => e.IdLobby).HasColumnName("id_lobby");
                 entity.Property(e => e.StartDate)
-                    .HasDefaultValueSql("(getdate())")
+                    .HasDefaultValueSql("(getutcdate())")
                     .HasColumnType("datetime")
                     .HasColumnName("start_date");
 
@@ -210,7 +210,7 @@ namespace RiskGame.Models
                     .ValueGeneratedNever()
                     .HasColumnName("id_match");
                 entity.Property(e => e.LastUpdated)
-                    .HasDefaultValueSql("(getdate())")
+                    .HasDefaultValueSql("(getutcdate())")
                     .HasColumnType("datetime")
                     .HasColumnName("last_updated");
                 entity.Property(e => e.StateData).HasColumnName("state_data");
@@ -228,7 +228,7 @@ namespace RiskGame.Models
 
                 entity.Property(e => e.IdRecovery).HasColumnName("id_recovery");
                 entity.Property(e => e.CreationDate)
-                    .HasDefaultValueSql("(getdate())")
+                    .HasDefaultValueSql("(getutcdate())")
                     .HasColumnType("datetime")
                     .HasColumnName("creation_date");
                 entity.Property(e => e.ExpirationDate)
@@ -273,7 +273,7 @@ namespace RiskGame.Models
                     .IsUnicode(false)
                     .HasColumnName("password_hash");
                 entity.Property(e => e.RegistrationDate)
-                    .HasDefaultValueSql("(getdate())")
+                    .HasDefaultValueSql("(getutcdate())")
                     .HasColumnType("datetime")
                     .HasColumnName("registration_date");
                 entity.Property(e => e.Username)

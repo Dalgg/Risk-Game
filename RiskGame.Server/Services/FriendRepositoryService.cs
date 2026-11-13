@@ -47,7 +47,7 @@ namespace RiskGame.Server.Services
             if (accept)
             {
                 friendshipStatus = AcceptedStatus;
-                acceptanceDate = DateTime.Now;
+                acceptanceDate = DateTime.UtcNow;
             }
             try
             {
@@ -117,7 +117,7 @@ namespace RiskGame.Server.Services
             friendship.IdUser1 = userId;
             friendship.IdUser2 = targetUserId;
             friendship.Status = PendingStatus;
-            friendship.RequestDate = DateTime.Now;
+            friendship.RequestDate = DateTime.UtcNow;
             friendship.AcceptanceDate = null;
             databaseContext.SaveChanges();
         }

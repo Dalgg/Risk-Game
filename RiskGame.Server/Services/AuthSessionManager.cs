@@ -79,7 +79,7 @@ namespace RiskGame.Server.Services
                     registration.FailedAttempts++;
                     throw new RegistrationVerificationException("The verification code is invalid.");
                 }
-                registration.Account.RegistrationDate = DateTime.Now;
+                registration.Account.RegistrationDate = DateTime.UtcNow;
                 RegisterResult result = authRepository.CreateVerifiedUser(registration.Account);
                 pendingRegistrations.Remove(confirmation.RegistrationId);
                 return new RegisterResponse { ResultCode = (int)result };
