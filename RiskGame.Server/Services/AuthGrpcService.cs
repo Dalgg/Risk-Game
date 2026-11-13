@@ -11,16 +11,16 @@ namespace RiskGame.Server.Services
 {
     public class AuthGrpcService : AuthGrpc.AuthGrpcBase
     {
-        private readonly AuthRepositoryService authRepository;
+        private readonly AuthSessionManager authSessionManager;
         private readonly ProfileSessionRegistry profileSessions;
         private readonly LobbySessionManager lobbySessionManager;
 
         public AuthGrpcService(
-            AuthRepositoryService authRepository,
+            AuthSessionManager authSessionManager,
             ProfileSessionRegistry sessions,
             LobbySessionManager lobbySessionManager)
         {
-            this.authRepository = authRepository;
+            this.authSessionManager = authSessionManager;
             profileSessions = sessions;
             this.lobbySessionManager = lobbySessionManager;
         }
@@ -29,23 +29,12 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                RegisterResult registrationResult = authRepository.RegisterUser(
-                    registerRequest.Email,
-                    registerRequest.Username,
-                    registerRequest.Password);
-
-                RegisterResponse registerResponse = new RegisterResponse
-                {
-                    ResultCode = (int)registrationResult,
-                    Message = registrationResult.ToString()
-                };
-
-                return Task.FromResult(registerResponse);
+                return Task.FromResult(authSessionManager.BeginRegistration(registerRequest));
             }
             catch (DataOperationException dataOperationException)
             {
                 JsonLogger.Error(dataOperationException, "Registration failed during data access.");
-                throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
+                throw CreateRegistrationException(dataOperationException);
             }
         }
 
@@ -53,23 +42,23 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                User authenticatedUser = authRepository.AuthenticateUser(loginRequest.Username, loginRequest.Password);
+                User user = authSessionManager.AuthenticateUser(loginRequest.Username, loginRequest.Password);
 
                 string avatarReference = string.Empty;
-                if (authenticatedUser.AvatarReference != null)
+                if (user.AvatarReference != null)
                 {
-                    avatarReference = authenticatedUser.AvatarReference;
+                    avatarReference = user.AvatarReference;
                 }
 
                 LoginResponse successLoginResponse = new LoginResponse
                 {
                     IsAuthenticated = true,
-                    SessionToken = profileSessions.Register(authenticatedUser.IdUser),
+                    SessionToken = profileSessions.Register(user.IdUser),
                     Player = new PlayerDto
                     {
-                        UserId = authenticatedUser.IdUser,
-                        Username = authenticatedUser.Username,
-                        Nickname = authenticatedUser.Nickname,
+                        UserId = user.IdUser,
+                        Username = user.Username,
+                        Nickname = user.Nickname,
                         AvatarReference = avatarReference
                     }
                 };
@@ -93,6 +82,44 @@ namespace RiskGame.Server.Services
             profileSessions.RemoveSession(logoutRequest.SessionToken);
             lobbySessionManager.BroadcastPresenceUpdate();
             return Task.FromResult(new Empty());
+        }
+
+        public override Task<RegisterResponse> ConfirmRegistration(
+            RegistrationConfirmation confirmation, ServerCallContext callContext)
+        {
+            try
+            {
+                return Task.FromResult(authSessionManager.ConfirmRegistration(confirmation));
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                JsonLogger.Error(dataOperationException, "Could not confirm the registration.");
+                throw CreateRegistrationException(dataOperationException);
+            }
+        }
+
+        public override Task<Empty> ResendVerification(RegistrationReference reference, ServerCallContext callContext)
+        {
+            try
+            {
+                authSessionManager.ResendVerification(reference);
+                return Task.FromResult(new Empty());
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                JsonLogger.Error(dataOperationException, "Could not resend the verification email.");
+                throw CreateRegistrationException(dataOperationException);
+            }
+        }
+
+        private RpcException CreateRegistrationException(DataOperationException dataOperationException)
+        {
+            StatusCode statusCode = StatusCode.Unavailable;
+            if (dataOperationException is RegistrationVerificationException)
+            {
+                statusCode = StatusCode.FailedPrecondition;
+            }
+            return new RpcException(new Status(statusCode, "Registration verification could not be completed."));
         }
     }
 }

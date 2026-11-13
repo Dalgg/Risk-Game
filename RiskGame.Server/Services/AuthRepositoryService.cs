@@ -24,14 +24,14 @@ namespace RiskGame.Server.Services
             {
                 using (RiskGameContext databaseContext = new RiskGameContext())
                 {
-                    User? matchingUser = databaseContext.Users.FirstOrDefault(
+                    User? user = databaseContext.Users.FirstOrDefault(
                         candidateUser => candidateUser.Username == username);
-                    if (matchingUser == null)
+                    if (user == null)
                     {
                         throw new InvalidCredentialsException("Invalid username or password.");
                     }
 
-                    PasswordVerificationResult verificationResult = PasswordHasher.Verify(password, matchingUser.PasswordHash);
+                    PasswordVerificationResult verificationResult = PasswordHasher.Verify(password, user.PasswordHash);
                     if (!verificationResult.IsValid)
                     {
                         throw new InvalidCredentialsException("Invalid username or password.");
@@ -39,11 +39,11 @@ namespace RiskGame.Server.Services
 
                     if (verificationResult.NeedsRehash)
                     {
-                        matchingUser.PasswordHash = PasswordHasher.Hash(password);
+                        user.PasswordHash = PasswordHasher.Hash(password);
                         databaseContext.SaveChanges();
                     }
 
-                    return matchingUser;
+                    return user;
                 }
             }
             catch (DbUpdateException databaseUpdateException)
@@ -58,7 +58,7 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public RegisterResult RegisterUser(string email, string username, string password)
+        public RegisterResult ValidateRegistration(string email, string username, string password)
         {
             string normalizedEmail = email.Trim();
             string normalizedUsername = username.Trim();
@@ -97,30 +97,42 @@ namespace RiskGame.Server.Services
                         return RegisterResult.EmailExists;
                     }
 
-                    User newUser = new User
-                    {
-                        Email = normalizedEmail,
-                        Username = normalizedUsername,
-                        PasswordHash = PasswordHasher.Hash(password),
-                        Nickname = normalizedUsername,
-                        RegistrationDate = DateTime.Now
-                    };
-
-                    context.Users.Add(newUser);
-                    context.SaveChanges();
-
                     return RegisterResult.Success;
                 }
-            }
-            catch (DbUpdateException databaseUpdateException)
-            {
-                JsonLogger.Error(databaseUpdateException, "Persistence error (DbUpdateException) while registering user {0}.", normalizedUsername);
-                throw new DataOperationException("A data conflict occurred while registering the account.", databaseUpdateException);
             }
             catch (DbException databaseException)
             {
                 JsonLogger.Error(databaseException, "Connection error (DbException) while registering user {0}.", normalizedUsername);
                 throw new DataOperationException("Could not connect to the database while registering the account.", databaseException);
+            }
+        }
+
+        public RegisterResult CreateVerifiedUser(User verifiedUser)
+        {
+            try
+            {
+                using RiskGameContext databaseContext = new RiskGameContext();
+                if (databaseContext.Users.Any(user => user.Username == verifiedUser.Username))
+                {
+                    return RegisterResult.UsernameExists;
+                }
+                if (databaseContext.Users.Any(user => user.Email == verifiedUser.Email))
+                {
+                    return RegisterResult.EmailExists;
+                }
+                databaseContext.Users.Add(verifiedUser);
+                databaseContext.SaveChanges();
+                return RegisterResult.Success;
+            }
+            catch (DbUpdateException databaseUpdateException)
+            {
+                JsonLogger.Error(databaseUpdateException, "Could not persist the verified account.");
+                throw new DataOperationException("Could not persist the verified account.", databaseUpdateException);
+            }
+            catch (DbException databaseException)
+            {
+                JsonLogger.Error(databaseException, "Could not connect while saving the verified account.");
+                throw new DataOperationException("Could not connect to save the verified account.", databaseException);
             }
         }
     }

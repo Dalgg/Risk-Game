@@ -145,4 +145,14 @@
   <data name="InboxLobbyInvitations" xml:space="preserve"><value>Invitaciones a salas</value></data>
   <data name="InboxLobbyCode" xml:space="preserve"><value>Sala:</value></data>
   <data name="InboxInvitationUnavailable" xml:space="preserve"><value>No se pudo entrar: la invitación venció, la sala está llena, cerrada o la partida ya comenzó. Actualiza el buzón.</value></data>
+  <data name="VerificationServerOutdated" xml:space="preserve"><value>Actualiza el servidor para registrar cuentas con confirmación por correo.</value></data>
+  <data name="VerificationEmailError" xml:space="preserve"><value>No se pudo enviar el código. Inténtalo más tarde.</value></data>
+  <data name="VerificationPendingError" xml:space="preserve"><value>Ya existe una verificación pendiente para ese correo o se alcanzó el límite. Espera cinco minutos.</value></data>
+  <data name="VerificationCodeError" xml:space="preserve"><value>El código es incorrecto, venció o agotaste los intentos. Si es necesario, vuelve a registrarte.</value></data>
+  <data name="VerificationResendError" xml:space="preserve"><value>No se pudo reenviar. Espera un minuto; se permiten dos reenvíos antes de que venza el registro.</value></data>
+  <data name="VerificationSent" xml:space="preserve"><value>Código enviado. Revisa tu correo y la carpeta de spam.</value></data>
+  <data name="VerificationInstructions" xml:space="preserve"><value>Introduce el código de seis dígitos enviado a tu correo. Vence a los cinco minutos y admite cinco intentos.</value></data>
+  <data name="VerificationCodeLabel" xml:space="preserve"><value>Código de confirmación</value></data>
+  <data name="VerificationConfirm" xml:space="preserve"><value>CONFIRMAR CORREO</value></data>
+  <data name="VerificationResend" xml:space="preserve"><value>REENVIAR CÓDIGO</value></data>
 </root>

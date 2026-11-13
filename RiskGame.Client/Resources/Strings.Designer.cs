@@ -266,5 +266,25 @@ namespace RiskGame.Resources
 
         public static string InboxInvitationUnavailable => ResourceManager.GetString("InboxInvitationUnavailable", _resourceCulture);
 
+        public static string VerificationServerOutdated => ResourceManager.GetString("VerificationServerOutdated", _resourceCulture);
+
+        public static string VerificationEmailError => ResourceManager.GetString("VerificationEmailError", _resourceCulture);
+
+        public static string VerificationPendingError => ResourceManager.GetString("VerificationPendingError", _resourceCulture);
+
+        public static string VerificationCodeError => ResourceManager.GetString("VerificationCodeError", _resourceCulture);
+
+        public static string VerificationResendError => ResourceManager.GetString("VerificationResendError", _resourceCulture);
+
+        public static string VerificationSent => ResourceManager.GetString("VerificationSent", _resourceCulture);
+
+        public static string VerificationInstructions => ResourceManager.GetString("VerificationInstructions", _resourceCulture);
+
+        public static string VerificationCodeLabel => ResourceManager.GetString("VerificationCodeLabel", _resourceCulture);
+
+        public static string VerificationConfirm => ResourceManager.GetString("VerificationConfirm", _resourceCulture);
+
+        public static string VerificationResend => ResourceManager.GetString("VerificationResend", _resourceCulture);
+
     }
 }

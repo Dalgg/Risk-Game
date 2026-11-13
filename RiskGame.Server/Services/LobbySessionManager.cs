@@ -27,11 +27,14 @@ namespace RiskGame.Server.Services
         private readonly Dictionary<int, string> userToLobbyCode = new Dictionary<int, string>();
         private readonly LobbyRepositoryService lobbyRepository;
         private readonly ProfileSessionRegistry sessionRegistry;        
+        private readonly MatchSessionManager matchSessionManager;
 
-        public LobbySessionManager(LobbyRepositoryService lobbyRepository, ProfileSessionRegistry sessionRegistry)
+        public LobbySessionManager(LobbyRepositoryService lobbyRepository, ProfileSessionRegistry sessionRegistry,
+            MatchSessionManager matchSessionManager)
         {
             this.lobbyRepository = lobbyRepository;
             this.sessionRegistry = sessionRegistry;
+            this.matchSessionManager = matchSessionManager;
         }
 
         public LobbyDetails CreateLobby(LobbyRules requestedRules, PlayerSummary hostPlayer)
@@ -69,8 +72,6 @@ namespace RiskGame.Server.Services
 
             lock (syncLock)
             {
-                RemovePlayerFromCurrentLobbyInternal(joiningPlayer.UserId);
-
                 ActiveLobbyRoom activeLobbyRoom;
                 if (roomsByCode.ContainsKey(databaseLobby.LobbyCode))
                 {
@@ -81,6 +82,12 @@ namespace RiskGame.Server.Services
                     activeLobbyRoom = CreateRoomFromEntity(databaseLobby, joiningPlayer.UserId);
                     roomsByCode[databaseLobby.LobbyCode] = activeLobbyRoom;
                 }
+
+                if (activeLobbyRoom.Status != LobbyStatus.Waiting)
+                {
+                    throw new LobbyNotFoundException("The lobby is no longer accepting players.");
+                }
+                RemovePlayerFromCurrentLobbyInternal(joiningPlayer.UserId);
 
                 LobbyPlayer? existingLobbyPlayer = activeLobbyRoom.Players.FirstOrDefault(
                     registeredPlayer => registeredPlayer.Player.UserId == joiningPlayer.UserId);
@@ -213,8 +220,7 @@ namespace RiskGame.Server.Services
 
         public int StartMatch(int requestingUserId)
         {
-            int targetLobbyId;
-            string targetLobbyCode;
+            ActiveMatch activeMatch;
             List<IServerStreamWriter<LobbyEvent>> subscribersToNotify;
 
             lock (syncLock)
@@ -224,13 +230,17 @@ namespace RiskGame.Server.Services
                     throw new LobbyNotFoundException("The player is not currently in an active lobby.");
                 }
 
-                targetLobbyCode = userToLobbyCode[requestingUserId];
+                string targetLobbyCode = userToLobbyCode[requestingUserId];
                 if (!roomsByCode.ContainsKey(targetLobbyCode))
                 {
                     throw new LobbyNotFoundException("The lobby does not exist or is already closed.");
                 }
 
                 ActiveLobbyRoom activeLobbyRoom = roomsByCode[targetLobbyCode];
+                if (activeLobbyRoom.Status != LobbyStatus.Waiting)
+                {
+                    throw new InvalidOperationException("This lobby has already started its match.");
+                }
                 if (activeLobbyRoom.HostUserId != requestingUserId)
                 {
                     throw new InvalidOperationException("Only the lobby host can start the match.");
@@ -241,28 +251,20 @@ namespace RiskGame.Server.Services
                     throw new InvalidOperationException("At least 2 players are required to start the match.");
                 }
 
-                targetLobbyId = activeLobbyRoom.LobbyId;
+                LobbyDetails initialLobbyDetails = BuildLobbyDetails(activeLobbyRoom);
+                int createdMatchId = lobbyRepository.CreateMatchInDatabase(activeLobbyRoom.LobbyId);
+                activeMatch = matchSessionManager.CreateMatch(createdMatchId, initialLobbyDetails);
+                activeLobbyRoom.Status = LobbyStatus.InMatch;
                 subscribersToNotify = activeLobbyRoom.Subscribers.Values.ToList();
-            }
-
-            int createdMatchId = lobbyRepository.CreateMatchInDatabase(targetLobbyId);
-
-            lock (syncLock)
-            {
-                if (roomsByCode.ContainsKey(targetLobbyCode))
-                {
-                    ActiveLobbyRoom activeLobbyRoom = roomsByCode[targetLobbyCode];
-                    activeLobbyRoom.Status = LobbyStatus.InMatch;
-                }
             }
 
             LobbyEvent matchStartingEvent = new LobbyEvent
             {
-                StartedMatchId = createdMatchId
+                StartedMatchId = activeMatch.MatchId
             };
 
             BroadcastLobbyEvent(subscribersToNotify, matchStartingEvent);
-            return createdMatchId;
+            return activeMatch.MatchId;
         }
 
         public void RegisterChatSubscriber(int subscriberUserId, IServerStreamWriter<ChatMessage> responseStream)

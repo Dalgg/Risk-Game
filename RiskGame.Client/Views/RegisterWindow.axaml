@@ -6,6 +6,11 @@
         Width="600" Height="500"
         Background="#1E1E1E">
 
+    <Window.Resources>
+        <Thickness x:Key="VerificationMargin">50,110,50,30</Thickness>
+        <x:Double x:Key="VerificationSpacing">15</x:Double>
+        <x:Int32 x:Key="VerificationCodeLength">6</x:Int32>
+    </Window.Resources>
     <Border Background="#5C5C5C" Width="480" Height="460" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Grid>
             <Button Background="#8B0000" Width="60" Height="50" HorizontalAlignment="Left" VerticalAlignment="Top"
@@ -19,7 +24,7 @@
             <TextBlock x:Name="MessageTextBlock" IsVisible="False" TextWrapping="Wrap" TextAlignment="Center"
                        FontSize="13" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="30,62,30,0"/>
 
-            <Grid RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="Auto, *" HorizontalAlignment="Stretch"
+            <Grid x:Name="RegistrationForm" RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="Auto, *" HorizontalAlignment="Stretch"
                 VerticalAlignment="Center" Margin="50,60,50,0">
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.LoginUsernameLabel}" Foreground="White" FontSize="22"
@@ -36,11 +41,21 @@
                            VerticalAlignment="Center" Margin="0,0,20,25"/>
                 <TextBox x:Name="EmailTextBox" Grid.Row="2" Grid.Column="1" Background="White" Foreground="Black" Height="35"
                     CornerRadius="0" Margin="0,0,0,25"/>
-            </Grid>
+        </Grid>
 
-            <Button Content="{x:Static res:Strings.RegisterConfirmButton}" Background="#0084FF" Foreground="White" FontSize="20" CornerRadius="12"
+            <Button x:Name="RegisterConfirmButton" Content="{x:Static res:Strings.RegisterConfirmButton}" Background="#0084FF" Foreground="White" FontSize="20" CornerRadius="12"
                 Width="180" Height="45" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,40"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Click="OnConfirmClick" />
+            <StackPanel x:Name="VerificationPanel" IsVisible="False" VerticalAlignment="Center"
+                        Margin="{StaticResource VerificationMargin}" Spacing="{StaticResource VerificationSpacing}">
+                <TextBlock Text="{x:Static res:Strings.VerificationInstructions}" Foreground="White"
+                           TextWrapping="Wrap"/>
+                <TextBox x:Name="VerificationCodeTextBox" MaxLength="{StaticResource VerificationCodeLength}"
+                         TabIndex="0" PlaceholderText="{x:Static res:Strings.VerificationCodeLabel}"/>
+                <Button Content="{x:Static res:Strings.VerificationConfirm}" Click="OnVerifyClick"
+                        HotKey="Enter" TabIndex="1"/>
+                <Button Content="{x:Static res:Strings.VerificationResend}" Click="OnResendClick" TabIndex="2"/>
+            </StackPanel>
         </Grid>
     </Border>
 </Window>

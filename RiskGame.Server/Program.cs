@@ -23,6 +23,8 @@ namespace RiskGame.Server
             });
 
             builder.Services.AddGrpc();
+            builder.Services.AddSingleton<EmailService>();
+            builder.Services.AddSingleton<AuthSessionManager>();
             builder.Services.AddSingleton<InvitationRepositoryService>();
             builder.Services.AddSingleton<InvitationSessionManager>();
             builder.Services.AddSingleton<FriendRepositoryService>();
@@ -32,6 +34,7 @@ namespace RiskGame.Server
             builder.Services.AddSingleton<AuthRepositoryService>();
             builder.Services.AddSingleton<ScoreboardRepositoryService>();
             builder.Services.AddSingleton<LobbyRepositoryService>();
+            builder.Services.AddSingleton<MatchSessionManager>();
             builder.Services.AddSingleton<LobbySessionManager>();
 
             WebApplication app = builder.Build();

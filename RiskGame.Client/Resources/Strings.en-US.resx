@@ -143,4 +143,14 @@
   <data name="InboxLobbyInvitations" xml:space="preserve"><value>Lobby invitations</value></data>
   <data name="InboxLobbyCode" xml:space="preserve"><value>Lobby:</value></data>
   <data name="InboxInvitationUnavailable" xml:space="preserve"><value>Could not join: the invitation expired, the lobby is full or closed, or the match has started. Refresh the inbox.</value></data>
+  <data name="VerificationServerOutdated" xml:space="preserve"><value>Update the server to support email-verified registration.</value></data>
+  <data name="VerificationEmailError" xml:space="preserve"><value>Could not send the code. Try again later.</value></data>
+  <data name="VerificationPendingError" xml:space="preserve"><value>This email already has a pending verification or the limit was reached. Wait five minutes.</value></data>
+  <data name="VerificationCodeError" xml:space="preserve"><value>The code is invalid, expired, or has no attempts left. Register again if necessary.</value></data>
+  <data name="VerificationResendError" xml:space="preserve"><value>Could not resend. Wait one minute; two resends are allowed before registration expires.</value></data>
+  <data name="VerificationSent" xml:space="preserve"><value>Code sent. Check your inbox and spam folder.</value></data>
+  <data name="VerificationInstructions" xml:space="preserve"><value>Enter the six-digit code sent to your email. It expires in five minutes and allows five attempts.</value></data>
+  <data name="VerificationCodeLabel" xml:space="preserve"><value>Confirmation code</value></data>
+  <data name="VerificationConfirm" xml:space="preserve"><value>VERIFY EMAIL</value></data>
+  <data name="VerificationResend" xml:space="preserve"><value>RESEND CODE</value></data>
 </root>

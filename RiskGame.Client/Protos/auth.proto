@@ -8,6 +8,8 @@ service AuthGrpc {
   rpc Register (RegisterRequest) returns (RegisterResponse);
   rpc Login (LoginRequest) returns (LoginResponse);
   rpc Logout (LogoutRequest) returns (google.protobuf.Empty);
+  rpc ConfirmRegistration (RegistrationConfirmation) returns (RegisterResponse);
+  rpc ResendVerification (RegistrationReference) returns (google.protobuf.Empty);
 }
 
 message RegisterRequest {
@@ -19,6 +21,16 @@ message RegisterRequest {
 message RegisterResponse {
   int32 result_code = 1;
   string message = 2;
+  string registration_id = 3;
+}
+
+message RegistrationConfirmation {
+  string registration_id = 1;
+  string code = 2;
+}
+
+message RegistrationReference {
+  string registration_id = 1;
 }
 
 message LoginRequest {
