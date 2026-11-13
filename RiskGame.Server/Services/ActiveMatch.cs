@@ -13,6 +13,7 @@ namespace RiskGame.Server.Services
         private const int CentralColumnNumber = 7;
         private const int CentralColumnHeight = 13;
         private const int ColumnHeightDifference = 2;
+        private const long InitialRevision = 1;
 
         public ActiveMatch(int matchId, LobbyDetails lobbyDetails)
         {
@@ -51,5 +52,20 @@ namespace RiskGame.Server.Services
         public IReadOnlyList<MatchParticipant> Participants { get; }
 
         public IReadOnlyList<MatchColumn> Columns { get; }
+
+        public long Revision { get; private set; } = InitialRevision;
+
+        public void UpdateConnection(int userId, bool isConnected)
+        {
+            foreach (MatchParticipant participant in Participants)
+            {
+                if (participant.UserId == userId)
+                {
+                    participant.SetConnected(isConnected);
+                    Revision++;
+                    break;
+                }
+            }
+        }
     }
 }

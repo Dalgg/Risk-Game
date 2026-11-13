@@ -153,4 +153,18 @@
   <data name="VerificationCodeLabel" xml:space="preserve"><value>Confirmation code</value></data>
   <data name="VerificationConfirm" xml:space="preserve"><value>VERIFY EMAIL</value></data>
   <data name="VerificationResend" xml:space="preserve"><value>RESEND CODE</value></data>
+  <data name="MatchConnecting" xml:space="preserve"><value>Connecting to the match...</value></data>
+  <data name="MatchSynchronized" xml:space="preserve"><value>Match state updated.</value></data>
+  <data name="MatchConnectionError" xml:space="preserve"><value>The match connection was lost. Select Reconnect to try again.</value></data>
+  <data name="MatchUnavailable" xml:space="preserve"><value>The match is no longer available. Return to the menu.</value></data>
+  <data name="MatchAccessDenied" xml:space="preserve"><value>Could not access this match. Check your session.</value></data>
+  <data name="MatchCurrentTurnFormat" xml:space="preserve"><value>Current turn: {0}</value></data>
+  <data name="MatchStandardRules" xml:space="preserve"><value>Standard</value></data>
+  <data name="MatchFastRules" xml:space="preserve"><value>Fast</value></data>
+  <data name="MatchRulesFormat" xml:space="preserve"><value>{0} mode · Turn duration: {1} s</value></data>
+  <data name="MatchCellFormat" xml:space="preserve"><value>Column {0}, step {1}</value></data>
+  <data name="MatchParticipantConnected" xml:space="preserve"><value>Connected to the match</value></data>
+  <data name="MatchParticipantDisconnected" xml:space="preserve"><value>Disconnected from the match</value></data>
+  <data name="MatchReconnect" xml:space="preserve"><value>RECONNECT</value></data>
+  <data name="MatchBoardLabel" xml:space="preserve"><value>Match board</value></data>
 </root>

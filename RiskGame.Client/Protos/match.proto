@@ -1,0 +1,38 @@
+syntax = "proto3";
+option csharp_namespace = "RiskGame.Contracts.Match";
+package riskgame.match;
+
+import "common.proto";
+
+service Match {
+  rpc SubscribeMatchEvents (MatchSubscription) returns (stream BoardState);
+}
+
+message MatchSubscription {
+  int32 match_id = 1;
+  int32 user_id = 2;
+  string session_token = 3;
+}
+
+message BoardState {
+  int32 match_id = 1;
+  int32 current_turn_user_id = 2;
+  int64 revision = 3;
+  repeated BoardPlayer players = 4;
+  repeated BoardColumn columns = 5;
+  riskgame.common.RulesVariant rules_variant = 6;
+  int32 turn_duration_seconds = 7;
+}
+
+message BoardPlayer {
+  int32 user_id = 1;
+  string nickname = 2;
+  riskgame.common.PlayerColor color = 3;
+  bool is_connected = 4;
+}
+
+message BoardColumn {
+  int32 column_number = 1;
+  int32 maximum_steps = 2;
+  map<int32, int32> steps_by_user_id = 3;
+}

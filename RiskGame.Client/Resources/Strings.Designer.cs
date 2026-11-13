@@ -286,5 +286,33 @@ namespace RiskGame.Resources
 
         public static string VerificationResend => ResourceManager.GetString("VerificationResend", _resourceCulture);
 
+        public static string MatchConnecting => ResourceManager.GetString("MatchConnecting", _resourceCulture);
+
+        public static string MatchSynchronized => ResourceManager.GetString("MatchSynchronized", _resourceCulture);
+
+        public static string MatchConnectionError => ResourceManager.GetString("MatchConnectionError", _resourceCulture);
+
+        public static string MatchUnavailable => ResourceManager.GetString("MatchUnavailable", _resourceCulture);
+
+        public static string MatchAccessDenied => ResourceManager.GetString("MatchAccessDenied", _resourceCulture);
+
+        public static string MatchCurrentTurnFormat => ResourceManager.GetString("MatchCurrentTurnFormat", _resourceCulture);
+
+        public static string MatchStandardRules => ResourceManager.GetString("MatchStandardRules", _resourceCulture);
+
+        public static string MatchFastRules => ResourceManager.GetString("MatchFastRules", _resourceCulture);
+
+        public static string MatchRulesFormat => ResourceManager.GetString("MatchRulesFormat", _resourceCulture);
+
+        public static string MatchCellFormat => ResourceManager.GetString("MatchCellFormat", _resourceCulture);
+
+        public static string MatchParticipantConnected => ResourceManager.GetString("MatchParticipantConnected", _resourceCulture);
+
+        public static string MatchParticipantDisconnected => ResourceManager.GetString("MatchParticipantDisconnected", _resourceCulture);
+
+        public static string MatchReconnect => ResourceManager.GetString("MatchReconnect", _resourceCulture);
+
+        public static string MatchBoardLabel => ResourceManager.GetString("MatchBoardLabel", _resourceCulture);
+
     }
 }

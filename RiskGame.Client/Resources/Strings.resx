@@ -155,4 +155,18 @@
   <data name="VerificationCodeLabel" xml:space="preserve"><value>Código de confirmación</value></data>
   <data name="VerificationConfirm" xml:space="preserve"><value>CONFIRMAR CORREO</value></data>
   <data name="VerificationResend" xml:space="preserve"><value>REENVIAR CÓDIGO</value></data>
+  <data name="MatchConnecting" xml:space="preserve"><value>Conectando con la partida…</value></data>
+  <data name="MatchSynchronized" xml:space="preserve"><value>Estado de la partida actualizado.</value></data>
+  <data name="MatchConnectionError" xml:space="preserve"><value>Se perdió la conexión con la partida. Pulsa Reconectar para volver a intentarlo.</value></data>
+  <data name="MatchUnavailable" xml:space="preserve"><value>La partida ya no está disponible. Vuelve al menú.</value></data>
+  <data name="MatchAccessDenied" xml:space="preserve"><value>No se pudo acceder a esta partida. Verifica tu sesión.</value></data>
+  <data name="MatchCurrentTurnFormat" xml:space="preserve"><value>Turno de: {0}</value></data>
+  <data name="MatchStandardRules" xml:space="preserve"><value>Estándar</value></data>
+  <data name="MatchFastRules" xml:space="preserve"><value>Rápida</value></data>
+  <data name="MatchRulesFormat" xml:space="preserve"><value>Modo {0} · Duración del turno: {1} s</value></data>
+  <data name="MatchCellFormat" xml:space="preserve"><value>Columna {0}, casilla {1}</value></data>
+  <data name="MatchParticipantConnected" xml:space="preserve"><value>En la partida</value></data>
+  <data name="MatchParticipantDisconnected" xml:space="preserve"><value>Sin conexión a la partida</value></data>
+  <data name="MatchReconnect" xml:space="preserve"><value>RECONECTAR</value></data>
+  <data name="MatchBoardLabel" xml:space="preserve"><value>Tablero de la partida</value></data>
 </root>

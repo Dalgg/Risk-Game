@@ -45,6 +45,7 @@ namespace RiskGame.Server
             app.MapGrpcService<ProfileGrpcService>();
             app.MapGrpcService<LobbyGrpcService>();
             app.MapGrpcService<ChatGrpcService>();
+            app.MapGrpcService<MatchGrpcService>();
 
             app.Run();
         }

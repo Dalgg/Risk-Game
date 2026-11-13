@@ -23,5 +23,12 @@ namespace RiskGame.Server.Services
         public PlayerColor Color { get; }
 
         public bool IsGuest { get; }
+
+        public bool IsConnected { get; private set; }
+
+        public void SetConnected(bool isConnected)
+        {
+            IsConnected = isConnected;
+        }
     }
 }

@@ -1,77 +1,86 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:res="using:RiskGame.Resources"
-        x:Class="RiskGame.Views.MatchWindow"
-        Title="{x:Static res:Strings.MatchTitleLabel}"
-        Width="1000"
-        Height="650"
-        Background="#181A25">
-
-    <Grid RowDefinitions="Auto, *, Auto" Margin="20">
-        <StackPanel Grid.Row="0"
-                    HorizontalAlignment="Center"
-                    Spacing="5"
-                    Margin="0,0,0,15">
-            <TextBlock Text="{x:Static res:Strings.MatchTitleLabel}"
-                       FontSize="32"
-                       FontWeight="Bold"
-                       Foreground="White"
-                       HorizontalAlignment="Center" />
-
-            <TextBlock x:Name="MatchIdTextBlock"
-                       FontSize="14"
-                       Foreground="#9EA1B2"
-                       HorizontalAlignment="Center"
-                       LetterSpacing="1" />
+        x:Class="RiskGame.Views.MatchWindow" Title="{x:Static res:Strings.MatchTitleLabel}"
+        Width="{StaticResource MatchWidth}" Height="{StaticResource MatchHeight}"
+        MinWidth="{StaticResource MatchWidth}" MinHeight="{StaticResource MatchHeight}"
+        Background="{StaticResource WindowBackground}" Loaded="OnWindowLoaded">
+    <Window.Resources>
+        <x:Double x:Key="MatchWidth">1000</x:Double>
+        <x:Double x:Key="MatchHeight">650</x:Double>
+        <x:Double x:Key="TitleFontSize">28</x:Double>
+        <x:Double x:Key="TurnFontSize">18</x:Double>
+        <x:Double x:Key="CaptionFontSize">14</x:Double>
+        <x:Double x:Key="HeaderSpacing">5</x:Double>
+        <x:Double x:Key="ColumnSpacing">8</x:Double>
+        <x:Double x:Key="ActionSpacing">15</x:Double>
+        <x:Double x:Key="ActionHeight">45</x:Double>
+        <Thickness x:Key="WindowMargin">20</Thickness>
+        <Thickness x:Key="SectionMargin">0,10</Thickness>
+        <Thickness x:Key="BoardMargin">0,0,10,0</Thickness>
+        <Thickness x:Key="PanelPadding">15</Thickness>
+        <Thickness x:Key="ActionPadding">20,10</Thickness>
+        <Thickness x:Key="PanelBorderThickness">2</Thickness>
+        <CornerRadius x:Key="PanelCornerRadius">8</CornerRadius>
+        <SolidColorBrush x:Key="WindowBackground">#181A25</SolidColorBrush>
+        <SolidColorBrush x:Key="PanelBorderBrush">#2A2F5B</SolidColorBrush>
+        <SolidColorBrush x:Key="CaptionBrush">#9EA1B2</SolidColorBrush>
+        <SolidColorBrush x:Key="TurnBrush">#D4A32D</SolidColorBrush>
+        <SolidColorBrush x:Key="LeaveBrush">#B02C3A</SolidColorBrush>
+    </Window.Resources>
+    <Window.Styles>
+        <Style Selector="TextBlock"><Setter Property="Foreground" Value="White"/></Style>
+        <Style Selector="Button">
+            <Setter Property="Height" Value="{StaticResource ActionHeight}"/>
+            <Setter Property="Padding" Value="{StaticResource ActionPadding}"/>
+            <Setter Property="CornerRadius" Value="{StaticResource PanelCornerRadius}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </Window.Styles>
+    <Grid RowDefinitions="Auto,*,Auto" Margin="{StaticResource WindowMargin}">
+        <StackPanel HorizontalAlignment="Center" Spacing="{StaticResource HeaderSpacing}">
+            <TextBlock Text="{x:Static res:Strings.MatchTitleLabel}" FontSize="{StaticResource TitleFontSize}"
+                       FontWeight="Bold" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="MatchIdTextBlock" FontSize="{StaticResource CaptionFontSize}"
+                       Foreground="{StaticResource CaptionBrush}" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="CurrentTurnTextBlock" FontSize="{StaticResource TurnFontSize}"
+                       Foreground="{StaticResource TurnBrush}" HorizontalAlignment="Center"/>
+            <TextBlock x:Name="MatchRulesTextBlock" FontSize="{StaticResource CaptionFontSize}"
+                       HorizontalAlignment="Center"/>
         </StackPanel>
-
-        <Grid Grid.Row="1" ColumnDefinitions="3*, *" Margin="0,10,0,20">
-            <Border Grid.Column="0"
-                    BorderBrush="#2A2F5B"
-                    BorderThickness="2"
-                    CornerRadius="8"
-                    Margin="0,0,10,0"
-                    Padding="15">
-                <TextBlock Text="{x:Static res:Strings.MatchBoardPlaceholderLabel}"
-                           Foreground="#9EA1B2"
-                           FontSize="18"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center" />
+        <Grid Grid.Row="1" ColumnDefinitions="3*,*" Margin="{StaticResource SectionMargin}">
+            <Border BorderBrush="{StaticResource PanelBorderBrush}"
+                    BorderThickness="{StaticResource PanelBorderThickness}"
+                    CornerRadius="{StaticResource PanelCornerRadius}" Margin="{StaticResource BoardMargin}"
+                    Padding="{StaticResource PanelPadding}">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" TabIndex="2"
+                              AutomationProperties.Name="{x:Static res:Strings.MatchBoardLabel}">
+                    <StackPanel x:Name="MatchBoardStackPanel" Orientation="Horizontal"
+                                Spacing="{StaticResource ColumnSpacing}" VerticalAlignment="Bottom"
+                                HorizontalAlignment="Center"/>
+                </ScrollViewer>
             </Border>
-
-            <Border Grid.Column="1"
-                    BorderBrush="#2A2F5B"
-                    BorderThickness="2"
-                    CornerRadius="8"
-                    Margin="10,0,0,0"
-                    Padding="15">
-                <Grid RowDefinitions="Auto, *">
-                    <TextBlock Grid.Row="0"
-                               Text="{x:Static res:Strings.MatchPlayersHeaderLabel}"
-                               Foreground="White"
-                               FontSize="16"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,15" />
-
-                    <StackPanel x:Name="MatchPlayersStackPanel" Grid.Row="1" Spacing="8" />
+            <Border Grid.Column="1" BorderBrush="{StaticResource PanelBorderBrush}"
+                    BorderThickness="{StaticResource PanelBorderThickness}"
+                    CornerRadius="{StaticResource PanelCornerRadius}" Padding="{StaticResource PanelPadding}">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock Text="{x:Static res:Strings.MatchPlayersHeaderLabel}"
+                               Margin="{StaticResource SectionMargin}" HorizontalAlignment="Center"/>
+                    <ScrollViewer Grid.Row="1" TabIndex="3">
+                        <StackPanel x:Name="MatchPlayersStackPanel" Spacing="{StaticResource ColumnSpacing}"/>
+                    </ScrollViewer>
                 </Grid>
             </Border>
         </Grid>
-
-        <Button Grid.Row="2"
-                Content="{x:Static res:Strings.MatchLeaveButton}"
-                Background="#B02C3A"
-                Foreground="White"
-                FontSize="16"
-                FontWeight="Bold"
-                Width="240"
-                Height="45"
-                CornerRadius="6"
-                HorizontalAlignment="Left"
-                HorizontalContentAlignment="Center"
-                VerticalContentAlignment="Center"
-                TabIndex="0"
-                IsCancel="True"
-                Click="LeaveMatchClick" />
+        <StackPanel Grid.Row="2" Spacing="{StaticResource HeaderSpacing}">
+            <TextBlock x:Name="MatchStatusTextBlock" Text="{x:Static res:Strings.MatchConnecting}"
+                       Foreground="{StaticResource CaptionBrush}" TextWrapping="Wrap"/>
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource ActionSpacing}">
+                <Button x:Name="ReconnectButton" Content="{x:Static res:Strings.MatchReconnect}"
+                        Click="ReconnectClick" HotKey="Ctrl+R" TabIndex="0"/>
+                <Button Content="{x:Static res:Strings.MatchLeaveButton}" Click="LeaveMatchClick"
+                        Background="{StaticResource LeaveBrush}" IsCancel="True" TabIndex="1"/>
+            </StackPanel>
+        </StackPanel>
     </Grid>
 </Window>

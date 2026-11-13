@@ -152,23 +152,21 @@ namespace RiskGame.Views
 
         private void OpenMatchWindow(int startedMatchId)
         {
-            if (hasEnteredMatch)
+            if (!hasEnteredMatch)
             {
-                return;
-            }
+                hasEnteredMatch = true;
+                hasLeftLobby = true;
+                lobbyViewModel.StopSubscription();
+                lobbyViewModel.StopChatSubscription();
 
-            hasEnteredMatch = true;
-            hasLeftLobby = true;
-            lobbyViewModel.StopSubscription();
-            lobbyViewModel.StopChatSubscription();
-
-            if (Application.Current != null &&
-                Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
-            {
-                MatchWindow matchWindow = new MatchWindow(startedMatchId, currentLobbyPlayers);
-                desktopLifetime.MainWindow = matchWindow;
-                matchWindow.Show();
-                Close();
+                if (Application.Current != null &&
+                    Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+                {
+                    MatchWindow matchWindow = new MatchWindow(startedMatchId);
+                    desktopLifetime.MainWindow = matchWindow;
+                    matchWindow.Show();
+                    Close();
+                }
             }
         }
 
