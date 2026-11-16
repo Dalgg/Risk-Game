@@ -77,6 +77,9 @@
             </Border>
         </Grid>
         <StackPanel Grid.Row="2" Spacing="{StaticResource HeaderSpacing}">
+            <TextBlock x:Name="TemporaryMarkersTextBlock" Foreground="{StaticResource TurnBrush}"/>
+            <TextBlock Text="{x:Static res:Strings.MatchMarkerLegend}"
+                       Foreground="{StaticResource CaptionBrush}"/>
             <TextBlock x:Name="DiceValuesTextBlock" Text="{x:Static res:Strings.MatchNoRoll}"
                        FontSize="{StaticResource TurnFontSize}"/>
             <Button x:Name="RollDiceButton" Content="{x:Static res:Strings.MatchRollDice}"
@@ -90,6 +93,13 @@
                 <Button Grid.Column="2" x:Name="ThirdPairButton" Tag="{StaticResource ThirdPairIndex}"
                         Click="ChoosePairClick" HotKey="3" IsVisible="False" HorizontalAlignment="Stretch"/>
             </Grid>
+            <StackPanel x:Name="ColumnChoicePanel" IsVisible="False" Spacing="{StaticResource HeaderSpacing}">
+                <TextBlock Text="{x:Static res:Strings.MatchChooseColumnPrompt}" TextWrapping="Wrap"/>
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource ActionSpacing}">
+                    <Button x:Name="FirstColumnChoiceButton" Click="ChooseColumnClick"/>
+                    <Button x:Name="SecondColumnChoiceButton" Click="ChooseColumnClick"/>
+                </StackPanel>
+            </StackPanel>
             <TextBlock x:Name="PairSelectionTextBlock" TextWrapping="Wrap"/>
             <TextBlock x:Name="MatchStatusTextBlock" Text="{x:Static res:Strings.MatchConnecting}"
                        Foreground="{StaticResource CaptionBrush}" TextWrapping="Wrap"/>

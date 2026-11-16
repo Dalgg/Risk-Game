@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -23,7 +24,7 @@ namespace RiskGame.Views
         private const int MinimumValidMatchId = 1;
         private const int InitialStep = 0;
         private const int FirstBoardStep = 1;
-        private const int CellWidth = 42;
+        private const int CellWidth = 48;
         private const int CellHeight = 22;
         private const int MarkerSize = 8;
         private const int MarkerSpacing = 2;
@@ -55,6 +56,7 @@ namespace RiskGame.Views
         private bool hasLiveStream;
         private bool isActionPending;
         private BoardState? currentBoardState;
+        private PairChoice? pendingColumnChoice;
 
         public MatchWindow()
         {
@@ -129,6 +131,8 @@ namespace RiskGame.Views
 
         private void RenderDice(BoardState boardState)
         {
+            TemporaryMarkersTextBlock.Text = string.Format(Strings.MatchTemporaryMarkersFormat,
+                boardState.TemporaryStepsByColumn.Count, boardState.MaximumTemporaryMarkers);
             DiceValuesTextBlock.Text = Strings.MatchNoRoll;
             PairSelectionTextBlock.Text = Strings.MatchRollPrompt;
             FirstPairButton.IsVisible = false;
@@ -143,6 +147,10 @@ namespace RiskGame.Views
                 {
                     PairSelectionTextBlock.Text = string.Format(Strings.MatchSelectedPairFormat,
                         boardState.SelectedPairIndex);
+                }
+                else if (!boardState.PairOptions.Any(pairOption => pairOption.IsPlayable))
+                {
+                    PairSelectionTextBlock.Text = Strings.MatchNoLegalAdvance;
                 }
             }
             foreach (PairOption pairOption in boardState.PairOptions)
@@ -159,6 +167,40 @@ namespace RiskGame.Views
                 if (pairOption.PairIndex == boardState.SelectedPairIndex)
                 {
                     pairButton.Background = ActiveTurnBrush;
+                }
+            }
+            RefreshColumnChoice(boardState);
+        }
+
+        private void RefreshColumnChoice(BoardState boardState)
+        {
+            ColumnChoicePanel.IsVisible = false;
+            if (pendingColumnChoice != null)
+            {
+                PairOption? selectedOption = boardState.PairOptions
+                    .FirstOrDefault(option => option.PairIndex == pendingColumnChoice.PairIndex);
+                if (boardState.AwaitingPairChoice && pendingColumnChoice.RollId == boardState.RollId
+                    && selectedOption != null && selectedOption.RequiresColumnChoice)
+                {
+                    ColumnChoicePanel.IsVisible = true;
+                    FirstColumnChoiceButton.Content = string.Format(Strings.MatchAdvanceColumnFormat,
+                        selectedOption.FirstSum);
+                    SecondColumnChoiceButton.Content = string.Format(Strings.MatchAdvanceColumnFormat,
+                        selectedOption.SecondSum);
+                    FirstColumnChoiceButton.Tag = new PairChoice
+                    {
+                        RollId = boardState.RollId, PairIndex = selectedOption.PairIndex,
+                        PreferredColumn = selectedOption.FirstSum
+                    };
+                    SecondColumnChoiceButton.Tag = new PairChoice
+                    {
+                        RollId = boardState.RollId, PairIndex = selectedOption.PairIndex,
+                        PreferredColumn = selectedOption.SecondSum
+                    };
+                }
+                else
+                {
+                    pendingColumnChoice = null;
                 }
             }
         }
@@ -184,13 +226,19 @@ namespace RiskGame.Views
             FirstPairButton.IsEnabled = false;
             SecondPairButton.IsEnabled = false;
             ThirdPairButton.IsEnabled = false;
+            FirstColumnChoiceButton.IsEnabled = false;
+            SecondColumnChoiceButton.IsEnabled = false;
             if (currentBoardState != null && hasLiveStream && !hasClosed && !isActionPending
                 && currentBoardState.CurrentTurnUserId == SessionService.GetOrCreateCurrentUser().IdUser)
             {
                 RollDiceButton.IsEnabled = !currentBoardState.AwaitingPairChoice;
-                FirstPairButton.IsEnabled = currentBoardState.AwaitingPairChoice;
-                SecondPairButton.IsEnabled = currentBoardState.AwaitingPairChoice;
-                ThirdPairButton.IsEnabled = currentBoardState.AwaitingPairChoice;
+                foreach (PairOption pairOption in currentBoardState.PairOptions)
+                {
+                    GetPairButton(pairOption.PairIndex).IsEnabled =
+                        currentBoardState.AwaitingPairChoice && pairOption.IsPlayable;
+                }
+                FirstColumnChoiceButton.IsEnabled = ColumnChoicePanel.IsVisible;
+                SecondColumnChoiceButton.IsEnabled = ColumnChoicePanel.IsVisible;
             }
         }
 
@@ -210,11 +258,37 @@ namespace RiskGame.Views
             if (sender is Button pairButton && pairButton.IsEnabled && pairButton.Tag is int pairIndex
                 && currentBoardState != null)
             {
-                long rollId = currentBoardState.RollId;
-                isActionPending = true;
+                PairOption selectedOption = currentBoardState.PairOptions
+                    .First(option => option.PairIndex == pairIndex);
+                PairChoice choice = new PairChoice { RollId = currentBoardState.RollId, PairIndex = pairIndex };
+                if (selectedOption.RequiresColumnChoice)
+                {
+                    pendingColumnChoice = choice;
+                    RefreshColumnChoice(currentBoardState);
+                }
+                else
+                {
+                    BeginPairChoice(choice);
+                }
                 UpdateActionButtons();
-                Task.Run(() => SubmitPairChoice(rollId, pairIndex));
             }
+        }
+
+        private void ChooseColumnClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            if (sender is Button choiceButton && choiceButton.IsEnabled && choiceButton.Tag is PairChoice choice)
+            {
+                BeginPairChoice(choice);
+            }
+        }
+
+        private void BeginPairChoice(PairChoice choice)
+        {
+            isActionPending = true;
+            pendingColumnChoice = null;
+            ColumnChoicePanel.IsVisible = false;
+            UpdateActionButtons();
+            Task.Run(() => SubmitPairChoice(choice));
         }
 
         private void SubmitRoll(long expectedRollId)
@@ -231,11 +305,11 @@ namespace RiskGame.Views
             }
         }
 
-        private void SubmitPairChoice(long rollId, int pairIndex)
+        private void SubmitPairChoice(PairChoice choice)
         {
             try
             {
-                BoardState boardState = matchViewModel.ChooseDicePair(matchIdentifier, rollId, pairIndex);
+                BoardState boardState = matchViewModel.ChooseDicePair(matchIdentifier, choice);
                 Dispatcher.UIThread.Post(() => CompleteAction(boardState));
             }
             catch (DataOperationException dataOperationException)
@@ -335,6 +409,18 @@ namespace RiskGame.Views
                         Background = ResolvePlayerBrush(player.Color)
                     });
                 }
+            }
+            if (boardState.TemporaryStepsByColumn.ContainsKey(column.ColumnNumber)
+                && boardState.TemporaryStepsByColumn[column.ColumnNumber] == step)
+            {
+                Border temporaryMarker = new Border
+                {
+                    Width = MarkerSize, Height = MarkerSize, Background = Brushes.White,
+                    BorderBrush = ActiveTurnBrush, BorderThickness = new Thickness(CellBorderThickness)
+                };
+                ToolTip.SetTip(temporaryMarker,
+                    string.Format(Strings.MatchTemporaryMarkerFormat, column.ColumnNumber, step));
+                markers.Children.Add(temporaryMarker);
             }
             return markers;
         }

@@ -37,14 +37,12 @@ namespace RiskGame.ViewModels
             }
         }
 
-        public BoardState ChooseDicePair(int matchId, long rollId, int pairIndex)
+        public BoardState ChooseDicePair(int matchId, PairChoice request)
         {
             SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
-            PairChoice request = new PairChoice
-            {
-                MatchId = matchId, UserId = currentSessionUser.IdUser,
-                SessionToken = currentSessionUser.SessionToken, RollId = rollId, PairIndex = pairIndex
-            };
+            request.MatchId = matchId;
+            request.UserId = currentSessionUser.IdUser;
+            request.SessionToken = currentSessionUser.SessionToken;
             try
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();

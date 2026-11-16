@@ -17,6 +17,7 @@ namespace RiskGame.Server.Services
         private const int ColumnHeightDifference = 2;
         private const long InitialRevision = 1;
         private const int NoSelectedPair = 0;
+        private const int NoPreferredColumn = 0;
 
         public ActiveMatch(int matchId, LobbyDetails lobbyDetails)
         {
@@ -40,6 +41,7 @@ namespace RiskGame.Server.Services
                 columns.Add(new MatchColumn(columnNumber, maximumSteps, Participants));
             }
             Columns = columns.AsReadOnly();
+            TurnProgress = new MatchTurnProgress(CurrentTurnUserId, Columns);
         }
 
         public int MatchId { get; }
@@ -55,6 +57,8 @@ namespace RiskGame.Server.Services
         public IReadOnlyList<MatchParticipant> Participants { get; }
 
         public IReadOnlyList<MatchColumn> Columns { get; }
+
+        public MatchTurnProgress TurnProgress { get; }
 
         public long Revision { get; private set; } = InitialRevision;
 
@@ -84,16 +88,19 @@ namespace RiskGame.Server.Services
             Revision++;
         }
 
-        public void ChoosePair(long rollId, int pairIndex)
+        public void ChoosePair(long rollId, int pairIndex, int preferredColumn = NoPreferredColumn)
         {
             if (!AwaitingPairChoice || rollId != RollId)
             {
                 throw new MatchActionException("This roll no longer accepts a pair choice.");
             }
-            if (!PairOptions.Any(combination => combination.PairIndex == pairIndex))
+            DicePairCombination? selectedCombination = PairOptions
+                .FirstOrDefault(combination => combination.PairIndex == pairIndex);
+            if (selectedCombination == null)
             {
                 throw new MatchActionException("The selected pair is not part of the current roll.");
             }
+            TurnProgress.ApplyCombination(selectedCombination, preferredColumn);
             SelectedPairIndex = pairIndex;
             AwaitingPairChoice = false;
             Revision++;

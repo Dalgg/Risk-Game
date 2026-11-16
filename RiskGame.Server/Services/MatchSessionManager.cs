@@ -151,7 +151,7 @@ namespace RiskGame.Server.Services
             {
                 ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
                 ValidateTurn(activeMatch, request.UserId);
-                activeMatch.ChoosePair(request.RollId, request.PairIndex);
+                activeMatch.ChoosePair(request.RollId, request.PairIndex, request.PreferredColumn);
                 boardState = BuildBoardState(activeMatch);
             }
             BroadcastBoardState(request.MatchId);
@@ -192,8 +192,13 @@ namespace RiskGame.Server.Services
                 Revision = activeMatch.Revision,
                 RollId = activeMatch.RollId,
                 AwaitingPairChoice = activeMatch.AwaitingPairChoice,
-                SelectedPairIndex = activeMatch.SelectedPairIndex
+                SelectedPairIndex = activeMatch.SelectedPairIndex,
+                MaximumTemporaryMarkers = activeMatch.TurnProgress.MaximumTemporaryMarkers
             };
+            foreach (KeyValuePair<int, int> progress in activeMatch.TurnProgress.StepsByColumn)
+            {
+                boardState.TemporaryStepsByColumn.Add(progress.Key, progress.Value);
+            }
             boardState.Dice.AddRange(activeMatch.Dice);
             foreach (DicePairCombination combination in activeMatch.PairOptions)
             {
@@ -201,7 +206,9 @@ namespace RiskGame.Server.Services
                 {
                     PairIndex = combination.PairIndex,
                     FirstSum = combination.FirstSum,
-                    SecondSum = combination.SecondSum
+                    SecondSum = combination.SecondSum,
+                    IsPlayable = activeMatch.TurnProgress.IsPlayable(combination),
+                    RequiresColumnChoice = activeMatch.TurnProgress.RequiresColumnChoice(combination)
                 };
                 pairOption.FirstPairDice.AddRange(combination.FirstPairDice);
                 pairOption.SecondPairDice.AddRange(combination.SecondPairDice);

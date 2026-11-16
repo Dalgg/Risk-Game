@@ -29,6 +29,8 @@ message BoardState {
   int64 roll_id = 10;
   bool awaiting_pair_choice = 11;
   int32 selected_pair_index = 12;
+  map<int32, int32> temporary_steps_by_column = 13;
+  int32 maximum_temporary_markers = 14;
 }
 
 message RollDiceRequest {
@@ -44,6 +46,7 @@ message PairChoice {
   string session_token = 3;
   int64 roll_id = 4;
   int32 pair_index = 5;
+  int32 preferred_column = 6;
 }
 
 message PairOption {
@@ -52,6 +55,8 @@ message PairOption {
   repeated int32 second_pair_dice = 3;
   int32 first_sum = 4;
   int32 second_sum = 5;
+  bool is_playable = 6;
+  bool requires_column_choice = 7;
 }
 
 message BoardPlayer {

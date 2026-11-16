@@ -334,5 +334,17 @@ namespace RiskGame.Resources
 
         public static string MatchActionRejected => ResourceManager.GetString("MatchActionRejected", _resourceCulture);
 
+        public static string MatchTemporaryMarkersFormat => ResourceManager.GetString("MatchTemporaryMarkersFormat", _resourceCulture);
+
+        public static string MatchMarkerLegend => ResourceManager.GetString("MatchMarkerLegend", _resourceCulture);
+
+        public static string MatchChooseColumnPrompt => ResourceManager.GetString("MatchChooseColumnPrompt", _resourceCulture);
+
+        public static string MatchAdvanceColumnFormat => ResourceManager.GetString("MatchAdvanceColumnFormat", _resourceCulture);
+
+        public static string MatchNoLegalAdvance => ResourceManager.GetString("MatchNoLegalAdvance", _resourceCulture);
+
+        public static string MatchTemporaryMarkerFormat => ResourceManager.GetString("MatchTemporaryMarkerFormat", _resourceCulture);
+
     }
 }

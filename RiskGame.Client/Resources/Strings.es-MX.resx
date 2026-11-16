@@ -70,4 +70,10 @@
   <data name="MatchChoosePairPrompt" xml:space="preserve"><value>El jugador del turno debe elegir una agrupación.</value></data>
   <data name="MatchSelectedPairFormat" xml:space="preserve"><value>Agrupación {0} elegida.</value></data>
   <data name="MatchActionRejected" xml:space="preserve"><value>No se pudo realizar la acción: verifica el turno y la tirada actual.</value></data>
+  <data name="MatchTemporaryMarkersFormat" xml:space="preserve"><value>Marcadores temporales: {0}/{1}</value></data>
+  <data name="MatchMarkerLegend" xml:space="preserve"><value>■ Temporal · ● Permanente</value></data>
+  <data name="MatchChooseColumnPrompt" xml:space="preserve"><value>Queda un marcador libre. Elige qué columna quieres abrir.</value></data>
+  <data name="MatchAdvanceColumnFormat" xml:space="preserve"><value>AVANZAR COLUMNA {0}</value></data>
+  <data name="MatchNoLegalAdvance" xml:space="preserve"><value>Esta tirada no permite avanzar ningún marcador.</value></data>
+  <data name="MatchTemporaryMarkerFormat" xml:space="preserve"><value>Marcador temporal: columna {0}, casilla {1}</value></data>
 </root>
