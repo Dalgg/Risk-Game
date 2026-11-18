@@ -18,6 +18,7 @@ namespace RiskGame
         public override void OnFrameworkInitializationCompleted()
         {
             RiskGame.Resources.Strings.Culture = new CultureInfo("en-US");
+            GamepadService.Initialize();
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
@@ -33,6 +34,7 @@ namespace RiskGame
 
         private void OnApplicationExit(object? sender, ControlledApplicationLifetimeExitEventArgs exitEventArgs)
         {
+            GamepadService.Shutdown();
             SessionService.Logout();
         }
     }

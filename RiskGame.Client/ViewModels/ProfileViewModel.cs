@@ -74,7 +74,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "Communication failed while retrieving the player profile.");
                 throw new DataOperationException(Strings.ProfileLoadError, rpcException);
             }
         }

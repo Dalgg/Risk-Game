@@ -3,7 +3,6 @@ using System.Data.Common;
 using System.Linq;
 using RiskGame.Exceptions;
 using RiskGame.Models;
-using RiskGame.Services;
 
 namespace RiskGame.Server.Services
 {
@@ -61,7 +60,6 @@ namespace RiskGame.Server.Services
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Connection error (DbException) while loading leaderboard on server.");
                 throw new DataOperationException("Could not retrieve global scores from the database.", databaseException);
             }
         }

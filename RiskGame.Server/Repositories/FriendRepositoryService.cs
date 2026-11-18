@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using RiskGame.Exceptions;
 using RiskGame.Models;
-using RiskGame.Services;
 using RiskGame.Contracts.Friend;
 
 namespace RiskGame.Server.Services
@@ -35,7 +34,6 @@ namespace RiskGame.Server.Services
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Could not query pending friendships for user {0}.", userId);
                 throw new DataOperationException("Could not query pending friendships.", databaseException);
             }
         }
@@ -65,7 +63,6 @@ namespace RiskGame.Server.Services
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Could not respond to friendship request {0}.", requestId);
                 throw new DataOperationException("Could not respond to the friendship request.", databaseException);
             }
         }
@@ -86,12 +83,10 @@ namespace RiskGame.Server.Services
             }
             catch (DbUpdateException databaseUpdateException)
             {
-                JsonLogger.Error(databaseUpdateException, "Could not persist a friend request for user {0}.", userId);
                 throw new DataOperationException("Could not persist the friend request.", databaseUpdateException);
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Could not access friendships for user {0}.", userId);
                 throw new DataOperationException("Could not access friendships.", databaseException);
             }
         }

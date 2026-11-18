@@ -48,12 +48,10 @@ namespace RiskGame.Server.Services
             }
             catch (DbUpdateException databaseUpdateException)
             {
-                JsonLogger.Error(databaseUpdateException, "Persistence error (DbUpdateException) during login for user {0}.", username);
                 throw new DataOperationException("Database error occurred while updating user credentials.", databaseUpdateException);
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Connection error (DbException) during login for user {0}.", username);
                 throw new DataOperationException("Database connection error occurred during login.", databaseException);
             }
         }
@@ -102,7 +100,6 @@ namespace RiskGame.Server.Services
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Connection error (DbException) while registering user {0}.", normalizedUsername);
                 throw new DataOperationException("Could not connect to the database while registering the account.", databaseException);
             }
         }
@@ -126,12 +123,10 @@ namespace RiskGame.Server.Services
             }
             catch (DbUpdateException databaseUpdateException)
             {
-                JsonLogger.Error(databaseUpdateException, "Could not persist the verified account.");
                 throw new DataOperationException("Could not persist the verified account.", databaseUpdateException);
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Could not connect while saving the verified account.");
                 throw new DataOperationException("Could not connect to save the verified account.", databaseException);
             }
         }

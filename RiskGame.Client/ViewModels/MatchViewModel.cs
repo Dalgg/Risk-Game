@@ -32,7 +32,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "Could not roll dice for the current match.");
                 throw new DataOperationException(GetActionError(rpcException), rpcException);
             }
         }
@@ -51,7 +50,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "Could not choose a dice pair for the current match.");
                 throw new DataOperationException(GetActionError(rpcException), rpcException);
             }
         }
@@ -108,17 +106,19 @@ namespace RiskGame.ViewModels
                     matchCallback.MatchStreamStopped(Strings.MatchConnectionError);
                 }
             }
+            catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.Cancelled
+                || cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
             catch (RpcException rpcException)
             {
                 JsonLogger.Error(rpcException, "The match stream stopped with a gRPC error.");
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    matchCallback.MatchStreamStopped(GetStreamError(rpcException));
-                }
-            }
-            catch (OperationCanceledException canceledException)
-            {
-                JsonLogger.Error(canceledException, "The match subscription was cancelled.");
+                matchCallback.MatchStreamStopped(GetStreamError(rpcException));
             }
         }
 

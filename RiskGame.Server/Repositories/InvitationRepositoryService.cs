@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using RiskGame.Contracts.Invitation;
 using RiskGame.Exceptions;
 using RiskGame.Models;
-using RiskGame.Services;
 
 namespace RiskGame.Server.Services
 {
@@ -37,7 +36,6 @@ namespace RiskGame.Server.Services
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Could not load lobby invitations for user {0}.", userId);
                 throw new DataOperationException("Could not load lobby invitations.", databaseException);
             }
         }
@@ -59,7 +57,6 @@ namespace RiskGame.Server.Services
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Could not retrieve invitation {0}.", invitationId);
                 throw new DataOperationException("Could not retrieve the invitation.", databaseException);
             }
         }
@@ -92,7 +89,6 @@ namespace RiskGame.Server.Services
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Could not resolve invitation {0}.", invitationId);
                 throw new DataOperationException("Could not resolve the invitation.", databaseException);
             }
         }

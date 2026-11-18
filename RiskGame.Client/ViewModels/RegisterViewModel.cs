@@ -71,7 +71,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while registering user {0}.", normalizedUsername);
                 string errorMessage = Strings.VerificationEmailError;
                 if (rpcException.StatusCode == StatusCode.FailedPrecondition)
                 {
@@ -101,7 +100,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "Could not confirm the registration code.");
                 throw new DataOperationException(Strings.VerificationCodeError, rpcException);
             }
         }
@@ -118,7 +116,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "Could not resend the registration verification code.");
                 throw new DataOperationException(Strings.VerificationResendError, rpcException);
             }
         }

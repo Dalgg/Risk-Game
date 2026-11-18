@@ -48,7 +48,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) during login for user {0}.", username);
                 throw new DataOperationException(Strings.LoginErrorDatabase, rpcException);
             }
         }

@@ -29,6 +29,7 @@ namespace RiskGame.Server.Services
             }
             catch (DataOperationException dataOperationException)
             {
+                JsonLogger.Error(dataOperationException, "Could not create the requested lobby.");
                 throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
             }
         }
@@ -43,14 +44,17 @@ namespace RiskGame.Server.Services
             }
             catch (LobbyNotFoundException lobbyNotFoundException)
             {
+                JsonLogger.Error(lobbyNotFoundException, "The requested lobby could not be found.");
                 throw new RpcException(new Status(StatusCode.NotFound, lobbyNotFoundException.Message));
             }
             catch (LobbyFullException lobbyFullException)
             {
+                JsonLogger.Error(lobbyFullException, "The requested lobby is full.");
                 throw new RpcException(new Status(StatusCode.ResourceExhausted, lobbyFullException.Message));
             }
             catch (DataOperationException dataOperationException)
             {
+                JsonLogger.Error(dataOperationException, "Could not join the requested lobby.");
                 throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
             }
         }
@@ -74,14 +78,17 @@ namespace RiskGame.Server.Services
             }
             catch (LobbyNotFoundException lobbyNotFoundException)
             {
+                JsonLogger.Error(lobbyNotFoundException, "Could not start the match because the lobby was not found.");
                 throw new RpcException(new Status(StatusCode.NotFound, lobbyNotFoundException.Message));
             }
             catch (InvalidOperationException invalidOperationException)
             {
+                JsonLogger.Error(invalidOperationException, "Could not start the match because preconditions failed.");
                 throw new RpcException(new Status(StatusCode.FailedPrecondition, invalidOperationException.Message));
             }
             catch (DataOperationException dataOperationException)
             {
+                JsonLogger.Error(dataOperationException, "Could not start the match due to a persistence failure.");
                 throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
             }
         }
@@ -95,6 +102,7 @@ namespace RiskGame.Server.Services
             }
             catch (DataOperationException dataOperationException)
             {
+                JsonLogger.Error(dataOperationException, "Could not retrieve the player's friends list.");
                 throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
             }
         }
@@ -108,14 +116,17 @@ namespace RiskGame.Server.Services
             }
             catch (LobbyNotFoundException lobbyNotFoundException)
             {
+                JsonLogger.Error(lobbyNotFoundException, "Could not invite friend because the lobby was not found.");
                 throw new RpcException(new Status(StatusCode.NotFound, lobbyNotFoundException.Message));
             }
             catch (ArgumentException argumentException)
             {
+                JsonLogger.Error(argumentException, "Could not invite friend due to invalid parameters.");
                 throw new RpcException(new Status(StatusCode.InvalidArgument, argumentException.Message));
             }
             catch (DataOperationException dataOperationException)
             {
+                JsonLogger.Error(dataOperationException, "Could not persist the lobby invitation.");
                 throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
             }
         }
@@ -145,6 +156,7 @@ namespace RiskGame.Server.Services
             }
             catch (LobbyNotFoundException lobbyNotFoundException)
             {
+                JsonLogger.Error(lobbyNotFoundException, "Could not subscribe to lobby events because the lobby was not found.");
                 throw new RpcException(new Status(StatusCode.NotFound, lobbyNotFoundException.Message));
             }
         }

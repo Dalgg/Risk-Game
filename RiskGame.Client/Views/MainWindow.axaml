@@ -16,18 +16,18 @@
         <CornerRadius x:Key="InboxButtonCornerRadius">8</CornerRadius>
     </Window.Resources>
     <Grid>
-        <Button Content="{x:Static res:Strings.InboxTitle}" Click="OnInboxClick"
+        <Button x:Name="InboxButton" Content="{x:Static res:Strings.InboxTitle}" Click="OnInboxClick"
                 HorizontalAlignment="Right" VerticalAlignment="Top"
                 Margin="{StaticResource InboxButtonMargin}" Padding="{StaticResource InboxButtonPadding}"
                 CornerRadius="{StaticResource InboxButtonCornerRadius}"
                 Background="#333333" Foreground="White"/>
-        <Button Content="{x:Static res:Strings.LoginTitleLabel}" 
+        <Button x:Name="LoginButton" Content="{x:Static res:Strings.LoginTitleLabel}" 
                 IsVisible="{Binding IsGuest}"
                 HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20"
                 Background="#333333" Foreground="White" CornerRadius="8" Padding="15,10" FontSize="16"
                 Click="OnLoginClick"/>
 
-        <Button IsVisible="{Binding IsLoggedIn}"
+        <Button x:Name="ProfileButton" IsVisible="{Binding IsLoggedIn}"
                 HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20"
                 Background="#333333" Foreground="White" CornerRadius="8" Padding="10"
                 Command="{Binding OpenProfileCommand}">
@@ -45,16 +45,16 @@
         </StackPanel>
 
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="25" Margin="0,60,0,0">
-            <Button Content="{x:Static res:Strings.MainMenuRoomsButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
+            <Button x:Name="RoomsButton" Content="{x:Static res:Strings.MainMenuRoomsButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center" Background="#333333" Foreground="White" CornerRadius="8"
                     FontSize="18" Click="OnRoomsClick"/>
 
-            <Button Content="{x:Static res:Strings.MainMenuExitButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
+            <Button x:Name="ExitButton" Content="{x:Static res:Strings.MainMenuExitButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
                 VerticalContentAlignment="Center" Background="#333333" Foreground="White" CornerRadius="8"
                     FontSize="18" Click="OnExitClick"/>
         </StackPanel>
 
-        <Button HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,60,0,0" Background="Transparent"
+        <Button x:Name="LeaderboardButton" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,60,0,0" Background="Transparent"
             BorderThickness="0" Padding="0" Click="OnLeaderboardClick">
             <StackPanel Spacing="10">
                 <Border Width="80" Height="80" Background="White" CornerRadius="4">
@@ -66,7 +66,7 @@
 
         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,60,60,0" Spacing="40">
 
-            <Button Background="Transparent" BorderThickness="0" Padding="0" Click="OnFriendsClick">
+            <Button x:Name="FriendsButton" Background="Transparent" BorderThickness="0" Padding="0" Click="OnFriendsClick">
                 <StackPanel Spacing="10">
                     <Border Width="80" Height="80" Background="White" CornerRadius="4">
                         <Image Source="/Assets/friends.png" Stretch="Uniform" Margin="10"/>
@@ -75,7 +75,7 @@
                 </StackPanel>
             </Button>
 
-            <Button Background="Transparent" BorderThickness="0" Padding="0" Click="OnSettingsClick">
+            <Button x:Name="SettingsButton" Background="Transparent" BorderThickness="0" Padding="0" Click="OnSettingsClick">
                 <StackPanel Spacing="10">
                     <Border Width="80" Height="80" Background="White" CornerRadius="4">
                         <Image Source="/Assets/configuration.png" Stretch="Uniform" Margin="10"/>

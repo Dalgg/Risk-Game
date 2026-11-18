@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -42,6 +43,8 @@ namespace RiskGame.Views
         private const int SecondPairIndex = 2;
         private const int ThirdPairIndex = 3;
         private const int NoDice = 0;
+        private const int PreviousFocusStep = -1;
+        private const int NextFocusStep = 1;
         private static readonly IBrush CellBackground = new SolidColorBrush(Color.Parse("#25293A"));
         private static readonly IBrush CellBorderBrush = new SolidColorBrush(Color.Parse("#42485B"));
         private static readonly IBrush ActiveTurnBrush = new SolidColorBrush(Color.Parse("#D4A32D"));
@@ -57,6 +60,7 @@ namespace RiskGame.Views
         private bool isActionPending;
         private BoardState? currentBoardState;
         private PairChoice? pendingColumnChoice;
+        private int focusedActionIndex;
 
         public MatchWindow()
         {
@@ -87,14 +91,163 @@ namespace RiskGame.Views
         protected override void OnClosed(EventArgs eventArgs)
         {
             hasClosed = true;
+            GamepadService.ActionTriggered -= OnGamepadAction;
             matchViewModel.StopSubscription();
             base.OnClosed(eventArgs);
         }
 
         private void OnWindowLoaded(object? sender, RoutedEventArgs routedEventArgs)
         {
+            GamepadService.ActionTriggered += OnGamepadAction;
             ReconnectButton.Focus();
             StartSubscription();
+        }
+
+        private void OnGamepadAction(object? sender, GamepadActionEventArgs eventArgs)
+        {
+            Dispatcher.UIThread.Post(() => HandleGamepadAction(eventArgs.Action));
+        }
+
+        private void HandleGamepadAction(GamepadAction action)
+        {
+            if (hasClosed)
+            {
+                return;
+            }
+
+            switch (action)
+            {
+                case GamepadAction.NavigateUp:
+                case GamepadAction.NavigateLeft:
+                    MoveActionFocus(PreviousFocusStep);
+                    break;
+                case GamepadAction.NavigateDown:
+                case GamepadAction.NavigateRight:
+                    MoveActionFocus(NextFocusStep);
+                    break;
+                case GamepadAction.RollDice:
+                    RollDiceClick(RollDiceButton, new RoutedEventArgs());
+                    break;
+                case GamepadAction.Confirm:
+                    ConfirmFocusedAction();
+                    break;
+                case GamepadAction.SelectOption1:
+                    TriggerOptionSlot(FirstPairIndex);
+                    break;
+                case GamepadAction.SelectOption2:
+                    TriggerOptionSlot(SecondPairIndex);
+                    break;
+                case GamepadAction.SelectOption3:
+                    TriggerOptionSlot(ThirdPairIndex);
+                    break;
+                case GamepadAction.Cancel:
+                    CancelPendingChoice();
+                    break;
+            }
+        }
+
+        private void MoveActionFocus(int step)
+        {
+            List<Button> enabledButtons = GetEnabledMatchButtons();
+            if (enabledButtons.Count == 0)
+            {
+                return;
+            }
+
+            focusedActionIndex = (focusedActionIndex + step + enabledButtons.Count) % enabledButtons.Count;
+            enabledButtons[focusedActionIndex].Focus();
+        }
+
+        private void ConfirmFocusedAction()
+        {
+            List<Button> enabledButtons = GetEnabledMatchButtons();
+            if (enabledButtons.Count == 0)
+            {
+                return;
+            }
+
+            if (focusedActionIndex < 0 || focusedActionIndex >= enabledButtons.Count)
+            {
+                focusedActionIndex = 0;
+            }
+
+            Button targetButton = enabledButtons[focusedActionIndex];
+            if (ReferenceEquals(targetButton, RollDiceButton))
+            {
+                RollDiceClick(RollDiceButton, new RoutedEventArgs());
+            }
+            else if (ReferenceEquals(targetButton, FirstPairButton)
+                || ReferenceEquals(targetButton, SecondPairButton)
+                || ReferenceEquals(targetButton, ThirdPairButton))
+            {
+                ChoosePairClick(targetButton, new RoutedEventArgs());
+            }
+            else if (ReferenceEquals(targetButton, FirstColumnChoiceButton)
+                || ReferenceEquals(targetButton, SecondColumnChoiceButton))
+            {
+                ChooseColumnClick(targetButton, new RoutedEventArgs());
+            }
+            else if (ReferenceEquals(targetButton, ReconnectButton))
+            {
+                ReconnectClick(ReconnectButton, new RoutedEventArgs());
+            }
+        }
+
+        private void TriggerOptionSlot(int optionIndex)
+        {
+            if (ColumnChoicePanel.IsVisible)
+            {
+                if (optionIndex == FirstPairIndex && FirstColumnChoiceButton.IsEnabled)
+                {
+                    ChooseColumnClick(FirstColumnChoiceButton, new RoutedEventArgs());
+                }
+                else if (optionIndex == SecondPairIndex && SecondColumnChoiceButton.IsEnabled)
+                {
+                    ChooseColumnClick(SecondColumnChoiceButton, new RoutedEventArgs());
+                }
+                return;
+            }
+
+            Button pairButton = GetPairButton(optionIndex);
+            if (pairButton.IsVisible && pairButton.IsEnabled)
+            {
+                ChoosePairClick(pairButton, new RoutedEventArgs());
+            }
+        }
+
+        private void CancelPendingChoice()
+        {
+            if (ColumnChoicePanel.IsVisible && currentBoardState != null)
+            {
+                pendingColumnChoice = null;
+                RefreshColumnChoice(currentBoardState);
+                UpdateActionButtons();
+            }
+        }
+
+        private List<Button> GetEnabledMatchButtons()
+        {
+            Button[] candidateButtons =
+            {
+                RollDiceButton,
+                FirstColumnChoiceButton,
+                SecondColumnChoiceButton,
+                FirstPairButton,
+                SecondPairButton,
+                ThirdPairButton,
+                ReconnectButton
+            };
+
+            List<Button> enabledButtons = new List<Button>();
+            foreach (Button candidate in candidateButtons)
+            {
+                if (candidate.IsVisible && candidate.IsEnabled)
+                {
+                    enabledButtons.Add(candidate);
+                }
+            }
+
+            return enabledButtons;
         }
 
         private void ReconnectClick(object? sender, RoutedEventArgs routedEventArgs)

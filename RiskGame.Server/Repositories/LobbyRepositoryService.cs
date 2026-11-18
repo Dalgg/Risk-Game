@@ -6,7 +6,6 @@ using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using RiskGame.Exceptions;
 using RiskGame.Models;
-using RiskGame.Services;
 
 namespace RiskGame.Server.Services
 {
@@ -45,7 +44,6 @@ namespace RiskGame.Server.Services
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Connection error (DbException) while querying lobby with code {0}.", normalizedLobbyCode);
                 throw new DataOperationException("Could not query the lobby from the database.", databaseException);
             }
         }
@@ -73,12 +71,10 @@ namespace RiskGame.Server.Services
             }
             catch (DbUpdateException databaseUpdateException)
             {
-                JsonLogger.Error(databaseUpdateException, "Persistence error (DbUpdateException) while creating lobby.");
                 throw new DataOperationException("Could not persist the new lobby in the database.", databaseUpdateException);
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Connection error (DbException) while creating lobby.");
                 throw new DataOperationException("Could not connect to the database to create the lobby.", databaseException);
             }
         }
@@ -104,12 +100,10 @@ namespace RiskGame.Server.Services
             }
             catch (DbUpdateException databaseUpdateException)
             {
-                JsonLogger.Error(databaseUpdateException, "Persistence error (DbUpdateException) while creating match for lobby {0}.", lobbyId);
                 throw new DataOperationException("Could not persist the match in the database.", databaseUpdateException);
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Connection error (DbException) while creating match for lobby {0}.", lobbyId);
                 throw new DataOperationException("Could not connect to the database to create the match.", databaseException);
             }
         }
@@ -166,7 +160,6 @@ namespace RiskGame.Server.Services
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Connection error (DbException) while loading friends for user {0}.", userId);
                 throw new DataOperationException("Could not query friends list from the database.", databaseException);
             }
         }
@@ -203,12 +196,10 @@ namespace RiskGame.Server.Services
             }
             catch (DbUpdateException databaseUpdateException)
             {
-                JsonLogger.Error(databaseUpdateException, "Persistence error (DbUpdateException) while creating lobby invitation.");
                 throw new DataOperationException("Could not persist the lobby invitation in the database.", databaseUpdateException);
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Connection error (DbException) while creating lobby invitation.");
                 throw new DataOperationException("Could not connect to the database to create the lobby invitation.", databaseException);
             }
         }

@@ -43,7 +43,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while creating lobby.");
                 throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
             }
         }
@@ -72,7 +71,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while joining lobby {0}.", roomCode);
                 throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
             }
         }
@@ -110,7 +108,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while starting match.");
                 throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
             }
         }
@@ -137,7 +134,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while inviting friend {0}.", friendUserId);
                 throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
             }
         }
@@ -160,7 +156,6 @@ namespace RiskGame.ViewModels
                 }
                 catch (RpcException rpcException)
                 {
-                    JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while sending lobby chat message.");
                     throw new DataOperationException(Strings.LobbyErrorConnectionFailed, rpcException);
                 }
             }
@@ -171,37 +166,40 @@ namespace RiskGame.ViewModels
             StopSubscription();
             streamCancellation = new CancellationTokenSource();
             CancellationToken cancellationToken = streamCancellation.Token;
-            Task.Run(() =>
+            Task.Run(() => ReadLobbyEventStream(lobbyCallback, cancellationToken));
+        }
+
+        private void ReadLobbyEventStream(ILobbyCallback lobbyCallback, CancellationToken cancellationToken)
+        {
+            try
             {
-                try
-                {
-                    GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
-                    Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
-                    UserLobbyRequest subscribeRequest = BuildUserLobbyRequest();
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
+                UserLobbyRequest subscribeRequest = BuildUserLobbyRequest();
 
-                    using AsyncServerStreamingCall<LobbyEvent> streamingCall = lobbyClient.SubscribeLobbyEvents(
-                        subscribeRequest,
-                        cancellationToken: cancellationToken);
+                using AsyncServerStreamingCall<LobbyEvent> streamingCall = lobbyClient.SubscribeLobbyEvents(
+                    subscribeRequest,
+                    cancellationToken: cancellationToken);
 
-                    while (streamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult())
-                    {
-                        LobbyEvent currentLobbyEvent = streamingCall.ResponseStream.Current;
-                        DispatchLobbyEvent(currentLobbyEvent, lobbyCallback);
-                    }
-                }
-                catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.Cancelled)
+                while (streamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult())
                 {
-                    JsonLogger.Error(rpcException, "Lobby event stream cancelled by client.");
+                    LobbyEvent currentLobbyEvent = streamingCall.ResponseStream.Current;
+                    DispatchLobbyEvent(currentLobbyEvent, lobbyCallback);
                 }
-                catch (OperationCanceledException canceledException)
-                {
-                    JsonLogger.Error(canceledException, "Lobby event stream subscription operation cancelled.");
-                }
-                catch (RpcException rpcException)
-                {
-                    JsonLogger.Error(rpcException, "Lobby event stream disconnected with RpcException.");
-                }
-            });
+            }
+            catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.Cancelled
+                || cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (RpcException rpcException)
+            {
+                JsonLogger.Error(rpcException, "Lobby event stream disconnected with RpcException.");
+            }
         }
 
         public void SubscribeChat(IChatCallback chatCallback)
@@ -209,41 +207,44 @@ namespace RiskGame.ViewModels
             StopChatSubscription();
             chatStreamCancellation = new CancellationTokenSource();
             CancellationToken cancellationToken = chatStreamCancellation.Token;
-            Task.Run(() =>
+            Task.Run(() => ReadChatStream(chatCallback, cancellationToken));
+        }
+
+        private void ReadChatStream(IChatCallback chatCallback, CancellationToken cancellationToken)
+        {
+            try
             {
-                try
+                SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                Chat.ChatClient chatClient = new Chat.ChatClient(grpcChannel);
+                ChatChannel channelRequest = new ChatChannel
                 {
-                    SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
-                    GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
-                    Chat.ChatClient chatClient = new Chat.ChatClient(grpcChannel);
-                    ChatChannel channelRequest = new ChatChannel
-                    {
-                        UserId = currentSessionUser.IdUser
-                    };
+                    UserId = currentSessionUser.IdUser
+                };
 
-                    using AsyncServerStreamingCall<ChatMessage> chatStreamingCall = chatClient.SubscribeChat(
-                        channelRequest,
-                        cancellationToken: cancellationToken);
+                using AsyncServerStreamingCall<ChatMessage> chatStreamingCall = chatClient.SubscribeChat(
+                    channelRequest,
+                    cancellationToken: cancellationToken);
 
-                    while (chatStreamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult())
-                    {
-                        ChatMessage incomingMessage = chatStreamingCall.ResponseStream.Current;
-                        chatCallback.MessageReceived(incomingMessage);
-                    }
-                }
-                catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.Cancelled)
+                while (chatStreamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult())
                 {
-                    JsonLogger.Error(rpcException, "Chat stream cancelled by client.");
+                    ChatMessage incomingMessage = chatStreamingCall.ResponseStream.Current;
+                    chatCallback.MessageReceived(incomingMessage);
                 }
-                catch (OperationCanceledException canceledException)
-                {
-                    JsonLogger.Error(canceledException, "Chat stream subscription operation cancelled.");
-                }
-                catch (RpcException rpcException)
-                {
-                    JsonLogger.Error(rpcException, "Chat stream disconnected with RpcException.");
-                }
-            });
+            }
+            catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.Cancelled
+                || cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+            catch (RpcException rpcException)
+            {
+                JsonLogger.Error(rpcException, "Chat stream disconnected with RpcException.");
+            }
         }
 
         public void StopSubscription()

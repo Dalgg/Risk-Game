@@ -34,7 +34,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while loading leaderboard.");
                 throw new DataOperationException(Strings.LeaderboardErrorDatabase, rpcException);
             }
         }

@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using RiskGame.Contracts.Profile;
 using RiskGame.Exceptions;
 using RiskGame.Models;
-using RiskGame.Services;
 
 namespace RiskGame.Server.Services
 {
@@ -54,7 +53,6 @@ namespace RiskGame.Server.Services
             }
             catch (DbException databaseException)
             {
-                JsonLogger.Error(databaseException, "Failed to retrieve profile for user {0}.", userId);
                 throw new DataOperationException("Could not retrieve the player profile.", databaseException);
             }
         }

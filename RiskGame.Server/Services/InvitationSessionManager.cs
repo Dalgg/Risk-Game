@@ -3,7 +3,6 @@ using RiskGame.Contracts.Invitation;
 using RiskGame.Contracts.Lobby;
 using RiskGame.Exceptions;
 using RiskGame.Models;
-using RiskGame.Services;
 
 namespace RiskGame.Server.Services
 {
@@ -43,9 +42,8 @@ namespace RiskGame.Server.Services
                     invitationRepository.CompleteInvitation(invitationAction.UserId,
                         invitationAction.InvitationId, true);
                 }
-                catch (DataOperationException dataOperationException)
+                catch (DataOperationException)
                 {
-                    JsonLogger.Error(dataOperationException, "Could not finalize the accepted lobby invitation.");
                     lobbySessionManager.LeaveLobby(invitationAction.UserId);
                     throw;
                 }

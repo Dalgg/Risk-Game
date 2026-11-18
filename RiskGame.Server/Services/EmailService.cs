@@ -2,7 +2,6 @@ using System;
 using System.Net;
 using System.Net.Mail;
 using RiskGame.Exceptions;
-using RiskGame.Services;
 using EmailStrings = RiskGame.Server.Resources.Strings;
 
 namespace RiskGame.Server.Services
@@ -37,12 +36,10 @@ namespace RiskGame.Server.Services
             }
             catch (SmtpException smtpException)
             {
-                JsonLogger.Error(smtpException, "Could not deliver the registration verification email.");
                 throw new DataOperationException("Could not deliver the verification email.", smtpException);
             }
             catch (FormatException formatException)
             {
-                JsonLogger.Error(formatException, "The verification email configuration is invalid.");
                 throw new DataOperationException("Invalid verification email configuration.", formatException);
             }
         }

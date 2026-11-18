@@ -144,14 +144,12 @@ namespace RiskGame.Server.Services
                 {
                     return JoinLobby(activeLobbyRoom.LobbyCode, joiningPlayer);
                 }
-                catch (LobbyFullException lobbyFullException)
+                catch (LobbyFullException)
                 {
-                    JsonLogger.Error(lobbyFullException, "Could not join the invited lobby because it is full.");
                     throw new InvitationUnavailableException("The invited lobby is full.");
                 }
-                catch (LobbyNotFoundException lobbyNotFoundException)
+                catch (LobbyNotFoundException)
                 {
-                    JsonLogger.Error(lobbyNotFoundException, "The invited lobby is no longer available.");
                     throw new InvitationUnavailableException("The invited lobby is no longer available.");
                 }
             }
@@ -570,21 +568,27 @@ namespace RiskGame.Server.Services
         {
             foreach (IServerStreamWriter<ChatMessage> chatSubscriberStream in chatSubscribers)
             {
-                Task.Run(() =>
+                Task.Run(() => WriteChatMessage(chatSubscriberStream, outgoingMessage));
+            }
+        }
+
+        private static void WriteChatMessage(IServerStreamWriter<ChatMessage> chatSubscriberStream,
+            ChatMessage outgoingMessage)
+        {
+            try
+            {
+                lock (chatSubscriberStream)
                 {
-                    try
-                    {
-                        chatSubscriberStream.WriteAsync(outgoingMessage).GetAwaiter().GetResult();
-                    }
-                    catch (InvalidOperationException invalidOperationException)
-                    {
-                        JsonLogger.Error(invalidOperationException, "Could not write chat message to subscriber stream.");
-                    }
-                    catch (RpcException rpcException)
-                    {
-                        JsonLogger.Error(rpcException, "Could not write chat message to subscriber stream.");
-                    }
-                });
+                    chatSubscriberStream.WriteAsync(outgoingMessage).GetAwaiter().GetResult();
+                }
+            }
+            catch (InvalidOperationException invalidOperationException)
+            {
+                JsonLogger.Error(invalidOperationException, "Could not write chat message to subscriber stream.");
+            }
+            catch (RpcException rpcException)
+            {
+                JsonLogger.Error(rpcException, "Could not write chat message to subscriber stream.");
             }
         }
 

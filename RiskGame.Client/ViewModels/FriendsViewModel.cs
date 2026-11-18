@@ -57,7 +57,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "Could not query the player's friends.");
                 throw new DataOperationException(Strings.FriendsLoadError, rpcException);
             }
         }
@@ -149,7 +148,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "Friend request failed during gRPC communication.");
                 throw CreateRequestException(rpcException);
             }
         }
