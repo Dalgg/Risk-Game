@@ -43,6 +43,8 @@ namespace RiskGame.Views
         private const int SecondPairIndex = 2;
         private const int ThirdPairIndex = 3;
         private const int NoDice = 0;
+        private const int NoEnabledActions = 0;
+        private const int InitialFocusIndex = 0;
         private const int PreviousFocusStep = -1;
         private const int NextFocusStep = 1;
         private static readonly IBrush CellBackground = new SolidColorBrush(Color.Parse("#25293A"));
@@ -110,86 +112,85 @@ namespace RiskGame.Views
 
         private void HandleGamepadAction(GamepadAction action)
         {
-            if (hasClosed)
+            if (!hasClosed)
             {
-                return;
-            }
-
-            switch (action)
-            {
-                case GamepadAction.NavigateUp:
-                case GamepadAction.NavigateLeft:
-                    MoveActionFocus(PreviousFocusStep);
-                    break;
-                case GamepadAction.NavigateDown:
-                case GamepadAction.NavigateRight:
-                    MoveActionFocus(NextFocusStep);
-                    break;
-                case GamepadAction.RollDice:
-                    RollDiceClick(RollDiceButton, new RoutedEventArgs());
-                    break;
-                case GamepadAction.Confirm:
-                    ConfirmFocusedAction();
-                    break;
-                case GamepadAction.SelectOption1:
-                    TriggerOptionSlot(FirstPairIndex);
-                    break;
-                case GamepadAction.SelectOption2:
-                    TriggerOptionSlot(SecondPairIndex);
-                    break;
-                case GamepadAction.SelectOption3:
-                    TriggerOptionSlot(ThirdPairIndex);
-                    break;
-                case GamepadAction.Cancel:
-                    CancelPendingChoice();
-                    break;
+                switch (action)
+                {
+                    case GamepadAction.NavigateUp:
+                    case GamepadAction.NavigateLeft:
+                        MoveActionFocus(PreviousFocusStep);
+                        break;
+                    case GamepadAction.NavigateDown:
+                    case GamepadAction.NavigateRight:
+                        MoveActionFocus(NextFocusStep);
+                        break;
+                    case GamepadAction.RollDice:
+                        RollDiceClick(RollDiceButton, new RoutedEventArgs());
+                        break;
+                    case GamepadAction.Confirm:
+                        ConfirmFocusedAction();
+                        break;
+                    case GamepadAction.SelectOption1:
+                        TriggerOptionSlot(FirstPairIndex);
+                        break;
+                    case GamepadAction.SelectOption2:
+                        TriggerOptionSlot(SecondPairIndex);
+                        break;
+                    case GamepadAction.SelectOption3:
+                        TriggerOptionSlot(ThirdPairIndex);
+                        break;
+                    case GamepadAction.Cancel:
+                        CancelPendingChoice();
+                        break;
+                }
             }
         }
 
         private void MoveActionFocus(int step)
         {
             List<Button> enabledButtons = GetEnabledMatchButtons();
-            if (enabledButtons.Count == 0)
+            if (enabledButtons.Count > NoEnabledActions)
             {
-                return;
+                focusedActionIndex = (focusedActionIndex + step + enabledButtons.Count) % enabledButtons.Count;
+                enabledButtons[focusedActionIndex].Focus();
             }
-
-            focusedActionIndex = (focusedActionIndex + step + enabledButtons.Count) % enabledButtons.Count;
-            enabledButtons[focusedActionIndex].Focus();
         }
 
         private void ConfirmFocusedAction()
         {
             List<Button> enabledButtons = GetEnabledMatchButtons();
-            if (enabledButtons.Count == 0)
+            if (enabledButtons.Count > NoEnabledActions)
             {
-                return;
-            }
 
-            if (focusedActionIndex < 0 || focusedActionIndex >= enabledButtons.Count)
-            {
-                focusedActionIndex = 0;
-            }
+                if (focusedActionIndex < InitialFocusIndex || focusedActionIndex >= enabledButtons.Count)
+                {
+                    focusedActionIndex = InitialFocusIndex;
+                }
 
-            Button targetButton = enabledButtons[focusedActionIndex];
-            if (ReferenceEquals(targetButton, RollDiceButton))
-            {
-                RollDiceClick(RollDiceButton, new RoutedEventArgs());
-            }
-            else if (ReferenceEquals(targetButton, FirstPairButton)
+                Button targetButton = enabledButtons[focusedActionIndex];
+                if (ReferenceEquals(targetButton, RollDiceButton))
+                {
+                    RollDiceClick(RollDiceButton, new RoutedEventArgs());
+                }
+                else if (ReferenceEquals(targetButton, FirstPairButton)
                 || ReferenceEquals(targetButton, SecondPairButton)
                 || ReferenceEquals(targetButton, ThirdPairButton))
-            {
-                ChoosePairClick(targetButton, new RoutedEventArgs());
-            }
-            else if (ReferenceEquals(targetButton, FirstColumnChoiceButton)
+                {
+                    ChoosePairClick(targetButton, new RoutedEventArgs());
+                }
+                else if (ReferenceEquals(targetButton, FirstColumnChoiceButton)
                 || ReferenceEquals(targetButton, SecondColumnChoiceButton))
-            {
-                ChooseColumnClick(targetButton, new RoutedEventArgs());
-            }
-            else if (ReferenceEquals(targetButton, ReconnectButton))
-            {
-                ReconnectClick(ReconnectButton, new RoutedEventArgs());
+                {
+                    ChooseColumnClick(targetButton, new RoutedEventArgs());
+                }
+                else if (ReferenceEquals(targetButton, ReconnectButton))
+                {
+                    ReconnectClick(ReconnectButton, new RoutedEventArgs());
+                }
+                else if (ReferenceEquals(targetButton, StopTurnButton))
+                {
+                    StopTurnClick(StopTurnButton, new RoutedEventArgs());
+                }
             }
         }
 
@@ -205,13 +206,14 @@ namespace RiskGame.Views
                 {
                     ChooseColumnClick(SecondColumnChoiceButton, new RoutedEventArgs());
                 }
-                return;
             }
-
-            Button pairButton = GetPairButton(optionIndex);
-            if (pairButton.IsVisible && pairButton.IsEnabled)
+            else
             {
-                ChoosePairClick(pairButton, new RoutedEventArgs());
+                Button pairButton = GetPairButton(optionIndex);
+                if (pairButton.IsVisible && pairButton.IsEnabled)
+                {
+                    ChoosePairClick(pairButton, new RoutedEventArgs());
+                }
             }
         }
 
@@ -230,6 +232,7 @@ namespace RiskGame.Views
             Button[] candidateButtons =
             {
                 RollDiceButton,
+                StopTurnButton,
                 FirstColumnChoiceButton,
                 SecondColumnChoiceButton,
                 FirstPairButton,
@@ -375,6 +378,7 @@ namespace RiskGame.Views
 
         private void UpdateActionButtons()
         {
+            StopTurnButton.IsEnabled = false;
             RollDiceButton.IsEnabled = false;
             FirstPairButton.IsEnabled = false;
             SecondPairButton.IsEnabled = false;
@@ -385,6 +389,7 @@ namespace RiskGame.Views
                 && currentBoardState.CurrentTurnUserId == SessionService.GetOrCreateCurrentUser().IdUser)
             {
                 RollDiceButton.IsEnabled = !currentBoardState.AwaitingPairChoice;
+                StopTurnButton.IsEnabled = currentBoardState.CanStop;
                 foreach (PairOption pairOption in currentBoardState.PairOptions)
                 {
                     GetPairButton(pairOption.PairIndex).IsEnabled =
@@ -392,6 +397,31 @@ namespace RiskGame.Views
                 }
                 FirstColumnChoiceButton.IsEnabled = ColumnChoicePanel.IsVisible;
                 SecondColumnChoiceButton.IsEnabled = ColumnChoicePanel.IsVisible;
+            }
+        }
+
+        private void StopTurnClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            if (StopTurnButton.IsEnabled && currentBoardState != null)
+            {
+                long turnId = currentBoardState.TurnId;
+                isActionPending = true;
+                UpdateActionButtons();
+                Task.Run(() => SubmitStopTurn(turnId));
+            }
+        }
+
+        private void SubmitStopTurn(long turnId)
+        {
+            try
+            {
+                BoardState boardState = matchViewModel.StopTurn(matchIdentifier, turnId);
+                Dispatcher.UIThread.Post(() => CompleteAction(boardState));
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                JsonLogger.Error(dataOperationException, "Could not submit the stop turn action.");
+                Dispatcher.UIThread.Post(() => ShowActionError(dataOperationException.Message));
             }
         }
 
@@ -490,12 +520,22 @@ namespace RiskGame.Views
 
         private void RenderTurn(BoardState boardState)
         {
+            TurnOutcomeTextBlock.Text = string.Empty;
             string currentPlayerName = Strings.LobbyDefaultPlayerName;
             foreach (BoardPlayer player in boardState.Players)
             {
                 if (player.UserId == boardState.CurrentTurnUserId)
                 {
                     currentPlayerName = player.Nickname;
+                }
+                if (player.UserId == boardState.LastTurnUserId)
+                {
+                    string outcomeFormat = Strings.MatchTurnSavedFormat;
+                    if (boardState.LastTurnBusted)
+                    {
+                        outcomeFormat = Strings.MatchTurnBustedFormat;
+                    }
+                    TurnOutcomeTextBlock.Text = string.Format(outcomeFormat, player.Nickname);
                 }
             }
             CurrentTurnTextBlock.Text = string.Format(Strings.MatchCurrentTurnFormat, currentPlayerName);

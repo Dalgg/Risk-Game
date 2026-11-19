@@ -101,9 +101,13 @@
                 </StackPanel>
             </StackPanel>
             <TextBlock x:Name="PairSelectionTextBlock" TextWrapping="Wrap"/>
+            <TextBlock x:Name="TurnOutcomeTextBlock" TextWrapping="Wrap"
+                       Foreground="{StaticResource TurnBrush}"/>
             <TextBlock x:Name="MatchStatusTextBlock" Text="{x:Static res:Strings.MatchConnecting}"
                        Foreground="{StaticResource CaptionBrush}" TextWrapping="Wrap"/>
             <StackPanel Orientation="Horizontal" Spacing="{StaticResource ActionSpacing}">
+                <Button x:Name="StopTurnButton" Content="{x:Static res:Strings.MatchStopTurn}"
+                        Click="StopTurnClick" IsEnabled="False" HotKey="S"/>
                 <Button x:Name="ReconnectButton" Content="{x:Static res:Strings.MatchReconnect}"
                         Click="ReconnectClick" HotKey="Ctrl+R" TabIndex="0"/>
                 <Button Content="{x:Static res:Strings.MatchLeaveButton}" Click="LeaveMatchClick"

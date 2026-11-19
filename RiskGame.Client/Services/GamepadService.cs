@@ -89,29 +89,29 @@ namespace RiskGame.Services
         public static event EventHandler<GamepadActionEventArgs>? ActionTriggered;
         public static event EventHandler<bool>? ConnectionChanged;
 
+        private const int NoControllerFound = -1;
+        private const int FirstControllerIndex = 0;
+
         public static void Initialize()
         {
             lock (SyncRoot)
             {
-                if (pollingCancellation != null)
+                if (pollingCancellation == null)
                 {
-                    return;
+                    pollingCancellation = new CancellationTokenSource();
+                    CancellationToken cancellationToken = pollingCancellation.Token;
+                    Task.Run(() => RunHardwareLoop(cancellationToken));
                 }
-
-                pollingCancellation = new CancellationTokenSource();
-                CancellationToken cancellationToken = pollingCancellation.Token;
-                Task.Run(() => RunHardwareLoop(cancellationToken));
             }
         }
 
         public static void TriggerAction(GamepadAction action, int controllerIndex = 0)
         {
-            if (action == GamepadAction.None)
+            EventHandler<GamepadActionEventArgs>? actionHandler = ActionTriggered;
+            if (action != GamepadAction.None && actionHandler != null)
             {
-                return;
+                actionHandler.Invoke(null, new GamepadActionEventArgs(action, controllerIndex));
             }
-
-            ActionTriggered?.Invoke(null, new GamepadActionEventArgs(action, controllerIndex));
         }
 
         public static void Shutdown()
@@ -145,34 +145,35 @@ namespace RiskGame.Services
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                string? devicePath = FindLinuxJoystickPath(out int controllerIndex);
-                if (devicePath == null)
+                int controllerIndex = FindLinuxJoystickIndex();
+                if (controllerIndex != NoControllerFound)
+                {
+                    string devicePath = $"/dev/input/js{controllerIndex}";
+                    UpdateConnectionState(true);
+                    ReadLinuxJoystickStream(devicePath, controllerIndex, cancellationToken);
+                    UpdateConnectionState(false);
+                }
+                else
                 {
                     UpdateConnectionState(false);
                     WaitBeforeRetry(cancellationToken, ReconnectDelayMilliseconds);
-                    continue;
                 }
-
-                UpdateConnectionState(true);
-                ReadLinuxJoystickStream(devicePath, controllerIndex, cancellationToken);
-                UpdateConnectionState(false);
             }
         }
 
-        private static string? FindLinuxJoystickPath(out int controllerIndex)
+        private static int FindLinuxJoystickIndex()
         {
-            for (int candidateIndex = 0; candidateIndex < MaximumControllers; candidateIndex++)
+            int controllerIndex = NoControllerFound;
+            for (int candidateIndex = FirstControllerIndex; candidateIndex < MaximumControllers; candidateIndex++)
             {
                 string candidatePath = $"/dev/input/js{candidateIndex}";
                 if (File.Exists(candidatePath))
                 {
                     controllerIndex = candidateIndex;
-                    return candidatePath;
+                    break;
                 }
             }
-
-            controllerIndex = 0;
-            return null;
+            return controllerIndex;
         }
 
         private static void ReadLinuxJoystickStream(string devicePath, int controllerIndex,
@@ -340,8 +341,12 @@ namespace RiskGame.Services
                 }
 
                 UpdateConnectionState(anyControllerConnected);
-                WaitBeforeRetry(cancellationToken,
-                    anyControllerConnected ? PollingDelayMilliseconds : ReconnectDelayMilliseconds);
+                int delayMilliseconds = ReconnectDelayMilliseconds;
+                if (anyControllerConnected)
+                {
+                    delayMilliseconds = PollingDelayMilliseconds;
+                }
+                WaitBeforeRetry(cancellationToken, delayMilliseconds);
             }
         }
 
@@ -466,7 +471,11 @@ namespace RiskGame.Services
             if (isConnected != connected)
             {
                 isConnected = connected;
-                ConnectionChanged?.Invoke(null, isConnected);
+                EventHandler<bool>? connectionHandler = ConnectionChanged;
+                if (connectionHandler != null)
+                {
+                    connectionHandler.Invoke(null, isConnected);
+                }
             }
         }
 

@@ -56,6 +56,19 @@ namespace RiskGame.Server.Services
             }
         }
 
+        public override Task<BoardState> StopTurn(StopTurnRequest request, ServerCallContext callContext)
+        {
+            try
+            {
+                return Task.FromResult(matchSessionManager.StopTurn(request));
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                JsonLogger.Error(dataOperationException, "Could not stop the current turn.");
+                throw CreateRpcException(dataOperationException);
+            }
+        }
+
         private RpcException CreateRpcException(DataOperationException dataOperationException)
         {
             StatusCode statusCode = StatusCode.Unauthenticated;

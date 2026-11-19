@@ -158,6 +158,20 @@ namespace RiskGame.Server.Services
             return boardState;
         }
 
+        public BoardState StopTurn(StopTurnRequest request)
+        {
+            BoardState boardState;
+            lock (matchLock)
+            {
+                ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
+                ValidateTurn(activeMatch, request.UserId);
+                activeMatch.StopTurn(request.TurnId);
+                boardState = BuildBoardState(activeMatch);
+            }
+            BroadcastBoardState(request.MatchId);
+            return boardState;
+        }
+
         private void ValidateTurn(ActiveMatch activeMatch, int userId)
         {
             if (activeMatch.CurrentTurnUserId != userId)
@@ -193,7 +207,11 @@ namespace RiskGame.Server.Services
                 RollId = activeMatch.RollId,
                 AwaitingPairChoice = activeMatch.AwaitingPairChoice,
                 SelectedPairIndex = activeMatch.SelectedPairIndex,
-                MaximumTemporaryMarkers = activeMatch.TurnProgress.MaximumTemporaryMarkers
+                MaximumTemporaryMarkers = activeMatch.TurnProgress.MaximumTemporaryMarkers,
+                TurnId = activeMatch.TurnId,
+                LastTurnUserId = activeMatch.LastTurnUserId,
+                LastTurnBusted = activeMatch.LastTurnBusted,
+                CanStop = activeMatch.CanStop
             };
             foreach (KeyValuePair<int, int> progress in activeMatch.TurnProgress.StepsByColumn)
             {

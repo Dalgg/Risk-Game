@@ -16,6 +16,26 @@ namespace RiskGame.ViewModels
         private const int ActionTimeoutSeconds = 10;
         private CancellationTokenSource? streamCancellation;
 
+        public BoardState StopTurn(int matchId, long turnId)
+        {
+            SessionUser session = SessionService.GetOrCreateCurrentUser();
+            StopTurnRequest request = new StopTurnRequest
+            {
+                MatchId = matchId, UserId = session.IdUser, SessionToken = session.SessionToken, TurnId = turnId
+            };
+            try
+            {
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                Match.MatchClient matchClient = new Match.MatchClient(grpcChannel);
+                return matchClient.StopTurn(request, deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds));
+            }
+            catch (RpcException rpcException)
+            {
+                JsonLogger.Error(rpcException, "Could not stop the current match turn.");
+                throw new DataOperationException(GetActionError(rpcException), rpcException);
+            }
+        }
+
         public BoardState RollDice(int matchId, long expectedRollId)
         {
             SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();

@@ -183,4 +183,7 @@
   <data name="MatchAdvanceColumnFormat" xml:space="preserve"><value>ADVANCE COLUMN {0}</value></data>
   <data name="MatchNoLegalAdvance" xml:space="preserve"><value>This roll cannot advance any marker.</value></data>
   <data name="MatchTemporaryMarkerFormat" xml:space="preserve"><value>Temporary marker: column {0}, step {1}</value></data>
+  <data name="MatchStopTurn" xml:space="preserve"><value>STOP</value></data>
+  <data name="MatchTurnSavedFormat" xml:space="preserve"><value>{0} stopped and saved their progress.</value></data>
+  <data name="MatchTurnBustedFormat" xml:space="preserve"><value>{0} busted and lost their temporary progress.</value></data>
 </root>

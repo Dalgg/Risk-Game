@@ -346,5 +346,11 @@ namespace RiskGame.Resources
 
         public static string MatchTemporaryMarkerFormat => ResourceManager.GetString("MatchTemporaryMarkerFormat", _resourceCulture);
 
+        public static string MatchStopTurn => ResourceManager.GetString("MatchStopTurn", _resourceCulture);
+
+        public static string MatchTurnSavedFormat => ResourceManager.GetString("MatchTurnSavedFormat", _resourceCulture);
+
+        public static string MatchTurnBustedFormat => ResourceManager.GetString("MatchTurnBustedFormat", _resourceCulture);
+
     }
 }

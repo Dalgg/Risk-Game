@@ -185,4 +185,7 @@
   <data name="MatchAdvanceColumnFormat" xml:space="preserve"><value>AVANZAR COLUMNA {0}</value></data>
   <data name="MatchNoLegalAdvance" xml:space="preserve"><value>Esta tirada no permite avanzar ningún marcador.</value></data>
   <data name="MatchTemporaryMarkerFormat" xml:space="preserve"><value>Marcador temporal: columna {0}, casilla {1}</value></data>
+  <data name="MatchStopTurn" xml:space="preserve"><value>PLANTARSE</value></data>
+  <data name="MatchTurnSavedFormat" xml:space="preserve"><value>{0} se plantó y guardó su avance.</value></data>
+  <data name="MatchTurnBustedFormat" xml:space="preserve"><value>{0} reventó y perdió el avance temporal.</value></data>
 </root>

@@ -8,6 +8,7 @@ service Match {
   rpc SubscribeMatchEvents (MatchSubscription) returns (stream BoardState);
   rpc RollDice (RollDiceRequest) returns (BoardState);
   rpc ChooseDicePair (PairChoice) returns (BoardState);
+  rpc StopTurn (StopTurnRequest) returns (BoardState);
 }
 
 message MatchSubscription {
@@ -31,6 +32,17 @@ message BoardState {
   int32 selected_pair_index = 12;
   map<int32, int32> temporary_steps_by_column = 13;
   int32 maximum_temporary_markers = 14;
+  int64 turn_id = 15;
+  int32 last_turn_user_id = 16;
+  bool last_turn_busted = 17;
+  bool can_stop = 18;
+}
+
+message StopTurnRequest {
+  int32 match_id = 1;
+  int32 user_id = 2;
+  string session_token = 3;
+  int64 turn_id = 4;
 }
 
 message RollDiceRequest {

@@ -321,7 +321,7 @@ namespace RiskGame.Server.Tests
         }
 
         [Fact]
-        public void ChoosePair_NoAvailableSum_PreservesMarkerCount()
+        public void ChoosePair_UnplayableGrouping_PreservesMarkers()
         {
             ActiveMatch match = CreateMatchWithThreeMarkers();
             match.ApplyRoll(NoAvailableSumDice, SecondRollId);
@@ -332,7 +332,7 @@ namespace RiskGame.Server.Tests
         }
 
         [Fact]
-        public void ChoosePair_NoAvailableSum_KeepsChoicePending()
+        public void ChoosePair_UnplayableGrouping_KeepsChoicePending()
         {
             ActiveMatch match = CreateMatchWithThreeMarkers();
             match.ApplyRoll(NoAvailableSumDice, SecondRollId);
@@ -357,7 +357,7 @@ namespace RiskGame.Server.Tests
         }
 
         [Fact]
-        public void ApplyRoll_CompletedColumn_ReportsUnplayableOption()
+        public void ApplyRoll_CompletedColumn_ClearsOptionsAfterBust()
         {
             ActiveMatch match = CreateMatch();
             match.ApplyRoll(ShortDoubleDice, InitialRollId);
@@ -367,7 +367,7 @@ namespace RiskGame.Server.Tests
 
             match.ApplyRoll(ShortDoubleDice, SecondRollId);
 
-            Assert.False(match.TurnProgress.IsPlayable(match.PairOptions[InitialStep]));
+            Assert.Empty(match.PairOptions);
         }
 
         [Fact]
@@ -448,6 +448,188 @@ namespace RiskGame.Server.Tests
             Record.Exception(() => match.ChoosePair(FirstRollId, FirstPairIndex));
 
             Assert.Equal(FirstStep, match.TurnProgress.StepsByColumn[FirstColumn]);
+        }
+
+        [Fact]
+        public void StopTurn_ValidChoice_SavesPermanentFirstColumn()
+        {
+            ActiveMatch match = CreateMatchWithTwoMarkers();
+
+            match.StopTurn(match.TurnId);
+
+            Assert.Equal(FirstStep, match.Columns.First(column => column.ColumnNumber == FirstColumn)
+                .StepsByUserId[FirstUserId]);
+        }
+
+        [Fact]
+        public void StopTurn_ValidChoice_SavesPermanentSecondColumn()
+        {
+            ActiveMatch match = CreateMatchWithTwoMarkers();
+
+            match.StopTurn(match.TurnId);
+
+            Assert.Equal(FirstStep, match.Columns.First(column => column.ColumnNumber == SecondColumn)
+                .StepsByUserId[FirstUserId]);
+        }
+
+        [Fact]
+        public void StopTurn_ValidChoice_ClearsTemporaryProgress()
+        {
+            ActiveMatch match = CreateMatchWithTwoMarkers();
+
+            match.StopTurn(match.TurnId);
+
+            Assert.Empty(match.TurnProgress.StepsByColumn);
+        }
+
+        [Fact]
+        public void StopTurn_ValidChoice_PassesTurn()
+        {
+            ActiveMatch match = CreateMatchWithTwoMarkers();
+
+            match.StopTurn(match.TurnId);
+
+            Assert.Equal(SecondUserId, match.CurrentTurnUserId);
+        }
+
+        [Fact]
+        public void StopTurn_ValidChoice_ClearsDice()
+        {
+            ActiveMatch match = CreateMatchWithTwoMarkers();
+
+            match.StopTurn(match.TurnId);
+
+            Assert.Empty(match.Dice);
+        }
+
+        [Fact]
+        public void StopTurn_ValidChoice_ClearsChoices()
+        {
+            ActiveMatch match = CreateMatchWithTwoMarkers();
+
+            match.StopTurn(match.TurnId);
+
+            Assert.Empty(match.PairOptions);
+        }
+
+        [Fact]
+        public void StopTurn_ValidChoice_RecordsSavedOutcome()
+        {
+            ActiveMatch match = CreateMatchWithTwoMarkers();
+
+            match.StopTurn(match.TurnId);
+
+            Assert.False(match.LastTurnBusted);
+        }
+
+        [Fact]
+        public void StopTurn_ValidChoice_IncrementsTurnId()
+        {
+            ActiveMatch match = CreateMatchWithTwoMarkers();
+
+            match.StopTurn(match.TurnId);
+
+            Assert.Equal(SecondRollId, match.TurnId);
+        }
+
+        [Fact]
+        public void StopTurn_NoRoll_Rejects()
+        {
+            ActiveMatch match = CreateMatch();
+
+            System.Exception? exception = Record.Exception(() => match.StopTurn(match.TurnId));
+
+            Assert.IsType<MatchActionException>(exception);
+        }
+
+        [Fact]
+        public void StopTurn_PendingChoice_Rejects()
+        {
+            ActiveMatch match = CreateMatch();
+            match.ApplyRoll(DistinctSumsDice, InitialRollId);
+
+            System.Exception? exception = Record.Exception(() => match.StopTurn(match.TurnId));
+
+            Assert.IsType<MatchActionException>(exception);
+        }
+
+        [Fact]
+        public void StopTurn_StaleTurnId_Rejects()
+        {
+            ActiveMatch match = CreateMatchWithTwoMarkers();
+
+            System.Exception? exception = Record.Exception(() => match.StopTurn(InitialRollId));
+
+            Assert.IsType<MatchActionException>(exception);
+        }
+
+        [Fact]
+        public void StopTurn_SecondPlayer_ReturnsToFirst()
+        {
+            ActiveMatch match = CreateMatchWithTwoMarkers();
+            match.StopTurn(match.TurnId);
+            match.ApplyRoll(DistinctSumsDice, FirstRollId);
+            match.ChoosePair(SecondRollId, FirstPairIndex);
+
+            match.StopTurn(match.TurnId);
+
+            Assert.Equal(FirstUserId, match.CurrentTurnUserId);
+        }
+
+        [Fact]
+        public void ChoosePair_NextOwnTurn_StartsFromPermanentProgress()
+        {
+            ActiveMatch match = CreateMatchWithTwoMarkers();
+            match.StopTurn(match.TurnId);
+            match.ApplyRoll(DistinctSumsDice, FirstRollId);
+            match.ChoosePair(SecondRollId, FirstPairIndex);
+            match.StopTurn(match.TurnId);
+            match.ApplyRoll(DistinctSumsDice, SecondRollId);
+
+            match.ChoosePair(ThirdRollId, FirstPairIndex);
+
+            Assert.Equal(SecondStep, match.TurnProgress.StepsByColumn[FirstColumn]);
+        }
+
+        [Fact]
+        public void ApplyRoll_NoMoves_ClearsTemporary()
+        {
+            ActiveMatch match = CreateMatchWithThreeMarkers();
+
+            match.ApplyRoll(ShortDoubleDice, SecondRollId);
+
+            Assert.Empty(match.TurnProgress.StepsByColumn);
+        }
+
+        [Fact]
+        public void ApplyRoll_NoMoves_PassesTurn()
+        {
+            ActiveMatch match = CreateMatchWithThreeMarkers();
+
+            match.ApplyRoll(ShortDoubleDice, SecondRollId);
+
+            Assert.Equal(SecondUserId, match.CurrentTurnUserId);
+        }
+
+        [Fact]
+        public void ApplyRoll_NoMoves_RecordsOutcome()
+        {
+            ActiveMatch match = CreateMatchWithThreeMarkers();
+
+            match.ApplyRoll(ShortDoubleDice, SecondRollId);
+
+            Assert.True(match.LastTurnBusted);
+        }
+
+        [Fact]
+        public void ApplyRoll_NoMoves_DoesNotSaveProgress()
+        {
+            ActiveMatch match = CreateMatchWithThreeMarkers();
+
+            match.ApplyRoll(ShortDoubleDice, SecondRollId);
+
+            Assert.Equal(InitialStep, match.Columns.First(column => column.ColumnNumber == FirstColumn)
+                .StepsByUserId[FirstUserId]);
         }
 
         private static ActiveMatch CreateMatchWithThreeMarkers()

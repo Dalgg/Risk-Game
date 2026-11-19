@@ -18,6 +18,8 @@ namespace RiskGame.Server.Services
         private const long InitialRevision = 1;
         private const int NoSelectedPair = 0;
         private const int NoPreferredColumn = 0;
+        private const int NextParticipantStep = 1;
+        private int currentParticipantIndex = FirstParticipantIndex;
 
         public ActiveMatch(int matchId, LobbyDetails lobbyDetails)
         {
@@ -52,13 +54,22 @@ namespace RiskGame.Server.Services
 
         public int TurnDurationSeconds { get; }
 
-        public int CurrentTurnUserId { get; }
+        public int CurrentTurnUserId { get; private set; }
 
         public IReadOnlyList<MatchParticipant> Participants { get; }
 
         public IReadOnlyList<MatchColumn> Columns { get; }
 
-        public MatchTurnProgress TurnProgress { get; }
+        public MatchTurnProgress TurnProgress { get; private set; }
+
+        public long TurnId { get; private set; } = InitialRevision;
+
+        public int LastTurnUserId { get; private set; }
+
+        public bool LastTurnBusted { get; private set; }
+
+        public bool CanStop => !AwaitingPairChoice && SelectedPairIndex != NoSelectedPair
+            && TurnProgress.StepsByColumn.Count > NoSelectedPair;
 
         public long Revision { get; private set; } = InitialRevision;
 
@@ -85,6 +96,41 @@ namespace RiskGame.Server.Services
             RollId++;
             SelectedPairIndex = NoSelectedPair;
             AwaitingPairChoice = true;
+            Revision++;
+            if (!PairOptions.Any(combination => TurnProgress.IsPlayable(combination)))
+            {
+                AdvanceTurn(true);
+            }
+        }
+
+        public void StopTurn(long turnId)
+        {
+            if (turnId != TurnId || !CanStop)
+            {
+                throw new MatchActionException("The turn cannot be stopped before choosing a valid advance.");
+            }
+            foreach (MatchColumn column in Columns)
+            {
+                if (TurnProgress.StepsByColumn.ContainsKey(column.ColumnNumber))
+                {
+                    column.SaveProgress(CurrentTurnUserId, TurnProgress.StepsByColumn[column.ColumnNumber]);
+                }
+            }
+            AdvanceTurn(false);
+        }
+
+        private void AdvanceTurn(bool busted)
+        {
+            LastTurnUserId = CurrentTurnUserId;
+            LastTurnBusted = busted;
+            currentParticipantIndex = (currentParticipantIndex + NextParticipantStep) % Participants.Count;
+            CurrentTurnUserId = Participants[currentParticipantIndex].UserId;
+            TurnProgress = new MatchTurnProgress(CurrentTurnUserId, Columns);
+            TurnId++;
+            Dice = Array.Empty<int>();
+            PairOptions = Array.Empty<DicePairCombination>();
+            SelectedPairIndex = NoSelectedPair;
+            AwaitingPairChoice = false;
             Revision++;
         }
 
