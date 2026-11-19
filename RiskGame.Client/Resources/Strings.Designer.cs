@@ -352,5 +352,15 @@ namespace RiskGame.Resources
 
         public static string MatchTurnBustedFormat => ResourceManager.GetString("MatchTurnBustedFormat", _resourceCulture);
 
+        public static string MatchFinished => ResourceManager.GetString("MatchFinished", _resourceCulture);
+
+        public static string MatchWinnerFormat => ResourceManager.GetString("MatchWinnerFormat", _resourceCulture);
+
+        public static string MatchClaimedMark => ResourceManager.GetString("MatchClaimedMark", _resourceCulture);
+
+        public static string MatchColumnClaimedFormat => ResourceManager.GetString("MatchColumnClaimedFormat", _resourceCulture);
+
+        public static string MatchClaimedCountFormat => ResourceManager.GetString("MatchClaimedCountFormat", _resourceCulture);
+
     }
 }

@@ -75,7 +75,7 @@ namespace RiskGame.Server.Services
             {
                 currentStep = stepsByColumn[columnNumber];
             }
-            return currentStep < column.MaximumSteps
+            return !column.IsClaimed && currentStep < column.MaximumSteps
                 && (stepsByColumn.ContainsKey(columnNumber) || stepsByColumn.Count < MaximumMarkers);
         }
 
@@ -96,19 +96,20 @@ namespace RiskGame.Server.Services
 
         private bool AdvanceColumn(Dictionary<int, int> proposedSteps, int columnNumber)
         {
+            boolean advance = true;
             MatchColumn column = GetColumn(columnNumber);
             int currentStep = column.StepsByUserId[userId];
             if (proposedSteps.ContainsKey(columnNumber))
             {
                 currentStep = proposedSteps[columnNumber];
             }
-            if (currentStep >= column.MaximumSteps
+            if (column.IsClaimed || currentStep >= column.MaximumSteps
                 || (!proposedSteps.ContainsKey(columnNumber) && proposedSteps.Count >= MaximumMarkers))
             {
-                return false;
+                advance = false;
             }
             proposedSteps[columnNumber] = currentStep + SingleStep;
-            return true;
+            return advance;
         }
 
         private MatchColumn GetColumn(int columnNumber)

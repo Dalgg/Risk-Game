@@ -36,6 +36,9 @@ message BoardState {
   int32 last_turn_user_id = 16;
   bool last_turn_busted = 17;
   bool can_stop = 18;
+  bool is_finished = 19;
+  int32 winner_user_id = 20;
+  int32 columns_to_win = 21;
 }
 
 message StopTurnRequest {
@@ -76,10 +79,13 @@ message BoardPlayer {
   string nickname = 2;
   riskgame.common.PlayerColor color = 3;
   bool is_connected = 4;
+  int32 claimed_columns = 5;
 }
 
 message BoardColumn {
   int32 column_number = 1;
   int32 maximum_steps = 2;
   map<int32, int32> steps_by_user_id = 3;
+  bool is_claimed = 4;
+  int32 owner_user_id = 5;
 }

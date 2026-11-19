@@ -188,4 +188,9 @@
   <data name="MatchStopTurn" xml:space="preserve"><value>PLANTARSE</value></data>
   <data name="MatchTurnSavedFormat" xml:space="preserve"><value>{0} se plantó y guardó su avance.</value></data>
   <data name="MatchTurnBustedFormat" xml:space="preserve"><value>{0} reventó y perdió el avance temporal.</value></data>
+  <data name="MatchFinished" xml:space="preserve"><value>PARTIDA TERMINADA</value></data>
+  <data name="MatchWinnerFormat" xml:space="preserve"><value>¡{0} ganó la partida!</value></data>
+  <data name="MatchClaimedMark" xml:space="preserve"><value>✓</value></data>
+  <data name="MatchColumnClaimedFormat" xml:space="preserve"><value>Columna {0} conquistada por {1}. Bloqueada.</value></data>
+  <data name="MatchClaimedCountFormat" xml:space="preserve"><value>Columnas conquistadas: {0}/{1}</value></data>
 </root>

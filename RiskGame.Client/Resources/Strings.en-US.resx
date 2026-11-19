@@ -186,4 +186,9 @@
   <data name="MatchStopTurn" xml:space="preserve"><value>STOP</value></data>
   <data name="MatchTurnSavedFormat" xml:space="preserve"><value>{0} stopped and saved their progress.</value></data>
   <data name="MatchTurnBustedFormat" xml:space="preserve"><value>{0} busted and lost their temporary progress.</value></data>
+  <data name="MatchFinished" xml:space="preserve"><value>MATCH FINISHED</value></data>
+  <data name="MatchWinnerFormat" xml:space="preserve"><value>{0} won the match!</value></data>
+  <data name="MatchClaimedMark" xml:space="preserve"><value>✓</value></data>
+  <data name="MatchColumnClaimedFormat" xml:space="preserve"><value>Column {0} claimed by {1}. Locked.</value></data>
+  <data name="MatchClaimedCountFormat" xml:space="preserve"><value>Claimed columns: {0}/{1}</value></data>
 </root>

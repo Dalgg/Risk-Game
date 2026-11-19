@@ -19,6 +19,7 @@ namespace RiskGame.Server.Services
         private const int NoSelectedPair = 0;
         private const int NoPreferredColumn = 0;
         private const int NextParticipantStep = 1;
+        private const int RequiredColumnsToWin = 3;
         private int currentParticipantIndex = FirstParticipantIndex;
 
         public ActiveMatch(int matchId, LobbyDetails lobbyDetails)
@@ -68,7 +69,13 @@ namespace RiskGame.Server.Services
 
         public bool LastTurnBusted { get; private set; }
 
-        public bool CanStop => !AwaitingPairChoice && SelectedPairIndex != NoSelectedPair
+        public bool IsFinished { get; private set; }
+
+        public int WinnerUserId { get; private set; }
+
+        public int ColumnsToWin => RequiredColumnsToWin;
+
+        public bool CanStop => !IsFinished && !AwaitingPairChoice && SelectedPairIndex != NoSelectedPair
             && TurnProgress.StepsByColumn.Count > NoSelectedPair;
 
         public long Revision { get; private set; } = InitialRevision;
@@ -86,6 +93,7 @@ namespace RiskGame.Server.Services
 
         public void ApplyRoll(IReadOnlyList<int> dice, long expectedRollId)
         {
+            EnsureActive();
             if (AwaitingPairChoice || expectedRollId != RollId)
             {
                 throw new MatchActionException("The previous roll is pending or the request is outdated.");
@@ -105,6 +113,7 @@ namespace RiskGame.Server.Services
 
         public void StopTurn(long turnId)
         {
+            EnsureActive();
             if (turnId != TurnId || !CanStop)
             {
                 throw new MatchActionException("The turn cannot be stopped before choosing a valid advance.");
@@ -116,7 +125,38 @@ namespace RiskGame.Server.Services
                     column.SaveProgress(CurrentTurnUserId, TurnProgress.StepsByColumn[column.ColumnNumber]);
                 }
             }
-            AdvanceTurn(false);
+            int claimedColumns = Columns.Count(column => column.IsClaimed && column.OwnerUserId == CurrentTurnUserId);
+            if (claimedColumns >= RequiredColumnsToWin)
+            {
+                FinishMatch();
+            }
+            else
+            {
+                AdvanceTurn(false);
+            }
+        }
+
+        private void EnsureActive()
+        {
+            if (IsFinished)
+            {
+                throw new MatchActionException("The match has already finished.");
+            }
+        }
+
+        private void FinishMatch()
+        {
+            WinnerUserId = CurrentTurnUserId;
+            IsFinished = true;
+            LastTurnUserId = CurrentTurnUserId;
+            LastTurnBusted = false;
+            TurnProgress = new MatchTurnProgress(CurrentTurnUserId, Columns);
+            Dice = Array.Empty<int>();
+            PairOptions = Array.Empty<DicePairCombination>();
+            AwaitingPairChoice = false;
+            SelectedPairIndex = NoSelectedPair;
+            TurnId++;
+            Revision++;
         }
 
         private void AdvanceTurn(bool busted)
@@ -136,6 +176,7 @@ namespace RiskGame.Server.Services
 
         public void ChoosePair(long rollId, int pairIndex, int preferredColumn = NoPreferredColumn)
         {
+            EnsureActive();
             if (!AwaitingPairChoice || rollId != RollId)
             {
                 throw new MatchActionException("This roll no longer accepts a pair choice.");

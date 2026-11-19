@@ -211,7 +211,10 @@ namespace RiskGame.Server.Services
                 TurnId = activeMatch.TurnId,
                 LastTurnUserId = activeMatch.LastTurnUserId,
                 LastTurnBusted = activeMatch.LastTurnBusted,
-                CanStop = activeMatch.CanStop
+                CanStop = activeMatch.CanStop,
+                IsFinished = activeMatch.IsFinished,
+                WinnerUserId = activeMatch.WinnerUserId,
+                ColumnsToWin = activeMatch.ColumnsToWin
             };
             foreach (KeyValuePair<int, int> progress in activeMatch.TurnProgress.StepsByColumn)
             {
@@ -237,14 +240,17 @@ namespace RiskGame.Server.Services
                 boardState.Players.Add(new BoardPlayer
                 {
                     UserId = participant.UserId, Nickname = participant.Nickname,
-                    Color = participant.Color, IsConnected = participant.IsConnected
+                    Color = participant.Color, IsConnected = participant.IsConnected,
+                    ClaimedColumns = activeMatch.Columns.Count(column =>
+                        column.IsClaimed && column.OwnerUserId == participant.UserId)
                 });
             }
             foreach (MatchColumn column in activeMatch.Columns)
             {
                 BoardColumn boardColumn = new BoardColumn
                 {
-                    ColumnNumber = column.ColumnNumber, MaximumSteps = column.MaximumSteps
+                    ColumnNumber = column.ColumnNumber, MaximumSteps = column.MaximumSteps,
+                    IsClaimed = column.IsClaimed, OwnerUserId = column.OwnerUserId
                 };
                 foreach (KeyValuePair<int, int> progress in column.StepsByUserId)
                 {

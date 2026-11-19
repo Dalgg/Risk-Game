@@ -385,7 +385,8 @@ namespace RiskGame.Views
             ThirdPairButton.IsEnabled = false;
             FirstColumnChoiceButton.IsEnabled = false;
             SecondColumnChoiceButton.IsEnabled = false;
-            if (currentBoardState != null && hasLiveStream && !hasClosed && !isActionPending
+            if (currentBoardState != null && !currentBoardState.IsFinished && hasLiveStream
+                && !hasClosed && !isActionPending
                 && currentBoardState.CurrentTurnUserId == SessionService.GetOrCreateCurrentUser().IdUser)
             {
                 RollDiceButton.IsEnabled = !currentBoardState.AwaitingPairChoice;
@@ -546,6 +547,16 @@ namespace RiskGame.Views
             }
             MatchRulesTextBlock.Text = string.Format(Strings.MatchRulesFormat,
                 rulesName, boardState.TurnDurationSeconds);
+            if (boardState.IsFinished)
+            {
+                BoardPlayer? winner = boardState.Players.FirstOrDefault(player =>
+                    player.UserId == boardState.WinnerUserId);
+                CurrentTurnTextBlock.Text = Strings.MatchFinished;
+                if (winner != null)
+                {
+                    TurnOutcomeTextBlock.Text = string.Format(Strings.MatchWinnerFormat, winner.Nickname);
+                }
+            }
         }
 
         private void RenderBoard(BoardState boardState)
@@ -553,6 +564,12 @@ namespace RiskGame.Views
             MatchBoardStackPanel.Children.Clear();
             foreach (BoardColumn column in boardState.Columns)
             {
+                IBrush columnBrush = CellBorderBrush;
+                BoardPlayer? owner = boardState.Players.FirstOrDefault(player => player.UserId == column.OwnerUserId);
+                if (column.IsClaimed && owner != null)
+                {
+                    columnBrush = ResolvePlayerBrush(owner.Color);
+                }
                 StackPanel columnPanel = new StackPanel
                 {
                     Spacing = CellSpacing, VerticalAlignment = VerticalAlignment.Bottom
@@ -562,7 +579,7 @@ namespace RiskGame.Views
                     Border cell = new Border
                     {
                         Width = CellWidth, Height = CellHeight, Background = CellBackground,
-                        BorderBrush = CellBorderBrush, BorderThickness = new Thickness(CellBorderThickness),
+                        BorderBrush = columnBrush, BorderThickness = new Thickness(CellBorderThickness),
                         CornerRadius = new CornerRadius(CellCornerRadius),
                         Child = CreateMarkers(column, step, boardState)
                     };
@@ -581,6 +598,16 @@ namespace RiskGame.Views
                     Foreground = Brushes.White, FontSize = ColumnFontSize,
                     HorizontalAlignment = HorizontalAlignment.Center
                 });
+                if (column.IsClaimed && owner != null)
+                {
+                    columnPanel.Children.Add(new TextBlock
+                    {
+                        Text = Strings.MatchClaimedMark, Foreground = columnBrush,
+                        HorizontalAlignment = HorizontalAlignment.Center, FontSize = StatusFontSize
+                    });
+                    ToolTip.SetTip(columnPanel,
+                        string.Format(Strings.MatchColumnClaimedFormat, column.ColumnNumber, owner.Nickname));
+                }
                 MatchBoardStackPanel.Children.Add(columnPanel);
             }
         }
@@ -594,7 +621,8 @@ namespace RiskGame.Views
             };
             foreach (BoardPlayer player in boardState.Players)
             {
-                if (column.StepsByUserId.ContainsKey(player.UserId) && column.StepsByUserId[player.UserId] == step)
+                if ((!column.IsClaimed || column.OwnerUserId == player.UserId)
+                    && column.StepsByUserId.ContainsKey(player.UserId) && column.StepsByUserId[player.UserId] == step)
                 {
                     markers.Children.Add(new Border
                     {
@@ -637,6 +665,12 @@ namespace RiskGame.Views
                 playerDetails.Children.Add(new TextBlock
                 {
                     Text = connectionStatus, Foreground = Brushes.White, FontSize = StatusFontSize
+                });
+                playerDetails.Children.Add(new TextBlock
+                {
+                    Text = string.Format(Strings.MatchClaimedCountFormat,
+                        player.ClaimedColumns, boardState.ColumnsToWin),
+                    Foreground = ActiveTurnBrush, FontSize = StatusFontSize
                 });
                 IBrush borderBrush = CellBorderBrush;
                 if (player.UserId == boardState.CurrentTurnUserId)

@@ -24,10 +24,18 @@ namespace RiskGame.Server.Services
 
         public int MaximumSteps { get; }
 
+        public bool IsClaimed { get; private set; }
+
+        public int OwnerUserId { get; private set; }
+
         public IReadOnlyDictionary<int, int> StepsByUserId { get; }
 
         public void SaveProgress(int userId, int step)
         {
+            if (IsClaimed)
+            {
+                throw new MatchActionException("The column has already been claimed.");
+            }
             if (!stepsByUserId.ContainsKey(userId) || step < InitialStep || step > MaximumSteps)
             {
                 throw new MatchActionException("The permanent progress does not belong to a valid board position.");
@@ -37,6 +45,18 @@ namespace RiskGame.Server.Services
                 throw new MatchActionException("Permanent progress cannot move backwards.");
             }
             stepsByUserId[userId] = step;
+            if (step == MaximumSteps)
+            {
+                IsClaimed = true;
+                OwnerUserId = userId;
+                foreach (int participantId in new List<int>(stepsByUserId.Keys))
+                {
+                    if (participantId != userId)
+                    {
+                        stepsByUserId[participantId] = InitialStep;
+                    }
+                }
+            }
         }
     }
 }
