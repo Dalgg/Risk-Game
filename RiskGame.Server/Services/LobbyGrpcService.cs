@@ -57,6 +57,19 @@ namespace RiskGame.Server.Services
             }
         }
 
+        public override Task<LobbyDetails> ReturnToLobby(ReturnToLobbyRequest request, ServerCallContext callContext)
+        {
+            try
+            {
+                return Task.FromResult(sessionManager.ReturnToLobby(request));
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                JsonLogger.Error(dataOperationException, "Could not return to the original lobby.");
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, dataOperationException.Message));
+            }
+        }
+
         public override Task<Empty> LeaveLobby(UserLobbyRequest leaveRequest, ServerCallContext callContext)
         {
             sessionManager.LeaveLobby(leaveRequest.UserId);
@@ -145,7 +158,7 @@ namespace RiskGame.Server.Services
                 }
 
                 callContext.CancellationToken.WaitHandle.WaitOne();
-                sessionManager.UnregisterSubscriber(subscribeRequest.UserId);
+                sessionManager.UnregisterSubscriber(subscribeRequest.UserId, responseStream);
                 return Task.CompletedTask;
             }
             catch (LobbyNotFoundException lobbyNotFoundException)

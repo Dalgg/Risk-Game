@@ -13,6 +13,13 @@ service Lobby {
   rpc GetFriends (UserLobbyRequest) returns (FriendSummaryList);
   rpc InviteFriend (InviteFriendRequest) returns (google.protobuf.Empty);
   rpc SubscribeLobbyEvents (UserLobbyRequest) returns (stream LobbyEvent);
+  rpc ReturnToLobby (ReturnToLobbyRequest) returns (LobbyDetails);
+}
+
+message ReturnToLobbyRequest {
+  int32 match_id = 1;
+  int32 user_id = 2;
+  string session_token = 3;
 }
 
 enum LobbyStatus {
@@ -43,6 +50,7 @@ message LobbyDetails {
   LobbyRules rules = 4;
   LobbyStatus status = 5;
   repeated LobbyPlayer players = 6;
+  bool can_start_match = 7;
 }
 
 message CreateLobbyRequest {

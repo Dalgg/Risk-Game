@@ -22,6 +22,7 @@ namespace RiskGame.Server.Services
         private const string FastRulesVariantName = "Fast";
         private const string StandardRulesVariantName = "Standard";
         private const int MinimumValidIdentifier = 1;
+        private const int NoPendingReturns = 0;
         private readonly object syncLock = new object();
         private readonly Dictionary<string, ActiveLobbyRoom> roomsByCode = new Dictionary<string, ActiveLobbyRoom>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<int, string> userToLobbyCode = new Dictionary<int, string>();
@@ -211,9 +212,48 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public void UnregisterSubscriber(int subscriberUserId)
+        public void UnregisterSubscriber(int subscriberUserId, IServerStreamWriter<LobbyEvent> responseStream)
         {
-            LeaveLobby(subscriberUserId);
+            lock (syncLock)
+            {
+                if (userToLobbyCode.ContainsKey(subscriberUserId)
+                    && roomsByCode.ContainsKey(userToLobbyCode[subscriberUserId]))
+                {
+                    ActiveLobbyRoom room = roomsByCode[userToLobbyCode[subscriberUserId]];
+                    if (room.Subscribers.ContainsKey(subscriberUserId)
+                        && ReferenceEquals(room.Subscribers[subscriberUserId], responseStream))
+                    {
+                        room.Subscribers.Remove(subscriberUserId);
+                        if (room.Status == LobbyStatus.Waiting && !room.PendingReturns.Contains(subscriberUserId))
+                        {
+                            LeaveLobby(subscriberUserId);
+                        }
+                    }
+                }
+            }
+        }
+
+        public LobbyDetails ReturnToLobby(ReturnToLobbyRequest request)
+        {
+            int lobbyId = matchSessionManager.GetFinishedLobbyId(request);
+            LobbyDetails snapshot;
+            List<IServerStreamWriter<LobbyEvent>> subscribers;
+            lock (syncLock)
+            {
+                ActiveLobbyRoom? room = roomsByCode.Values.FirstOrDefault(candidate => candidate.LobbyId == lobbyId);
+                if (room == null || room.ActiveMatchId != request.MatchId
+                    || !userToLobbyCode.ContainsKey(request.UserId)
+                    || userToLobbyCode[request.UserId] != room.LobbyCode)
+                {
+                    throw new MatchActionException("The original lobby is no longer available for this participant.");
+                }
+                room.PendingReturns.Remove(request.UserId);
+                room.Status = LobbyStatus.Waiting;
+                snapshot = BuildLobbyDetails(room);
+                subscribers = room.Subscribers.Values.ToList();
+            }
+            BroadcastLobbySnapshot(subscribers, snapshot);
+            return snapshot;
         }
 
         public int StartMatch(int requestingUserId)
@@ -239,6 +279,10 @@ namespace RiskGame.Server.Services
                 {
                     throw new InvalidOperationException("This lobby has already started its match.");
                 }
+                if (activeLobbyRoom.PendingReturns.Count != NoPendingReturns)
+                {
+                    throw new InvalidOperationException("Participants must return or leave before starting again.");
+                }
                 if (activeLobbyRoom.HostUserId != requestingUserId)
                 {
                     throw new InvalidOperationException("Only the lobby host can start the match.");
@@ -252,8 +296,15 @@ namespace RiskGame.Server.Services
                 LobbyDetails initialLobbyDetails = BuildLobbyDetails(activeLobbyRoom);
                 int createdMatchId = lobbyRepository.CreateMatchInDatabase(activeLobbyRoom.LobbyId);
                 activeMatch = matchSessionManager.CreateMatch(createdMatchId, initialLobbyDetails);
+                activeLobbyRoom.ActiveMatchId = activeMatch.MatchId;
+                foreach (LobbyPlayer player in activeLobbyRoom.Players)
+                {
+                    activeLobbyRoom.PendingReturns.Add(player.Player.UserId);
+                }
                 activeLobbyRoom.Status = LobbyStatus.InMatch;
                 subscribersToNotify = activeLobbyRoom.Subscribers.Values.ToList();
+                activeLobbyRoom.Subscribers.Clear();
+                activeLobbyRoom.ChatSubscribers.Clear();
             }
 
             LobbyEvent matchStartingEvent = new LobbyEvent
@@ -285,7 +336,7 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public void UnregisterChatSubscriber(int subscriberUserId)
+        public void UnregisterChatSubscriber(int subscriberUserId, IServerStreamWriter<ChatMessage> responseStream)
         {
             lock (syncLock)
             {
@@ -295,7 +346,11 @@ namespace RiskGame.Server.Services
                     if (roomsByCode.ContainsKey(assignedLobbyCode))
                     {
                         ActiveLobbyRoom activeLobbyRoom = roomsByCode[assignedLobbyCode];
-                        activeLobbyRoom.ChatSubscribers.Remove(subscriberUserId);
+                        if (activeLobbyRoom.ChatSubscribers.ContainsKey(subscriberUserId)
+                            && ReferenceEquals(activeLobbyRoom.ChatSubscribers[subscriberUserId], responseStream))
+                        {
+                            activeLobbyRoom.ChatSubscribers.Remove(subscriberUserId);
+                        }
                     }
                 }
             }
@@ -438,6 +493,7 @@ namespace RiskGame.Server.Services
 
         private static void RemovePlayerFromRoom(ActiveLobbyRoom activeLobbyRoom, int targetUserId)
         {
+            activeLobbyRoom.PendingReturns.Remove(targetUserId);
             activeLobbyRoom.Subscribers.Remove(targetUserId);
             activeLobbyRoom.ChatSubscribers.Remove(targetUserId);
             LobbyPlayer? matchingLobbyPlayer = activeLobbyRoom.Players.FirstOrDefault(
@@ -510,7 +566,10 @@ namespace RiskGame.Server.Services
                 LobbyCode = activeLobbyRoom.LobbyCode,
                 HostUserId = activeLobbyRoom.HostUserId,
                 Rules = activeLobbyRoom.Rules.Clone(),
-                Status = activeLobbyRoom.Status
+                Status = activeLobbyRoom.Status,
+                CanStartMatch = activeLobbyRoom.Status == LobbyStatus.Waiting
+                    && activeLobbyRoom.PendingReturns.Count == NoPendingReturns
+                    && activeLobbyRoom.Players.Count >= MinimumPlayersToStart
             };
 
             foreach (LobbyPlayer registeredPlayer in activeLobbyRoom.Players)
@@ -594,6 +653,10 @@ namespace RiskGame.Server.Services
 
         private sealed class ActiveLobbyRoom
         {
+            public int ActiveMatchId { get; set; }
+
+            public HashSet<int> PendingReturns { get; } = new HashSet<int>();
+
             public int LobbyId { get; init; }
 
             public string LobbyCode { get; init; } = string.Empty;

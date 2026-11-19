@@ -58,6 +58,7 @@ namespace RiskGame.Views
         private int matchIdentifier;
         private long latestRevision;
         private bool hasClosed;
+        private bool hasOpenedResult;
         private bool hasLiveStream;
         private bool isActionPending;
         private BoardState? currentBoardState;
@@ -283,8 +284,25 @@ namespace RiskGame.Views
                 RenderTurn(boardState);
                 RenderDice(boardState);
                 MatchStatusTextBlock.Text = Strings.MatchSynchronized;
+                if (boardState.IsFinished)
+                {
+                    OpenResultWindow(boardState);
+                }
             }
             UpdateActionButtons();
+        }
+
+        private void OpenResultWindow(BoardState boardState)
+        {
+            if (!hasOpenedResult && !hasClosed && Application.Current != null
+                && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            {
+                hasOpenedResult = true;
+                MatchResultWindow result = new MatchResultWindow(boardState);
+                desktopLifetime.MainWindow = result;
+                result.Show();
+                Close();
+            }
         }
 
         private void RenderDice(BoardState boardState)

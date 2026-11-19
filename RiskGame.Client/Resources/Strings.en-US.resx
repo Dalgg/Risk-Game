@@ -191,4 +191,7 @@
   <data name="MatchClaimedMark" xml:space="preserve"><value>✓</value></data>
   <data name="MatchColumnClaimedFormat" xml:space="preserve"><value>Column {0} claimed by {1}. Locked.</value></data>
   <data name="MatchClaimedCountFormat" xml:space="preserve"><value>Claimed columns: {0}/{1}</value></data>
+  <data name="MatchResultReturnButton" xml:space="preserve"><value>RETURN TO LOBBY</value></data>
+  <data name="MatchResultReturnError" xml:space="preserve"><value>Could not return to the original lobby. Check your connection and try again.</value></data>
+  <data name="LobbyWaitingForReturns" xml:space="preserve"><value>Waiting for participants to return or leave the lobby.</value></data>
 </root>

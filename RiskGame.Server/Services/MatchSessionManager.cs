@@ -130,6 +130,19 @@ namespace RiskGame.Server.Services
             return activeMatch;
         }
 
+        public int GetFinishedLobbyId(ReturnToLobbyRequest request)
+        {
+            lock (matchLock)
+            {
+                ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
+                if (!activeMatch.IsFinished)
+                {
+                    throw new MatchActionException("The match has not finished yet.");
+                }
+                return activeMatch.LobbyId;
+            }
+        }
+
         public BoardState RollDice(RollDiceRequest request)
         {
             BoardState boardState;

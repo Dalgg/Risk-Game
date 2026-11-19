@@ -193,4 +193,7 @@
   <data name="MatchClaimedMark" xml:space="preserve"><value>✓</value></data>
   <data name="MatchColumnClaimedFormat" xml:space="preserve"><value>Columna {0} conquistada por {1}. Bloqueada.</value></data>
   <data name="MatchClaimedCountFormat" xml:space="preserve"><value>Columnas conquistadas: {0}/{1}</value></data>
+  <data name="MatchResultReturnButton" xml:space="preserve"><value>REGRESAR A LA SALA</value></data>
+  <data name="MatchResultReturnError" xml:space="preserve"><value>No se pudo regresar a la sala original. Comprueba la conexión e inténtalo de nuevo.</value></data>
+  <data name="LobbyWaitingForReturns" xml:space="preserve"><value>Esperando a que los participantes regresen o salgan de la sala.</value></data>
 </root>

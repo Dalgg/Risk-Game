@@ -46,7 +46,7 @@ namespace RiskGame.Server.Services
                 sessionManager.RegisterChatSubscriber(channelRequest.UserId, responseStream);
 
                 callContext.CancellationToken.WaitHandle.WaitOne();
-                sessionManager.UnregisterChatSubscriber(channelRequest.UserId);
+                sessionManager.UnregisterChatSubscriber(channelRequest.UserId, responseStream);
                 return Task.CompletedTask;
             }
             catch (LobbyNotFoundException lobbyNotFoundException)

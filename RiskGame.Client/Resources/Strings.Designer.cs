@@ -362,5 +362,11 @@ namespace RiskGame.Resources
 
         public static string MatchClaimedCountFormat => ResourceManager.GetString("MatchClaimedCountFormat", _resourceCulture);
 
+        public static string MatchResultReturnButton => ResourceManager.GetString("MatchResultReturnButton", _resourceCulture);
+
+        public static string MatchResultReturnError => ResourceManager.GetString("MatchResultReturnError", _resourceCulture);
+
+        public static string LobbyWaitingForReturns => ResourceManager.GetString("LobbyWaitingForReturns", _resourceCulture);
+
     }
 }

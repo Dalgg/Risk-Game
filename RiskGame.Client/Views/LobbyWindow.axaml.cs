@@ -101,7 +101,16 @@ namespace RiskGame.Views
             bool isCurrentUserHost = lobbyDetails.HostUserId == currentSessionUser.IdUser;
 
             LobbyPlayButton.IsVisible = isCurrentUserHost;
-            LobbyPlayButton.IsEnabled = isCurrentUserHost && lobbyDetails.Players.Count >= MinimumPlayersToStart;
+            LobbyPlayButton.IsEnabled = isCurrentUserHost && lobbyDetails.CanStartMatch;
+            if (lobbyDetails.Status == LobbyStatus.Waiting && !lobbyDetails.CanStartMatch
+                && lobbyDetails.Players.Count >= MinimumPlayersToStart)
+            {
+                ShowLobbyMessage(Strings.LobbyWaitingForReturns);
+            }
+            else
+            {
+                LobbyMessageTextBlock.IsVisible = false;
+            }
         }
 
         private void AppendChatMessage(ChatMessage incomingMessage)

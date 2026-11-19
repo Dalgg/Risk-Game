@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:res="using:RiskGame.Resources"
+        x:Class="RiskGame.Views.MatchResultWindow"
+        Title="{x:Static res:Strings.MatchFinished}"
+        Width="{StaticResource ResultWidth}" Height="{StaticResource ResultHeight}"
+        CanResize="False" Background="#181A25" Loaded="OnWindowLoaded">
+    <Window.Resources>
+        <x:Double x:Key="ResultWidth">550</x:Double>
+        <x:Double x:Key="ResultHeight">350</x:Double>
+        <x:Double x:Key="HeadingSize">28</x:Double>
+        <x:Double x:Key="WinnerSize">24</x:Double>
+        <x:Double x:Key="SectionSpacing">20</x:Double>
+        <x:Double x:Key="ButtonHeight">45</x:Double>
+        <Thickness x:Key="OuterMargin">15</Thickness>
+        <Thickness x:Key="PanelPadding">25</Thickness>
+        <Thickness x:Key="FrameThickness">2</Thickness>
+        <Thickness x:Key="ButtonPadding">20,10</Thickness>
+        <CornerRadius x:Key="PanelRadius">8</CornerRadius>
+    </Window.Resources>
+    <Border Margin="{StaticResource OuterMargin}" Padding="{StaticResource PanelPadding}"
+            BorderBrush="#353A5A" BorderThickness="{StaticResource FrameThickness}"
+            CornerRadius="{StaticResource PanelRadius}">
+        <StackPanel Spacing="{StaticResource SectionSpacing}" VerticalAlignment="Center">
+            <TextBlock Text="{x:Static res:Strings.MatchFinished}" Foreground="White"
+                       FontSize="{StaticResource HeadingSize}" FontWeight="Bold" TextAlignment="Center"/>
+            <TextBlock x:Name="WinnerTextBlock" Foreground="#D4A32D" FontSize="{StaticResource WinnerSize}"
+                       TextWrapping="Wrap" TextAlignment="Center"/>
+            <TextBlock x:Name="ErrorTextBlock" Foreground="#FF8A8A" TextWrapping="Wrap" TextAlignment="Center"/>
+            <Button x:Name="ReturnButton" Content="{x:Static res:Strings.MatchResultReturnButton}"
+                    Click="ReturnClick" IsDefault="True" HorizontalAlignment="Center"
+                    Height="{StaticResource ButtonHeight}" Padding="{StaticResource ButtonPadding}"
+                    Background="#3273B2" Foreground="White" CornerRadius="{StaticResource PanelRadius}"/>
+        </StackPanel>
+    </Border>
+</Window>
