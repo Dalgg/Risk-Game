@@ -96,7 +96,7 @@ namespace RiskGame.Server.Services
 
         private bool AdvanceColumn(Dictionary<int, int> proposedSteps, int columnNumber)
         {
-            boolean advance = true;
+            bool advance = true;
             MatchColumn column = GetColumn(columnNumber);
             int currentStep = column.StepsByUserId[userId];
             if (proposedSteps.ContainsKey(columnNumber))
