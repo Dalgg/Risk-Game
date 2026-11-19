@@ -36,6 +36,7 @@ namespace RiskGame.Server.Tests
         private static readonly int[] ShortDoubleDice = { 1, 1, 1, 1 };
         private static readonly int[] TwoNewColumnsDice = { 1, 1, 1, 2 };
         private static readonly int[] OneAvailableSumDice = { 1, 4, 3, 3 };
+        private static readonly int[] NewColumnFirstDice = { 3, 3, 1, 4 };
         private static readonly int[] NoAvailableSumDice = { 1, 1, 6, 6 };
 
         [Fact]
@@ -630,6 +631,60 @@ namespace RiskGame.Server.Tests
 
             Assert.Equal(InitialStep, match.Columns.First(column => column.ColumnNumber == FirstColumn)
                 .StepsByUserId[FirstUserId]);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ChoosePair_MixedAvailability_DoesNotCreateNewMarker(bool newColumnFirst)
+        {
+            ActiveMatch match = CreateMatchWithThreeMarkers();
+            int[] dice = OneAvailableSumDice;
+            if (newColumnFirst)
+            {
+                dice = NewColumnFirstDice;
+            }
+            match.ApplyRoll(dice, SecondRollId);
+
+            match.ChoosePair(ThirdRollId, FirstPairIndex);
+
+            Assert.False(match.TurnProgress.StepsByColumn.ContainsKey(UnavailableColumn));
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ChoosePair_MixedAvailability_KeepsThreeMarkers(bool newColumnFirst)
+        {
+            ActiveMatch match = CreateMatchWithThreeMarkers();
+            int[] dice = OneAvailableSumDice;
+            if (newColumnFirst)
+            {
+                dice = NewColumnFirstDice;
+            }
+            match.ApplyRoll(dice, SecondRollId);
+
+            match.ChoosePair(ThirdRollId, FirstPairIndex);
+
+            Assert.Equal(ThreeMarkers, match.TurnProgress.StepsByColumn.Count);
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ChoosePair_MixedAvailability_AdvancesExistingMarker(bool newColumnFirst)
+        {
+            ActiveMatch match = CreateMatchWithThreeMarkers();
+            int[] dice = OneAvailableSumDice;
+            if (newColumnFirst)
+            {
+                dice = NewColumnFirstDice;
+            }
+            match.ApplyRoll(dice, SecondRollId);
+
+            match.ChoosePair(ThirdRollId, FirstPairIndex);
+
+            Assert.Equal(SecondStep, match.TurnProgress.StepsByColumn[FirstColumn]);
         }
 
         private static ActiveMatch CreateMatchWithThreeMarkers()

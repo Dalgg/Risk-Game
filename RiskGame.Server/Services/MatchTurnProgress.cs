@@ -108,7 +108,10 @@ namespace RiskGame.Server.Services
             {
                 advance = false;
             }
-            proposedSteps[columnNumber] = currentStep + SingleStep;
+            if (advance)
+            {
+                proposedSteps[columnNumber] = currentStep + SingleStep;
+            }
             return advance;
         }
 
