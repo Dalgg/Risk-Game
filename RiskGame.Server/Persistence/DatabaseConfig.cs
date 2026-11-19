@@ -23,16 +23,14 @@ namespace RiskGame.Services
             foreach (string candidateDirectory in candidateDirectories)
             {
                 string settingsFilePath = Path.Combine(candidateDirectory, SettingsFileName);
-                if (!File.Exists(settingsFilePath))
+                if (File.Exists(settingsFilePath))
                 {
-                    continue;
-                }
-
-                using JsonDocument jsonDocument = JsonDocument.Parse(File.ReadAllText(settingsFilePath));
-                string? configuredConnectionString = ExtractConnectionString(jsonDocument.RootElement);
-                if (!string.IsNullOrWhiteSpace(configuredConnectionString))
-                {
-                    return configuredConnectionString;
+                    using JsonDocument jsonDocument = JsonDocument.Parse(File.ReadAllText(settingsFilePath));
+                    string? configuredConnectionString = ExtractConnectionString(jsonDocument.RootElement);
+                    if (!string.IsNullOrWhiteSpace(configuredConnectionString))
+                    {
+                        return configuredConnectionString;
+                    }
                 }
             }
 

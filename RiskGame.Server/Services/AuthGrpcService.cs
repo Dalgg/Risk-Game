@@ -68,11 +68,11 @@ namespace RiskGame.Server.Services
             }
             catch (DataOperationException dataOperationException)
             {
-                JsonLogger.Error(dataOperationException, "Login failed during data access.");
                 if (dataOperationException is InvalidCredentialsException)
                 {
                     return Task.FromResult(new LoginResponse { IsAuthenticated = false });
                 }
+                JsonLogger.Error(dataOperationException, "Login failed during data access.");
                 throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
             }
         }

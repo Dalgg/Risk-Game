@@ -187,18 +187,19 @@ namespace RiskGame.ViewModels
                     DispatchLobbyEvent(currentLobbyEvent, lobbyCallback);
                 }
             }
-            catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.Cancelled
-                || cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "Lobby event stream disconnected with RpcException.");
+                if (!cancellationToken.IsCancellationRequested && rpcException.StatusCode != StatusCode.Cancelled)
+                {
+                    JsonLogger.Error(rpcException, "Lobby event stream disconnected with RpcException.");
+                }
+            }
+            catch (OperationCanceledException canceledException)
+            {
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    JsonLogger.Error(canceledException, "Lobby event stream operation was cancelled unexpectedly.");
+                }
             }
         }
 
@@ -232,18 +233,19 @@ namespace RiskGame.ViewModels
                     chatCallback.MessageReceived(incomingMessage);
                 }
             }
-            catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.Cancelled
-                || cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "Chat stream disconnected with RpcException.");
+                if (!cancellationToken.IsCancellationRequested && rpcException.StatusCode != StatusCode.Cancelled)
+                {
+                    JsonLogger.Error(rpcException, "Chat stream disconnected with RpcException.");
+                }
+            }
+            catch (OperationCanceledException canceledException)
+            {
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    JsonLogger.Error(canceledException, "Chat stream operation was cancelled unexpectedly.");
+                }
             }
         }
 

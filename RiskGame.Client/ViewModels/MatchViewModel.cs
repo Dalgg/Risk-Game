@@ -126,19 +126,21 @@ namespace RiskGame.ViewModels
                     matchCallback.MatchStreamStopped(Strings.MatchConnectionError);
                 }
             }
-            catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.Cancelled
-                || cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "The match stream stopped with a gRPC error.");
-                matchCallback.MatchStreamStopped(GetStreamError(rpcException));
+                if (!cancellationToken.IsCancellationRequested && rpcException.StatusCode != StatusCode.Cancelled)
+                {
+                    JsonLogger.Error(rpcException, "The match stream stopped with a gRPC error.");
+                    matchCallback.MatchStreamStopped(GetStreamError(rpcException));
+                }
+            }
+            catch (OperationCanceledException canceledException)
+            {
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    JsonLogger.Error(canceledException, "The match subscription was cancelled unexpectedly.");
+                    matchCallback.MatchStreamStopped(Strings.MatchConnectionError);
+                }
             }
         }
 

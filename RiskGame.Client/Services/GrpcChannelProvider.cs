@@ -29,24 +29,22 @@ namespace RiskGame.Services
             foreach (string candidateDirectory in candidateDirectories)
             {
                 string settingsFilePath = Path.Combine(candidateDirectory, SettingsFileName);
-                if (!File.Exists(settingsFilePath))
+                if (File.Exists(settingsFilePath))
                 {
-                    continue;
-                }
-
-                try
-                {
-                    using JsonDocument jsonDocument = JsonDocument.Parse(File.ReadAllText(settingsFilePath));
-                    string? configuredAddress = ExtractServerUrl(jsonDocument.RootElement);
-                    if (!string.IsNullOrWhiteSpace(configuredAddress))
+                    try
                     {
-                        return configuredAddress;
+                        using JsonDocument jsonDocument = JsonDocument.Parse(File.ReadAllText(settingsFilePath));
+                        string? configuredAddress = ExtractServerUrl(jsonDocument.RootElement);
+                        if (!string.IsNullOrWhiteSpace(configuredAddress))
+                        {
+                            return configuredAddress;
+                        }
                     }
-                }
-                catch (JsonException jsonException)
-                {
-                    JsonLogger.Error(jsonException, "Failed to parse local configuration file {0}.", settingsFilePath);
-                    return DefaultServerAddress;
+                    catch (JsonException jsonException)
+                    {
+                        JsonLogger.Error(jsonException, "Failed to parse local configuration file {0}.", settingsFilePath);
+                        return DefaultServerAddress;
+                    }
                 }
             }
 

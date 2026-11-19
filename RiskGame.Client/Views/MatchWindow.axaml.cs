@@ -142,6 +142,9 @@ namespace RiskGame.Views
                     case GamepadAction.Cancel:
                         CancelPendingChoice();
                         break;
+                    case GamepadAction.None:
+                    default:
+                        break;
                 }
             }
         }
@@ -161,7 +164,6 @@ namespace RiskGame.Views
             List<Button> enabledButtons = GetEnabledMatchButtons();
             if (enabledButtons.Count > NoEnabledActions)
             {
-
                 if (focusedActionIndex < InitialFocusIndex || focusedActionIndex >= enabledButtons.Count)
                 {
                     focusedActionIndex = InitialFocusIndex;
@@ -173,13 +175,13 @@ namespace RiskGame.Views
                     RollDiceClick(RollDiceButton, new RoutedEventArgs());
                 }
                 else if (ReferenceEquals(targetButton, FirstPairButton)
-                || ReferenceEquals(targetButton, SecondPairButton)
-                || ReferenceEquals(targetButton, ThirdPairButton))
+                    || ReferenceEquals(targetButton, SecondPairButton)
+                    || ReferenceEquals(targetButton, ThirdPairButton))
                 {
                     ChoosePairClick(targetButton, new RoutedEventArgs());
                 }
                 else if (ReferenceEquals(targetButton, FirstColumnChoiceButton)
-                || ReferenceEquals(targetButton, SecondColumnChoiceButton))
+                    || ReferenceEquals(targetButton, SecondColumnChoiceButton))
                 {
                     ChooseColumnClick(targetButton, new RoutedEventArgs());
                 }

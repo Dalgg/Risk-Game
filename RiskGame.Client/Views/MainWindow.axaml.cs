@@ -14,6 +14,8 @@ namespace RiskGame.Views
     {
         private const int PreviousDirection = -1;
         private const int NextDirection = 1;
+        private const int EmptyButtonCount = 0;
+        private const int FirstButtonIndex = 0;
         private int focusedButtonIndex;
 
         public MainWindow()
@@ -53,66 +55,65 @@ namespace RiskGame.Views
                 case GamepadAction.Cancel:
                     Close();
                     break;
+                case GamepadAction.None:
+                default:
+                    break;
             }
         }
 
         private void MoveButtonFocus(int step)
         {
             List<Button> buttons = GetNavigableButtons();
-            if (buttons.Count == 0)
+            if (buttons.Count > EmptyButtonCount)
             {
-                return;
+                focusedButtonIndex = (focusedButtonIndex + step + buttons.Count) % buttons.Count;
+                buttons[focusedButtonIndex].Focus();
             }
-
-            focusedButtonIndex = (focusedButtonIndex + step + buttons.Count) % buttons.Count;
-            buttons[focusedButtonIndex].Focus();
         }
 
         private void ActivateFocusedButton()
         {
             List<Button> buttons = GetNavigableButtons();
-            if (buttons.Count == 0)
+            if (buttons.Count > EmptyButtonCount)
             {
-                return;
-            }
+                if (focusedButtonIndex < FirstButtonIndex || focusedButtonIndex >= buttons.Count)
+                {
+                    focusedButtonIndex = FirstButtonIndex;
+                }
 
-            if (focusedButtonIndex < 0 || focusedButtonIndex >= buttons.Count)
-            {
-                focusedButtonIndex = 0;
-            }
-
-            Button selectedButton = buttons[focusedButtonIndex];
-            if (ReferenceEquals(selectedButton, RoomsButton))
-            {
-                OnRoomsClick(RoomsButton, new RoutedEventArgs());
-            }
-            else if (ReferenceEquals(selectedButton, ExitButton))
-            {
-                OnExitClick(ExitButton, new RoutedEventArgs());
-            }
-            else if (ReferenceEquals(selectedButton, LeaderboardButton))
-            {
-                OnLeaderboardClick(LeaderboardButton, new RoutedEventArgs());
-            }
-            else if (ReferenceEquals(selectedButton, FriendsButton))
-            {
-                OnFriendsClick(FriendsButton, new RoutedEventArgs());
-            }
-            else if (ReferenceEquals(selectedButton, SettingsButton))
-            {
-                OnSettingsClick(SettingsButton, new RoutedEventArgs());
-            }
-            else if (ReferenceEquals(selectedButton, InboxButton))
-            {
-                OnInboxClick(InboxButton, new RoutedEventArgs());
-            }
-            else if (ReferenceEquals(selectedButton, LoginButton))
-            {
-                OnLoginClick(LoginButton, new RoutedEventArgs());
-            }
-            else if (ReferenceEquals(selectedButton, ProfileButton) && DataContext is MainViewModel viewModel)
-            {
-                viewModel.OpenProfileCommand.Execute(null);
+                Button selectedButton = buttons[focusedButtonIndex];
+                if (ReferenceEquals(selectedButton, RoomsButton))
+                {
+                    OnRoomsClick(RoomsButton, new RoutedEventArgs());
+                }
+                else if (ReferenceEquals(selectedButton, ExitButton))
+                {
+                    OnExitClick(ExitButton, new RoutedEventArgs());
+                }
+                else if (ReferenceEquals(selectedButton, LeaderboardButton))
+                {
+                    OnLeaderboardClick(LeaderboardButton, new RoutedEventArgs());
+                }
+                else if (ReferenceEquals(selectedButton, FriendsButton))
+                {
+                    OnFriendsClick(FriendsButton, new RoutedEventArgs());
+                }
+                else if (ReferenceEquals(selectedButton, SettingsButton))
+                {
+                    OnSettingsClick(SettingsButton, new RoutedEventArgs());
+                }
+                else if (ReferenceEquals(selectedButton, InboxButton))
+                {
+                    OnInboxClick(InboxButton, new RoutedEventArgs());
+                }
+                else if (ReferenceEquals(selectedButton, LoginButton))
+                {
+                    OnLoginClick(LoginButton, new RoutedEventArgs());
+                }
+                else if (ReferenceEquals(selectedButton, ProfileButton) && DataContext is MainViewModel viewModel)
+                {
+                    viewModel.OpenProfileCommand.Execute(null);
+                }
             }
         }
 
