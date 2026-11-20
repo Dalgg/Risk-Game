@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32.SafeHandles;
 
 namespace RiskGame.Services
 {
@@ -33,7 +34,7 @@ namespace RiskGame.Services
         }
     }
 
-    public static class GamepadService
+    public static partial class GamepadService
     {
         private const int MaximumControllers = 4;
         private const int FirstControllerIndex = 0;
@@ -175,7 +176,7 @@ namespace RiskGame.Services
             {
                 if (!File.Exists(devicePath))
                 {
-                    WaitBeforeRetry(cancellationToken, ReconnectDelayMilliseconds);
+                    WaitBeforeRetry(ReconnectDelayMilliseconds, cancellationToken);
                 }
                 else
                 {
@@ -215,12 +216,12 @@ namespace RiskGame.Services
             }
             catch (IOException)
             {
-                WaitBeforeRetry(cancellationToken, ReconnectDelayMilliseconds);
+                WaitBeforeRetry(ReconnectDelayMilliseconds, cancellationToken);
             }
             catch (UnauthorizedAccessException unauthorizedException)
             {
                 JsonLogger.Error(unauthorizedException, "Could not access joystick device {0}.", devicePath);
-                WaitBeforeRetry(cancellationToken, ReconnectDelayMilliseconds);
+                WaitBeforeRetry(ReconnectDelayMilliseconds, cancellationToken);
             }
         }
 
@@ -228,9 +229,9 @@ namespace RiskGame.Services
         {
             byte[] axisMap = new byte[LinuxAxisMapLength];
             ushort[] buttonMap = new ushort[LinuxButtonMapLength];
-            int fileDescriptor = (int)deviceStream.SafeFileHandle.DangerousGetHandle();
-            bool hasAxisMap = QueryLinuxAxisMap(fileDescriptor, LinuxIoctlGetAxisMap, axisMap) != IoctlFailureResult;
-            bool hasButtonMap = QueryLinuxButtonMap(fileDescriptor, LinuxIoctlGetButtonMap, buttonMap)
+            SafeFileHandle fileHandle = deviceStream.SafeFileHandle;
+            bool hasAxisMap = QueryLinuxAxisMap(fileHandle, LinuxIoctlGetAxisMap, axisMap) != IoctlFailureResult;
+            bool hasButtonMap = QueryLinuxButtonMap(fileHandle, LinuxIoctlGetButtonMap, buttonMap)
                 != IoctlFailureResult;
 
             return new LinuxJoystickLayout
@@ -451,7 +452,7 @@ namespace RiskGame.Services
                     delayMilliseconds = PollingDelayMilliseconds;
                 }
 
-                WaitBeforeRetry(cancellationToken, delayMilliseconds);
+                WaitBeforeRetry(delayMilliseconds, cancellationToken);
             }
         }
 
@@ -584,19 +585,19 @@ namespace RiskGame.Services
             }
         }
 
-        private static void WaitBeforeRetry(CancellationToken cancellationToken, int delayMilliseconds)
+        private static void WaitBeforeRetry(int delayMilliseconds, CancellationToken cancellationToken)
         {
             cancellationToken.WaitHandle.WaitOne(delayMilliseconds);
         }
 
-        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
-        private static extern int QueryLinuxAxisMap(int fileDescriptor, ulong request, [Out] byte[] axisMap);
+        [LibraryImport("libc", EntryPoint = "ioctl", SetLastError = true)]
+        private static partial int QueryLinuxAxisMap(SafeFileHandle fileHandle, ulong request, [Out] byte[] axisMap);
 
-        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
-        private static extern int QueryLinuxButtonMap(int fileDescriptor, ulong request, [Out] ushort[] buttonMap);
+        [LibraryImport("libc", EntryPoint = "ioctl", SetLastError = true)]
+        private static partial int QueryLinuxButtonMap(SafeFileHandle fileHandle, ulong request, [Out] ushort[] buttonMap);
 
-        [DllImport("winmm.dll")]
-        private static extern uint joyGetPosEx(uint joyId, ref WindowsJoyInfoEx joyInfo);
+        [LibraryImport("winmm.dll")]
+        private static partial uint joyGetPosEx(uint joyId, ref WindowsJoyInfoEx joyInfo);
 
         private sealed class LinuxJoystickLayout
         {

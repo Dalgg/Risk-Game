@@ -32,20 +32,16 @@ namespace RiskGame.Views
 
         private void OnLanguageChanged(object? sender, SelectionChangedEventArgs selectionChangedEventArgs)
         {
-            if (sender is not ComboBox comboBox)
+            if (sender is ComboBox comboBox)
             {
-                return;
-            }
-
-            switch (comboBox.SelectedIndex)
-            {
-                case SpanishOptionIndex:
+                if (comboBox.SelectedIndex == SpanishOptionIndex)
+                {
                     Strings.Culture = new CultureInfo("es");
-                    break;
-
-                case EnglishOptionIndex:
+                }
+                else if (comboBox.SelectedIndex == EnglishOptionIndex)
+                {
                     Strings.Culture = new CultureInfo("en-US");
-                    break;
+                }
             }
         }
 

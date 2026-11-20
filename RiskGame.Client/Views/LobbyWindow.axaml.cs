@@ -28,6 +28,8 @@ namespace RiskGame.Views
         private const int RoleColumnIndex = 1;
         private const int InvitationColumnIndex = 2;
         private const int ChatMessageFontSize = 14;
+        private const int FriendsNoticeFontSize = 13;
+        private const int FriendsNoticeTopMargin = 10;
         private const int MaxChatMessagesDisplayed = 100;
         private const int MinimumPlayersToStart = 2;
         private static readonly IBrush PlayerCardBackground = new SolidColorBrush(Color.Parse("#25293A"));
@@ -209,22 +211,20 @@ namespace RiskGame.Views
                 messageText = ChatInputTextBox.Text.Trim();
             }
 
-            if (string.IsNullOrWhiteSpace(messageText))
+            if (!string.IsNullOrWhiteSpace(messageText))
             {
-                return;
-            }
+                LobbyMessageTextBlock.IsVisible = false;
 
-            LobbyMessageTextBlock.IsVisible = false;
-
-            try
-            {
-                lobbyViewModel.SendMessage(messageText);
-                ChatInputTextBox.Text = string.Empty;
-                ChatInputTextBox.Focus();
-            }
-            catch (DataOperationException dataOperationException)
-            {
-                ShowLobbyMessage(dataOperationException.Message);
+                try
+                {
+                    lobbyViewModel.SendMessage(messageText);
+                    ChatInputTextBox.Text = string.Empty;
+                    ChatInputTextBox.Focus();
+                }
+                catch (DataOperationException dataOperationException)
+                {
+                    ShowLobbyMessage(dataOperationException.Message);
+                }
             }
         }
 
@@ -297,45 +297,48 @@ namespace RiskGame.Views
             SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
             if (currentSessionUser.IsGuest)
             {
-                TextBlock guestNoticeBlock = new TextBlock
-                {
-                    Text = Strings.LobbyFriendsGuestDisabled,
-                    Foreground = OtherChatMessageBrush,
-                    FontSize = 13,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Margin = new Thickness(0, 10, 0, 0)
-                };
-                FriendsStackPanel.Children.Add(guestNoticeBlock);
-                return;
+                FriendsStackPanel.Children.Add(CreateFriendsNotice(Strings.LobbyFriendsGuestDisabled));
             }
+            else
+            {
+                PopulateRegisteredFriends();
+            }
+        }
 
+        private void PopulateRegisteredFriends()
+        {
             try
             {
                 List<FriendSummary> friends = lobbyViewModel.GetFriends();
                 if (friends.Count == 0)
                 {
-                    TextBlock emptyNoticeBlock = new TextBlock
-                    {
-                        Text = Strings.LobbyNoFriendsMessage,
-                        Foreground = OtherChatMessageBrush,
-                        FontSize = 13,
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        Margin = new Thickness(0, 10, 0, 0)
-                    };
-                    FriendsStackPanel.Children.Add(emptyNoticeBlock);
-                    return;
+                    FriendsStackPanel.Children.Add(CreateFriendsNotice(Strings.LobbyNoFriendsMessage));
                 }
-
-                foreach (FriendSummary friend in friends)
+                else
                 {
-                    Border friendCard = CreateFriendCard(friend);
-                    FriendsStackPanel.Children.Add(friendCard);
+                    foreach (FriendSummary friend in friends)
+                    {
+                        Border friendCard = CreateFriendCard(friend);
+                        FriendsStackPanel.Children.Add(friendCard);
+                    }
                 }
             }
             catch (DataOperationException dataOperationException)
             {
                 JsonLogger.Error(dataOperationException, "Could not populate friends in lobby window.");
             }
+        }
+
+        private static TextBlock CreateFriendsNotice(string noticeText)
+        {
+            return new TextBlock
+            {
+                Text = noticeText,
+                Foreground = OtherChatMessageBrush,
+                FontSize = FriendsNoticeFontSize,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, FriendsNoticeTopMargin, 0, 0)
+            };
         }
 
         private Border CreateFriendCard(FriendSummary friendSummary)

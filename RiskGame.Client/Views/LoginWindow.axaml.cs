@@ -61,37 +61,45 @@ namespace RiskGame.Views
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
             {
                 ShowMessage(Strings.LoginErrorEmptyFields, ErrorBrush);
-                return;
             }
+            else
+            {
+                AuthenticateAndNavigate(username, password);
+            }
+        }
 
+        private void AuthenticateAndNavigate(string username, string password)
+        {
             LoginViewModel loginViewModel = new LoginViewModel();
-            SessionUser? authenticatedUser;
             try
             {
-                authenticatedUser = loginViewModel.AuthenticateUser(username, password);
+                SessionUser? authenticatedUser = loginViewModel.AuthenticateUser(username, password);
+                if (authenticatedUser == null)
+                {
+                    ShowMessage(Strings.LoginErrorInvalidAuth, ErrorBrush);
+                }
+                else
+                {
+                    SessionService.Login(authenticatedUser);
+                    OpenMainWindow();
+                }
             }
             catch (DataOperationException dataOperationException)
             {
                 JsonLogger.Error(dataOperationException, "Could not sign in the requested player.");
                 ShowMessage(dataOperationException.Message, ErrorBrush);
-                return;
             }
+        }
 
-            if (authenticatedUser == null)
-            {
-                ShowMessage(Strings.LoginErrorInvalidAuth, ErrorBrush);
-                return;
-            }
-
-            SessionService.Login(authenticatedUser);
-
+        private void OpenMainWindow()
+        {
             if (Application.Current != null &&
                 Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
                 MainWindow mainWindow = new MainWindow();
                 desktopLifetime.MainWindow = mainWindow;
                 mainWindow.Show();
-                this.Close();
+                Close();
             }
         }
 

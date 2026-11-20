@@ -24,19 +24,16 @@ namespace RiskGame.Views
             CreateMessageTextBlock.IsVisible = false;
 
             LobbyViewModel lobbyViewModel = new LobbyViewModel();
-            LobbyDetails lobbyDetails;
 
             try
             {
-                lobbyDetails = lobbyViewModel.CreateLobby(RulesVariant.Standard, DefaultTurnDurationSeconds);
+                LobbyDetails lobbyDetails = lobbyViewModel.CreateLobby(RulesVariant.Standard, DefaultTurnDurationSeconds);
+                OpenLobbyWindow(lobbyDetails, lobbyViewModel);
             }
             catch (DataOperationException dataOperationException)
             {
                 ShowCreateError(dataOperationException.Message);
-                return;
             }
-
-            OpenLobbyWindow(lobbyDetails, lobbyViewModel);
         }
 
         private void JoinRoomClick(object? sender, RoutedEventArgs routedEventArgs)
@@ -66,33 +63,34 @@ namespace RiskGame.Views
             if (string.IsNullOrWhiteSpace(enteredRoomCode))
             {
                 ShowJoinError(Strings.RoomsErrorEmptyCode);
-                return;
             }
+            else
+            {
+                JoinLobbyByCode(enteredRoomCode);
+            }
+        }
 
+        private void JoinLobbyByCode(string enteredRoomCode)
+        {
             LobbyViewModel lobbyViewModel = new LobbyViewModel();
-            LobbyDetails lobbyDetails;
 
             try
             {
-                lobbyDetails = lobbyViewModel.JoinLobby(enteredRoomCode);
+                LobbyDetails lobbyDetails = lobbyViewModel.JoinLobby(enteredRoomCode);
+                OpenLobbyWindow(lobbyDetails, lobbyViewModel);
             }
             catch (LobbyNotFoundException lobbyNotFoundException)
             {
                 ShowJoinError(lobbyNotFoundException.Message);
-                return;
             }
             catch (LobbyFullException lobbyFullException)
             {
                 ShowJoinError(lobbyFullException.Message);
-                return;
             }
             catch (DataOperationException dataOperationException)
             {
                 ShowJoinError(dataOperationException.Message);
-                return;
             }
-
-            OpenLobbyWindow(lobbyDetails, lobbyViewModel);
         }
 
         private void OpenLobbyWindow(LobbyDetails lobbyDetails, LobbyViewModel lobbyViewModel)

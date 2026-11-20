@@ -231,17 +231,26 @@ namespace RiskGame.Views
         private void OpenResultWindow(BoardState boardState)
         {
             bool isAlreadyHandled = hasOpenedResult || hasClosed;
-            if (!isAlreadyHandled && Application.Current != null)
+            IClassicDesktopStyleApplicationLifetime? desktopLifetime = ResolveDesktopLifetime();
+            if (!isAlreadyHandled && desktopLifetime != null)
             {
-                if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
-                {
-                    hasOpenedResult = true;
-                    MatchResultWindow result = new MatchResultWindow(boardState);
-                    desktopLifetime.MainWindow = result;
-                    result.Show();
-                    Close();
-                }
+                hasOpenedResult = true;
+                MatchResultWindow result = new MatchResultWindow(boardState);
+                desktopLifetime.MainWindow = result;
+                result.Show();
+                Close();
             }
+        }
+
+        private static IClassicDesktopStyleApplicationLifetime? ResolveDesktopLifetime()
+        {
+            IClassicDesktopStyleApplicationLifetime? desktopLifetime = null;
+            if (Application.Current != null
+                && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+            {
+                desktopLifetime = lifetime;
+            }
+            return desktopLifetime;
         }
 
         private void RenderDice(BoardState boardState)
@@ -406,27 +415,34 @@ namespace RiskGame.Views
 
         private void ChoosePairClick(object? sender, RoutedEventArgs routedEventArgs)
         {
-            if (sender is Button pairButton && pairButton.IsEnabled && currentBoardState != null)
+            if (sender is Button pairButton && pairButton.IsEnabled)
             {
-                if (pairButton.Tag is int pairIndex)
+                TryProcessPairSelection(pairButton);
+            }
+        }
+
+        private void TryProcessPairSelection(Button pairButton)
+        {
+            if (pairButton.Tag is int pairIndex && currentBoardState != null)
+            {
+                PairOption selectedOption = currentBoardState.PairOptions
+                    .First(option => option.PairIndex == pairIndex);
+                PairChoice choice = new PairChoice
                 {
-                    PairOption selectedOption = currentBoardState.PairOptions
-                        .First(option => option.PairIndex == pairIndex);
-                    PairChoice choice = new PairChoice
-                    {
-                        RollId = currentBoardState.RollId, PairIndex = pairIndex, TurnId = currentBoardState.TurnId
-                    };
-                    if (selectedOption.RequiresColumnChoice)
-                    {
-                        pendingColumnChoice = choice;
-                        RefreshColumnChoice(currentBoardState);
-                    }
-                    else
-                    {
-                        BeginPairChoice(choice);
-                    }
-                    UpdateActionButtons();
+                    RollId = currentBoardState.RollId,
+                    PairIndex = pairIndex,
+                    TurnId = currentBoardState.TurnId
+                };
+                if (selectedOption.RequiresColumnChoice)
+                {
+                    pendingColumnChoice = choice;
+                    RefreshColumnChoice(currentBoardState);
                 }
+                else
+                {
+                    BeginPairChoice(choice);
+                }
+                UpdateActionButtons();
             }
         }
 

@@ -16,11 +16,13 @@ namespace RiskGame.Services
 {
     public static class GamepadFocusNavigator
     {
-        private const int PreviousDirection = -1;
-        private const int NextDirection = 1;
-        private const int FirstIndex = 0;
-        private const int NoControlIndex = -1;
         private const int EmptyCount = 0;
+        private const int FirstIndex = 0;
+        private const int NextStep = 1;
+        private const double HalfFactor = 0.5;
+        private const double MinimumAxisDelta = 4.0;
+        private const double CrossAxisPenalty = 2.5;
+        private const double RowBucketPixels = 24.0;
         private static readonly object SyncRoot = new object();
         private static bool isInitialized;
 
@@ -61,12 +63,10 @@ namespace RiskGame.Services
                 switch (action)
                 {
                     case GamepadAction.NavigateUp:
-                    case GamepadAction.NavigateLeft:
-                        MoveFocus(activeWindow, PreviousDirection);
-                        break;
                     case GamepadAction.NavigateDown:
+                    case GamepadAction.NavigateLeft:
                     case GamepadAction.NavigateRight:
-                        MoveFocus(activeWindow, NextDirection);
+                        MoveFocusSpatially(activeWindow, action);
                         break;
                     case GamepadAction.Confirm:
                         ActivateFocusedControl(activeWindow);
@@ -88,36 +88,90 @@ namespace RiskGame.Services
         private static Window? ResolveActiveWindow()
         {
             Window? resolvedWindow = null;
-            if (Application.Current != null)
+            if (Application.Current != null
+                && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
-                if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+                resolvedWindow = desktopLifetime.Windows.FirstOrDefault(window => window.IsActive);
+                if (resolvedWindow == null)
                 {
-                    resolvedWindow = desktopLifetime.Windows.FirstOrDefault(window => window.IsActive);
-                    if (resolvedWindow == null)
-                    {
-                        resolvedWindow = desktopLifetime.Windows.LastOrDefault(window => window.IsVisible);
-                    }
-                    if (resolvedWindow == null)
-                    {
-                        resolvedWindow = desktopLifetime.MainWindow;
-                    }
+                    resolvedWindow = desktopLifetime.Windows.LastOrDefault(window => window.IsVisible);
+                }
+                if (resolvedWindow == null)
+                {
+                    resolvedWindow = desktopLifetime.MainWindow;
                 }
             }
             return resolvedWindow;
         }
 
-        private static void MoveFocus(Window activeWindow, int direction)
+        private static void MoveFocusSpatially(Window activeWindow, GamepadAction direction)
         {
-            List<Control> controls = CollectFocusableControls(activeWindow);
-            if (controls.Count > EmptyCount)
+            List<PositionedControl> candidates = CollectPositionedControls(activeWindow);
+            if (candidates.Count > EmptyCount)
             {
                 IInputElement? focusedElement = GetFocusedElement(activeWindow);
-                int currentIndex = FindFocusedControlIndex(controls, focusedElement);
-                int nextIndex = ResolveNextIndex(currentIndex, direction, controls.Count);
-                Control targetControl = controls[nextIndex];
+                PositionedControl? current = FindCurrentControl(candidates, focusedElement);
+                Control targetControl = ResolveSpatialTarget(candidates, current, direction);
                 targetControl.BringIntoView();
                 targetControl.Focus(NavigationMethod.Tab);
             }
+        }
+
+        private static Control ResolveSpatialTarget(List<PositionedControl> candidates,
+            PositionedControl? current, GamepadAction direction)
+        {
+            if (current == null)
+            {
+                return candidates[FirstIndex].Control;
+            }
+
+            PositionedControl? bestCandidate = null;
+            double bestScore = double.MaxValue;
+            foreach (PositionedControl candidate in candidates.Where(
+                entry => !ReferenceEquals(entry.Control, current.Control)))
+            {
+                double score = ComputeDirectionScore(current.Center, candidate.Center, direction);
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    bestCandidate = candidate;
+                }
+            }
+
+            if (bestCandidate != null)
+            {
+                return bestCandidate.Control;
+            }
+            return current.Control;
+        }
+
+        private static double ComputeDirectionScore(Point origin, Point target, GamepadAction direction)
+        {
+            double deltaX = target.X - origin.X;
+            double deltaY = target.Y - origin.Y;
+
+            switch (direction)
+            {
+                case GamepadAction.NavigateLeft:
+                    return ScoreAxisCandidate(-deltaX, Math.Abs(deltaY));
+                case GamepadAction.NavigateRight:
+                    return ScoreAxisCandidate(deltaX, Math.Abs(deltaY));
+                case GamepadAction.NavigateUp:
+                    return ScoreAxisCandidate(-deltaY, Math.Abs(deltaX));
+                case GamepadAction.NavigateDown:
+                    return ScoreAxisCandidate(deltaY, Math.Abs(deltaX));
+                default:
+                    return double.MaxValue;
+            }
+        }
+
+        private static double ScoreAxisCandidate(double primaryDistance, double crossDistance)
+        {
+            if (primaryDistance <= MinimumAxisDelta)
+            {
+                return double.MaxValue;
+            }
+            return primaryDistance + (crossDistance * CrossAxisPenalty);
         }
 
         private static void ActivateFocusedControl(Window activeWindow)
@@ -129,7 +183,7 @@ namespace RiskGame.Services
             }
             else
             {
-                MoveFocus(activeWindow, NextDirection);
+                MoveFocusSpatially(activeWindow, GamepadAction.NavigateDown);
             }
         }
 
@@ -166,7 +220,7 @@ namespace RiskGame.Services
         {
             if (comboBox.ItemCount > EmptyCount)
             {
-                int nextIndex = (comboBox.SelectedIndex + NextDirection) % comboBox.ItemCount;
+                int nextIndex = (comboBox.SelectedIndex + NextStep) % comboBox.ItemCount;
                 comboBox.SelectedIndex = nextIndex;
             }
         }
@@ -185,17 +239,13 @@ namespace RiskGame.Services
 
         private static Button? FindCancelButton(Window activeWindow)
         {
-            List<Control> controls = CollectFocusableControls(activeWindow);
+            List<PositionedControl> controls = CollectPositionedControls(activeWindow);
             Button? cancelButton = null;
-            foreach (Control control in controls)
+            PositionedControl? matchingControl = controls.FirstOrDefault(
+                entry => entry.Control is Button button && IsCancelButton(button));
+            if (matchingControl != null && matchingControl.Control is Button matchedButton)
             {
-                if (cancelButton == null && control is Button button)
-                {
-                    if (IsCancelButton(button))
-                    {
-                        cancelButton = button;
-                    }
-                }
+                cancelButton = matchedButton;
             }
             return cancelButton;
         }
@@ -220,17 +270,43 @@ namespace RiskGame.Services
             return focusedElement;
         }
 
-        private static List<Control> CollectFocusableControls(Window activeWindow)
+        private static List<PositionedControl> CollectPositionedControls(Window activeWindow)
         {
-            List<Control> controls = new List<Control>();
+            List<PositionedControl> controls = new List<PositionedControl>();
             foreach (Visual descendant in activeWindow.GetVisualDescendants())
             {
                 if (descendant is Control control && IsNavigableTarget(control))
                 {
-                    controls.Add(control);
+                    Point? center = TryResolveCenter(control, activeWindow);
+                    if (center.HasValue)
+                    {
+                        controls.Add(new PositionedControl(control, center.Value));
+                    }
                 }
             }
-            return controls.OrderBy(control => control.TabIndex).ToList();
+            return controls
+                .OrderBy(entry => Math.Floor(entry.Center.Y / RowBucketPixels))
+                .ThenBy(entry => entry.Center.X)
+                .ToList();
+        }
+
+        private static Point? TryResolveCenter(Control control, Window activeWindow)
+        {
+            Point localCenter = new Point(
+                control.Bounds.Width * HalfFactor,
+                control.Bounds.Height * HalfFactor);
+            return control.TranslatePoint(localCenter, activeWindow);
+        }
+
+        private static PositionedControl? FindCurrentControl(List<PositionedControl> candidates,
+            IInputElement? focusedElement)
+        {
+            PositionedControl? match = null;
+            if (focusedElement is Control focusedControl)
+            {
+                match = candidates.FirstOrDefault(candidate => ReferenceEquals(candidate.Control, focusedControl));
+            }
+            return match;
         }
 
         private static bool IsNavigableTarget(Control control)
@@ -255,32 +331,16 @@ namespace RiskGame.Services
             return isActionControl || isSelectionControl;
         }
 
-        private static int FindFocusedControlIndex(List<Control> controls, IInputElement? focusedElement)
+        private sealed class PositionedControl
         {
-            if (focusedElement is Control focusedControl)
-            {
-                for (int index = FirstIndex; index < controls.Count; index++)
-                {
-                    if (ReferenceEquals(controls[index], focusedControl))
-                    {
-                        return index;
-                    }
-                }
-            }
-            return NoControlIndex;
-        }
+            public Control Control { get; }
+            public Point Center { get; }
 
-        private static int ResolveNextIndex(int currentIndex, int direction, int count)
-        {
-            if (currentIndex == NoControlIndex)
+            public PositionedControl(Control control, Point center)
             {
-                if (direction < FirstIndex)
-                {
-                    return count - NextDirection;
-                }
-                return FirstIndex;
+                Control = control;
+                Center = center;
             }
-            return (currentIndex + direction + count) % count;
         }
     }
 }
