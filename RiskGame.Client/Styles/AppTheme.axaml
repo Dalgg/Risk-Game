@@ -63,39 +63,9 @@
                 <Border BorderBrush="{StaticResource FocusHighlightBrush}"
                         BorderThickness="{StaticResource FocusHighlightThickness}"
                         CornerRadius="8"
-                        Margin="-3" />
+                        Margin="-3"
+                        IsHitTestVisible="False" />
             </FocusAdornerTemplate>
         </Setter>
-    </Style>
-
-    <Style Selector="Button:focus-visible">
-        <Setter Property="BorderBrush" Value="{StaticResource FocusHighlightBrush}" />
-        <Setter Property="BorderThickness" Value="{StaticResource FocusHighlightThickness}" />
-        <Setter Property="RenderTransform" Value="scale(1.03)" />
-    </Style>
-
-    <Style Selector="Button:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="BorderBrush" Value="{StaticResource FocusHighlightBrush}" />
-        <Setter Property="BorderThickness" Value="{StaticResource FocusHighlightThickness}" />
-    </Style>
-
-    <Style Selector="TextBox:focus-visible">
-        <Setter Property="BorderBrush" Value="{StaticResource FocusHighlightBrush}" />
-        <Setter Property="BorderThickness" Value="{StaticResource FocusHighlightThickness}" />
-    </Style>
-
-    <Style Selector="ComboBox:focus-visible">
-        <Setter Property="BorderBrush" Value="{StaticResource FocusHighlightBrush}" />
-        <Setter Property="BorderThickness" Value="{StaticResource FocusHighlightThickness}" />
-    </Style>
-
-    <Style Selector="TabItem:focus-visible">
-        <Setter Property="BorderBrush" Value="{StaticResource FocusHighlightBrush}" />
-        <Setter Property="BorderThickness" Value="{StaticResource FocusHighlightThickness}" />
-    </Style>
-
-    <Style Selector="ListBoxItem:focus-visible">
-        <Setter Property="BorderBrush" Value="{StaticResource FocusHighlightBrush}" />
-        <Setter Property="BorderThickness" Value="{StaticResource FocusHighlightThickness}" />
     </Style>
 </Styles>
