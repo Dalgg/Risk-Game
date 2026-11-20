@@ -7,6 +7,7 @@ using Grpc.Core;
 using RiskGame.Contracts.Chat;
 using RiskGame.Contracts.Common;
 using RiskGame.Contracts.Lobby;
+using RiskGame.Contracts.LobbySettings;
 using RiskGame.Exceptions;
 using RiskGame.Services;
 using Lobby = RiskGame.Models.Lobby;
@@ -40,6 +41,7 @@ namespace RiskGame.Server.Services
 
         public LobbyDetails CreateLobby(LobbyRules requestedRules, PlayerSummary hostPlayer)
         {
+            LobbyRulesValidator.Validate(requestedRules);
             string rulesVariantName = StandardRulesVariantName;
             if (requestedRules != null && requestedRules.RulesVariant == RulesVariant.Fast)
             {
@@ -57,6 +59,46 @@ namespace RiskGame.Server.Services
                 turnDurationSeconds);
 
             return JoinLobby(createdDatabaseLobby.LobbyCode, hostPlayer);
+        }
+
+        public LobbyDetails UpdateRules(UpdateLobbyRulesRequest updateRequest)
+        {
+            LobbyRulesValidator.Validate(updateRequest.Rules);
+            LobbyDetails snapshot;
+            lock (syncLock)
+            {
+                ActiveLobbyRoom room = GetEditableRoom(updateRequest);
+                string variantName = StandardRulesVariantName;
+                if (updateRequest.Rules.RulesVariant == RulesVariant.Fast)
+                {
+                    variantName = FastRulesVariantName;
+                }
+                lobbyRepository.UpdateRules(room.LobbyId, variantName, updateRequest.Rules.TurnDurationSeconds);
+                room.Rules.RulesVariant = updateRequest.Rules.RulesVariant;
+                room.Rules.TurnDurationSeconds = updateRequest.Rules.TurnDurationSeconds;
+                snapshot = BuildLobbyDetails(room);
+                BroadcastLobbySnapshot(room.Subscribers.Values.ToList(), snapshot);
+            }
+            return snapshot;
+        }
+
+        private ActiveLobbyRoom GetEditableRoom(UpdateLobbyRulesRequest updateRequest)
+        {
+            if (!userToLobbyCode.ContainsKey(updateRequest.UserId))
+            {
+                throw new InvalidOperationException("The player does not belong to an active lobby.");
+            }
+            ActiveLobbyRoom room = roomsByCode[userToLobbyCode[updateRequest.UserId]];
+            if (room.HostUserId != updateRequest.UserId || room.Status != LobbyStatus.Waiting)
+            {
+                throw new InvalidOperationException("Only the host can change rules before the match starts.");
+            }
+            if (updateRequest.UserId >= MinimumValidIdentifier
+                && sessionRegistry.GetUserId(updateRequest.SessionToken) != updateRequest.UserId)
+            {
+                throw new InvalidSessionException("The session does not belong to the lobby host.");
+            }
+            return room;
         }
 
         public LobbyDetails JoinLobby(string lobbyCode, PlayerSummary joiningPlayer)

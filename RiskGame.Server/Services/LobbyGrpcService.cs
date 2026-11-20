@@ -27,6 +27,10 @@ namespace RiskGame.Server.Services
                 LobbyDetails createdLobbyDetails = sessionManager.CreateLobby(createRequest.Rules, hostPlayer);
                 return Task.FromResult(createdLobbyDetails);
             }
+            catch (ArgumentException argumentException)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, argumentException.Message));
+            }
             catch (DataOperationException dataOperationException)
             {
                 JsonLogger.Error(dataOperationException, "Could not create the requested lobby.");

@@ -22,6 +22,20 @@ namespace RiskGame.Server.Tests.Builders
         private bool guestOpponent;
         private MatchSessionManager? manager;
         private int matchId = MatchIdentifier;
+        private RulesVariant rulesVariant = RulesVariant.Standard;
+        private bool seedSecondClaim = true;
+
+        public CompletedMatchBuilder WithRules(RulesVariant rulesVariant)
+        {
+            this.rulesVariant = rulesVariant;
+            return this;
+        }
+
+        public CompletedMatchBuilder WithOnePreviousClaim()
+        {
+            seedSecondClaim = false;
+            return this;
+        }
 
         public CompletedMatchBuilder WithMatchId(int matchId)
         {
@@ -69,7 +83,7 @@ namespace RiskGame.Server.Tests.Builders
             LobbyDetails lobby = new LobbyDetails
             {
                 LobbyId = LobbyIdentifier,
-                Rules = new LobbyRules()
+                Rules = new LobbyRules { RulesVariant = rulesVariant }
             };
             lobby.Players.Add(CreatePlayer(winnerId, guestWinner));
             lobby.Players.Add(CreatePlayer(opponentId, guestOpponent));
@@ -81,7 +95,7 @@ namespace RiskGame.Server.Tests.Builders
         private void SeedWinningProgress(ActiveMatch match, int winnerId)
         {
             foreach (MatchColumn column in match.Columns.Where(column =>
-                column.ColumnNumber == FirstClaim || column.ColumnNumber == SecondClaim))
+                column.ColumnNumber == FirstClaim || (seedSecondClaim && column.ColumnNumber == SecondClaim)))
             {
                 column.SaveProgress(winnerId, column.MaximumSteps);
             }

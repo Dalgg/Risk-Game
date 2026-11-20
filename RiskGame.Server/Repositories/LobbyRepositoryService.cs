@@ -17,7 +17,7 @@ namespace RiskGame.Server.Services
         private const int MinimumValidIdentifier = 1;
         private const int MinutesForExpiration = 30;
 
-        public Lobby GetActiveLobbyByCode(string lobbyCode)
+        public virtual Lobby GetActiveLobbyByCode(string lobbyCode)
         {
             if (string.IsNullOrWhiteSpace(lobbyCode))
             {
@@ -48,7 +48,7 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public Lobby CreateLobbyInDatabase(string rulesVariantName, int turnDurationSeconds)
+        public virtual Lobby CreateLobbyInDatabase(string rulesVariantName, int turnDurationSeconds)
         {
             try
             {
@@ -79,7 +79,32 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public int CreateMatchInDatabase(int lobbyId)
+        public virtual void UpdateRules(int lobbyId, string rulesVariantName, int turnDurationSeconds)
+        {
+            try
+            {
+                using RiskGameContext databaseContext = new RiskGameContext();
+                Lobby? lobby = databaseContext.Lobbies.FirstOrDefault(
+                    candidate => candidate.IdLobby == lobbyId && candidate.ClosureDate == null);
+                if (lobby == null)
+                {
+                    throw new LobbyNotFoundException("The lobby is no longer available.");
+                }
+                lobby.RulesVariant = rulesVariantName;
+                lobby.TurnDuration = turnDurationSeconds;
+                databaseContext.SaveChanges();
+            }
+            catch (DbUpdateException databaseUpdateException)
+            {
+                throw new DataOperationException("Could not save lobby settings.", databaseUpdateException);
+            }
+            catch (DbException databaseException)
+            {
+                throw new DataOperationException("Could not connect to save lobby settings.", databaseException);
+            }
+        }
+
+        public virtual int CreateMatchInDatabase(int lobbyId)
         {
             try
             {

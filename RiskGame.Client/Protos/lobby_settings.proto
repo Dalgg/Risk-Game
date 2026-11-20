@@ -1,0 +1,15 @@
+syntax = "proto3";
+option csharp_namespace = "RiskGame.Contracts.LobbySettings";
+package riskgame.lobbysettings;
+
+import "lobby.proto";
+
+service LobbySettings {
+  rpc UpdateRules (UpdateLobbyRulesRequest) returns (riskgame.lobby.LobbyDetails);
+}
+
+message UpdateLobbyRulesRequest {
+  int32 user_id = 1;
+  string session_token = 2;
+  riskgame.lobby.LobbyRules rules = 3;
+}

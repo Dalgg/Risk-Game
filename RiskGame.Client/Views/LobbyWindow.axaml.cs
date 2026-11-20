@@ -38,6 +38,7 @@ namespace RiskGame.Views
         private static readonly IBrush OnlineBadgeBrush = new SolidColorBrush(Color.Parse("#4CAF50"));
         private static readonly IBrush OfflineBadgeBrush = new SolidColorBrush(Color.Parse("#8A8E9B"));
         private readonly LobbyViewModel lobbyViewModel;
+        private readonly LobbySettingsViewModel settingsViewModel = new LobbySettingsViewModel();
         private readonly List<LobbyPlayer> currentLobbyPlayers = new List<LobbyPlayer>();
         private bool hasLeftLobby;
         private bool hasEnteredMatch;
@@ -45,6 +46,7 @@ namespace RiskGame.Views
         public LobbyWindow()
         {
             InitializeComponent();
+            DataContext = settingsViewModel;
             lobbyViewModel = new LobbyViewModel();
         }
 
@@ -86,6 +88,7 @@ namespace RiskGame.Views
         private void ApplyLobbyDetails(LobbyDetails lobbyDetails)
         {
             RoomCodeTextBlock.Text = string.Format(Strings.LobbyRoomIdFormat, lobbyDetails.LobbyCode);
+            settingsViewModel.ApplySnapshot(lobbyDetails);
 
             currentLobbyPlayers.Clear();
             currentLobbyPlayers.AddRange(lobbyDetails.Players);

@@ -19,7 +19,8 @@ namespace RiskGame.Server.Services
         private const int NoSelectedPair = 0;
         private const int NoPreferredColumn = 0;
         private const int NextParticipantStep = 1;
-        private const int RequiredColumnsToWin = 3;
+        private const int StandardColumnsToWin = 3;
+        private const int FastColumnsToWin = 2;
         private int currentParticipantIndex = FirstParticipantIndex;
 
         public ActiveMatch(int matchId, LobbyDetails lobbyDetails)
@@ -27,6 +28,11 @@ namespace RiskGame.Server.Services
             MatchId = matchId;
             LobbyId = lobbyDetails.LobbyId;
             RulesVariant = lobbyDetails.Rules.RulesVariant;
+            ColumnsToWin = StandardColumnsToWin;
+            if (RulesVariant == RulesVariant.Fast)
+            {
+                ColumnsToWin = FastColumnsToWin;
+            }
             TurnDurationSeconds = lobbyDetails.Rules.TurnDurationSeconds;
             List<MatchParticipant> participants = new List<MatchParticipant>();
             foreach (LobbyPlayer player in lobbyDetails.Players)
@@ -73,7 +79,7 @@ namespace RiskGame.Server.Services
 
         public int WinnerUserId { get; private set; }
 
-        public int ColumnsToWin => RequiredColumnsToWin;
+        public int ColumnsToWin { get; }
 
         public bool CanStop => !IsFinished && !AwaitingPairChoice && SelectedPairIndex != NoSelectedPair
             && TurnProgress.StepsByColumn.Count > NoSelectedPair;
@@ -126,7 +132,7 @@ namespace RiskGame.Server.Services
                 }
             }
             int claimedColumns = Columns.Count(column => column.IsClaimed && column.OwnerUserId == CurrentTurnUserId);
-            if (claimedColumns >= RequiredColumnsToWin)
+            if (claimedColumns >= ColumnsToWin)
             {
                 FinishMatch();
             }

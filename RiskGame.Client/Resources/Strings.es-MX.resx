@@ -95,4 +95,13 @@
   <data name="LeaderboardPlayerLabel" xml:space="preserve"><value>Jugador</value></data>
   <data name="LeaderboardWinsLabel" xml:space="preserve"><value>Victorias</value></data>
   <data name="LeaderboardColumnsLabel" xml:space="preserve"><value>Columnas</value></data>
+  <data name="LobbyRulesLabel" xml:space="preserve"><value>Modalidad</value></data>
+  <data name="LobbySettingsHostHint" xml:space="preserve"><value>El anfitrión puede cambiar las reglas antes de comenzar.</value></data>
+  <data name="LobbyFastRules" xml:space="preserve"><value>Rápida: 2 columnas</value></data>
+  <data name="LobbySettingsSaved" xml:space="preserve"><value>Configuración guardada para todos los jugadores.</value></data>
+  <data name="LobbyTurnSecondsLabel" xml:space="preserve"><value>Tiempo por turno (segundos)</value></data>
+  <data name="LobbySettingsFailed" xml:space="preserve"><value>No se pudo guardar. Comprueba tu sesión y que sigas siendo anfitrión de una sala en espera.</value></data>
+  <data name="LobbyStandardRules" xml:space="preserve"><value>Estándar: 3 columnas</value></data>
+  <data name="LobbySaveSettings" xml:space="preserve"><value>GUARDAR REGLAS</value></data>
+  <data name="LobbyRulesSummary" xml:space="preserve"><value>{0} · Turnos de {1} segundos</value></data>
 </root>

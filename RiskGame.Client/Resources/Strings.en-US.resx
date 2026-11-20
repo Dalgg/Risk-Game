@@ -202,4 +202,13 @@
   <data name="LeaderboardPlayerLabel" xml:space="preserve"><value>Player</value></data>
   <data name="LeaderboardWinsLabel" xml:space="preserve"><value>Wins</value></data>
   <data name="LeaderboardColumnsLabel" xml:space="preserve"><value>Columns</value></data>
+  <data name="LobbyRulesLabel" xml:space="preserve"><value>Variant</value></data>
+  <data name="LobbySettingsHostHint" xml:space="preserve"><value>The host can change the rules before the match starts.</value></data>
+  <data name="LobbyFastRules" xml:space="preserve"><value>Fast: 2 columns</value></data>
+  <data name="LobbySettingsSaved" xml:space="preserve"><value>Settings saved for all players.</value></data>
+  <data name="LobbyTurnSecondsLabel" xml:space="preserve"><value>Turn duration (seconds)</value></data>
+  <data name="LobbySettingsFailed" xml:space="preserve"><value>Could not save. Check your session and that you still host a waiting lobby.</value></data>
+  <data name="LobbyStandardRules" xml:space="preserve"><value>Standard: 3 columns</value></data>
+  <data name="LobbySaveSettings" xml:space="preserve"><value>SAVE RULES</value></data>
+  <data name="LobbyRulesSummary" xml:space="preserve"><value>{0} · {1}-second turns</value></data>
 </root>

@@ -384,5 +384,23 @@ namespace RiskGame.Resources
 
         public static string LeaderboardColumnsLabel => ResourceManager.GetString("LeaderboardColumnsLabel", _resourceCulture);
 
+        public static string LobbyRulesLabel => ResourceManager.GetString("LobbyRulesLabel", _resourceCulture);
+
+        public static string LobbySettingsHostHint => ResourceManager.GetString("LobbySettingsHostHint", _resourceCulture);
+
+        public static string LobbyFastRules => ResourceManager.GetString("LobbyFastRules", _resourceCulture);
+
+        public static string LobbySettingsSaved => ResourceManager.GetString("LobbySettingsSaved", _resourceCulture);
+
+        public static string LobbyTurnSecondsLabel => ResourceManager.GetString("LobbyTurnSecondsLabel", _resourceCulture);
+
+        public static string LobbySettingsFailed => ResourceManager.GetString("LobbySettingsFailed", _resourceCulture);
+
+        public static string LobbyStandardRules => ResourceManager.GetString("LobbyStandardRules", _resourceCulture);
+
+        public static string LobbySaveSettings => ResourceManager.GetString("LobbySaveSettings", _resourceCulture);
+
+        public static string LobbyRulesSummary => ResourceManager.GetString("LobbyRulesSummary", _resourceCulture);
+
     }
 }
