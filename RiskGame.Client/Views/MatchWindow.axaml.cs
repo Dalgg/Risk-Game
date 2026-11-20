@@ -96,6 +96,10 @@ namespace RiskGame.Views
             hasClosed = true;
             GamepadService.ActionTriggered -= OnGamepadAction;
             matchViewModel.StopSubscription();
+            if (!hasOpenedResult)
+            {
+                Task.Run(matchViewModel.LeaveLobby);
+            }
             base.OnClosed(eventArgs);
         }
 

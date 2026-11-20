@@ -33,8 +33,7 @@ namespace RiskGame.Server.Services
             }
             catch (DataOperationException dataOperationException)
             {
-                JsonLogger.Error(dataOperationException, "Registration failed during data access.");
-                throw CreateRegistrationException(dataOperationException);
+                throw CreateRegistrationException(dataOperationException, "Registration failed during data access.");
             }
         }
 
@@ -93,8 +92,7 @@ namespace RiskGame.Server.Services
             }
             catch (DataOperationException dataOperationException)
             {
-                JsonLogger.Error(dataOperationException, "Could not confirm the registration.");
-                throw CreateRegistrationException(dataOperationException);
+                throw CreateRegistrationException(dataOperationException, "Could not confirm the registration.");
             }
         }
 
@@ -107,17 +105,20 @@ namespace RiskGame.Server.Services
             }
             catch (DataOperationException dataOperationException)
             {
-                JsonLogger.Error(dataOperationException, "Could not resend the verification email.");
-                throw CreateRegistrationException(dataOperationException);
+                throw CreateRegistrationException(dataOperationException, "Could not resend the verification email.");
             }
         }
 
-        private RpcException CreateRegistrationException(DataOperationException dataOperationException)
+        private RpcException CreateRegistrationException(DataOperationException dataOperationException, string logMessage)
         {
             StatusCode statusCode = StatusCode.Unavailable;
             if (dataOperationException is RegistrationVerificationException)
             {
                 statusCode = StatusCode.FailedPrecondition;
+            }
+            else
+            {
+                JsonLogger.Error(dataOperationException, logMessage);
             }
             return new RpcException(new Status(statusCode, "Registration verification could not be completed."));
         }

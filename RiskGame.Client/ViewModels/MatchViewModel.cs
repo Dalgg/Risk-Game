@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Net.Client;
 using RiskGame.Callbacks;
+using RiskGame.Contracts.Lobby;
 using RiskGame.Contracts.Match;
 using RiskGame.Exceptions;
 using RiskGame.Resources;
@@ -31,7 +32,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "Could not stop the current match turn.");
                 throw new DataOperationException(GetActionError(rpcException), rpcException);
             }
         }
@@ -105,6 +105,22 @@ namespace RiskGame.ViewModels
                 streamCancellation.Cancel();
                 streamCancellation.Dispose();
                 streamCancellation = null;
+            }
+        }
+
+        public void LeaveLobby()
+        {
+            SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
+            try
+            {
+                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                Lobby.LobbyClient LobbyClient = new Lobby.LobbyClient(grpcChannel);
+                UserLobbyRequest leaveRequest = new UserLobbyRequest { UserId = currentSessionUser.IdUser };
+                LobbyClient.LeaveLobby(leaveRequest, deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds));
+            }
+            catch (RpcException rpcException)
+            {
+                JsonLogger.Error(rpcException, "Could not leave the lobby when closing the match window.");
             }
         }
 

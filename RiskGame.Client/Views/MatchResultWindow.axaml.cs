@@ -57,7 +57,7 @@ namespace RiskGame.Views
             GamepadService.ActionTriggered -= OnGamepadAction;
             if (!hasReturned)
             {
-                resultViewModel.LeaveLobby();
+                Task.Run(resultViewModel.LeaveLobby);
             }
             base.OnClosed(eventArgs);
         }

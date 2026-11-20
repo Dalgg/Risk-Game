@@ -27,7 +27,6 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "Could not return from the match result to the original lobby.");
                 throw new DataOperationException(Strings.MatchResultReturnError, rpcException);
             }
         }
