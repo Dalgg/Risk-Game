@@ -4,7 +4,7 @@
         x:Class="RiskGame.Views.MatchResultWindow"
         Title="{x:Static res:Strings.MatchFinished}"
         Width="{StaticResource ResultWidth}" Height="{StaticResource ResultHeight}"
-        CanResize="False" Background="#181A25" Loaded="OnWindowLoaded">
+        Background="#181A25" Loaded="OnWindowLoaded">
     <Window.Resources>
         <x:Double x:Key="ResultWidth">550</x:Double>
         <x:Double x:Key="ResultHeight">350</x:Double>

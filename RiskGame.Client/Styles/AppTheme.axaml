@@ -53,6 +53,10 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
+    <Style Selector="Window">
+        <Setter Property="WindowState" Value="Maximized" />
+    </Style>
+
     <Style Selector="Control">
         <Setter Property="FocusAdorner">
             <FocusAdornerTemplate>
