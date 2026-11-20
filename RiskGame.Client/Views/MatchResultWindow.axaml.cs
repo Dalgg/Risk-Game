@@ -79,17 +79,26 @@ namespace RiskGame.Views
 
         private void OpenLobby(LobbyDetails details)
         {
-            if (!hasClosed && Application.Current != null)
+            IClassicDesktopStyleApplicationLifetime? desktopLifetime = ResolveDesktopLifetime();
+            if (!hasClosed && desktopLifetime != null)
             {
-                if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
-                {
-                    LobbyWindow lobby = new LobbyWindow(details, new LobbyViewModel());
-                    hasReturned = true;
-                    desktopLifetime.MainWindow = lobby;
-                    lobby.Show();
-                    Close();
-                }
+                LobbyWindow lobby = new LobbyWindow(details, new LobbyViewModel());
+                hasReturned = true;
+                desktopLifetime.MainWindow = lobby;
+                lobby.Show();
+                Close();
             }
+        }
+
+        private static IClassicDesktopStyleApplicationLifetime? ResolveDesktopLifetime()
+        {
+            IClassicDesktopStyleApplicationLifetime? desktopLifetime = null;
+            if (Application.Current != null
+                && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+            {
+                desktopLifetime = lifetime;
+            }
+            return desktopLifetime;
         }
 
         private void ShowError(string message)
