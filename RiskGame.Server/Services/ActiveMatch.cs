@@ -21,10 +21,19 @@ namespace RiskGame.Server.Services
         private const int NextParticipantStep = 1;
         private const int StandardColumnsToWin = 3;
         private const int FastColumnsToWin = 2;
+        private const int DefaultTurnDurationSeconds = 60;
+        private const int MinimumTurnDurationSeconds = 1;
+        private readonly TimeProvider timeProvider;
+        private long turnStartedTimestamp;
         private int currentParticipantIndex = FirstParticipantIndex;
 
-        public ActiveMatch(int matchId, LobbyDetails lobbyDetails)
+        public ActiveMatch(int matchId, LobbyDetails lobbyDetails) : this(matchId, lobbyDetails, TimeProvider.System)
         {
+        }
+
+        public ActiveMatch(int matchId, LobbyDetails lobbyDetails, TimeProvider timeProvider)
+        {
+            this.timeProvider = timeProvider;
             MatchId = matchId;
             LobbyId = lobbyDetails.LobbyId;
             RulesVariant = lobbyDetails.Rules.RulesVariant;
@@ -34,6 +43,10 @@ namespace RiskGame.Server.Services
                 ColumnsToWin = FastColumnsToWin;
             }
             TurnDurationSeconds = lobbyDetails.Rules.TurnDurationSeconds;
+            if (TurnDurationSeconds < MinimumTurnDurationSeconds)
+            {
+                TurnDurationSeconds = DefaultTurnDurationSeconds;
+            }
             List<MatchParticipant> participants = new List<MatchParticipant>();
             foreach (LobbyPlayer player in lobbyDetails.Players)
             {
@@ -51,6 +64,7 @@ namespace RiskGame.Server.Services
             }
             Columns = columns.AsReadOnly();
             TurnProgress = new MatchTurnProgress(CurrentTurnUserId, Columns);
+            turnStartedTimestamp = timeProvider.GetTimestamp();
         }
 
         public int MatchId { get; }
@@ -74,6 +88,8 @@ namespace RiskGame.Server.Services
         public int LastTurnUserId { get; private set; }
 
         public bool LastTurnBusted { get; private set; }
+
+        public bool LastTurnTimedOut { get; private set; }
 
         public bool IsFinished { get; private set; }
 
@@ -148,6 +164,36 @@ namespace RiskGame.Server.Services
             {
                 throw new MatchActionException("The match has already finished.");
             }
+            if (GetRemainingTurnTime() == TimeSpan.Zero)
+            {
+                throw new MatchActionException("The turn time has expired.");
+            }
+        }
+
+        public TimeSpan GetRemainingTurnTime()
+        {
+            TimeSpan remaining = TimeSpan.Zero;
+            if (!IsFinished)
+            {
+                TimeSpan elapsed = timeProvider.GetElapsedTime(turnStartedTimestamp);
+                remaining = TimeSpan.FromSeconds(TurnDurationSeconds) - elapsed;
+                if (remaining < TimeSpan.Zero)
+                {
+                    remaining = TimeSpan.Zero;
+                }
+            }
+            return remaining;
+        }
+
+        public bool ExpireTurnIfNeeded()
+        {
+            bool expired = !IsFinished && GetRemainingTurnTime() == TimeSpan.Zero;
+            if (expired)
+            {
+                AdvanceTurn(true);
+                LastTurnTimedOut = true;
+            }
+            return expired;
         }
 
         private void FinishMatch()
@@ -156,6 +202,7 @@ namespace RiskGame.Server.Services
             IsFinished = true;
             LastTurnUserId = CurrentTurnUserId;
             LastTurnBusted = false;
+            LastTurnTimedOut = false;
             TurnProgress = new MatchTurnProgress(CurrentTurnUserId, Columns);
             Dice = Array.Empty<int>();
             PairOptions = Array.Empty<DicePairCombination>();
@@ -169,8 +216,10 @@ namespace RiskGame.Server.Services
         {
             LastTurnUserId = CurrentTurnUserId;
             LastTurnBusted = busted;
+            LastTurnTimedOut = false;
             currentParticipantIndex = (currentParticipantIndex + NextParticipantStep) % Participants.Count;
             CurrentTurnUserId = Participants[currentParticipantIndex].UserId;
+            turnStartedTimestamp = timeProvider.GetTimestamp();
             TurnProgress = new MatchTurnProgress(CurrentTurnUserId, Columns);
             TurnId++;
             Dice = Array.Empty<int>();

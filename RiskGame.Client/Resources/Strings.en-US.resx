@@ -211,4 +211,6 @@
   <data name="LobbyStandardRules" xml:space="preserve"><value>Standard: 3 columns</value></data>
   <data name="LobbySaveSettings" xml:space="preserve"><value>SAVE RULES</value></data>
   <data name="LobbyRulesSummary" xml:space="preserve"><value>{0} · {1}-second turns</value></data>
+  <data name="MatchTimeRemainingFormat" xml:space="preserve"><value>Time remaining: {0} s</value></data>
+  <data name="MatchTurnTimedOutFormat" xml:space="preserve"><value>{0} ran out of time: temporary progress was lost and the turn passed.</value></data>
 </root>

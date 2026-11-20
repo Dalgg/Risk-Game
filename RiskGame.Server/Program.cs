@@ -40,6 +40,8 @@ namespace RiskGame.Server
             builder.Services.AddSingleton<GrpcSessionAuthenticator>();
             builder.Services.AddSingleton<LobbyRepositoryService>();
             builder.Services.AddSingleton<MatchSessionManager>();
+            builder.Services.AddSingleton<System.TimeProvider>(System.TimeProvider.System);
+            builder.Services.AddHostedService<MatchTurnTimerService>();
             builder.Services.AddSingleton<LobbySessionManager>();
 
             WebApplication app = builder.Build();

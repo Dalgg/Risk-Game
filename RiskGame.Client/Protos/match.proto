@@ -39,6 +39,8 @@ message BoardState {
   bool is_finished = 19;
   int32 winner_user_id = 20;
   int32 columns_to_win = 21;
+  int64 turn_remaining_milliseconds = 22;
+  bool last_turn_timed_out = 23;
 }
 
 message StopTurnRequest {
@@ -53,6 +55,7 @@ message RollDiceRequest {
   int32 user_id = 2;
   string session_token = 3;
   int64 expected_roll_id = 4;
+  int64 turn_id = 5;
 }
 
 message PairChoice {
@@ -62,6 +65,7 @@ message PairChoice {
   int64 roll_id = 4;
   int32 pair_index = 5;
   int32 preferred_column = 6;
+  int64 turn_id = 7;
 }
 
 message PairOption {

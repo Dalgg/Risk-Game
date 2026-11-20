@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RiskGame.Server\RiskGame.Server.csproj" />
+    <ProjectReference Include="..\RiskGame.Client\RiskGame.Client.csproj" Aliases="Client" />
   </ItemGroup>
 
 </Project>

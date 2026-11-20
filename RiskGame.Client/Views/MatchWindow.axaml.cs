@@ -43,6 +43,7 @@ namespace RiskGame.Views
         private const int SecondPairIndex = 2;
         private const int ThirdPairIndex = 3;
         private const int NoDice = 0;
+        private const int CountdownIntervalMilliseconds = 200;
         private static readonly IBrush CellBackground = new SolidColorBrush(Color.Parse("#25293A"));
         private static readonly IBrush CellBorderBrush = new SolidColorBrush(Color.Parse("#42485B"));
         private static readonly IBrush ActiveTurnBrush = new SolidColorBrush(Color.Parse("#D4A32D"));
@@ -51,6 +52,7 @@ namespace RiskGame.Views
         private static readonly IBrush GreenPlayerBrush = new SolidColorBrush(Color.Parse("#30A46C"));
         private static readonly IBrush YellowPlayerBrush = new SolidColorBrush(Color.Parse("#F5D90A"));
         private readonly MatchViewModel matchViewModel = new MatchViewModel();
+        private readonly DispatcherTimer countdownTimer = new DispatcherTimer();
         private int matchIdentifier;
         private long latestRevision;
         private bool hasClosed;
@@ -63,6 +65,9 @@ namespace RiskGame.Views
         public MatchWindow()
         {
             InitializeComponent();
+            DataContext = matchViewModel;
+            countdownTimer.Interval = TimeSpan.FromMilliseconds(CountdownIntervalMilliseconds);
+            countdownTimer.Tick += OnCountdownTick;
         }
 
         public MatchWindow(int matchId) : this()
@@ -89,6 +94,8 @@ namespace RiskGame.Views
         protected override void OnClosed(EventArgs eventArgs)
         {
             hasClosed = true;
+            countdownTimer.Stop();
+            countdownTimer.Tick -= OnCountdownTick;
             GamepadService.ActionTriggered -= OnGamepadAction;
             matchViewModel.StopSubscription();
             if (!hasOpenedResult)
@@ -101,8 +108,15 @@ namespace RiskGame.Views
         private void OnWindowLoaded(object? sender, RoutedEventArgs routedEventArgs)
         {
             GamepadService.ActionTriggered += OnGamepadAction;
+            countdownTimer.Start();
             ReconnectButton.Focus();
             StartSubscription();
+        }
+
+        private void OnCountdownTick(object? sender, EventArgs eventArgs)
+        {
+            matchViewModel.Countdown.Refresh();
+            UpdateActionButtons();
         }
 
         private void OnGamepadAction(object? sender, GamepadActionEventArgs eventArgs)
@@ -199,6 +213,7 @@ namespace RiskGame.Views
             {
                 latestRevision = boardState.Revision;
                 currentBoardState = boardState;
+                matchViewModel.Countdown.ApplySnapshot(boardState);
                 MatchIdTextBlock.Text = string.Format(Strings.MatchIdFormat, boardState.MatchId);
                 RenderBoard(boardState);
                 RenderPlayers(boardState);
@@ -280,7 +295,8 @@ namespace RiskGame.Views
                 PairOption? selectedOption = boardState.PairOptions
                     .FirstOrDefault(option => option.PairIndex == pendingColumnChoice.PairIndex);
                 bool matchesCurrentRoll = boardState.AwaitingPairChoice
-                    && pendingColumnChoice.RollId == boardState.RollId;
+                    && pendingColumnChoice.RollId == boardState.RollId
+                    && pendingColumnChoice.TurnId == boardState.TurnId;
                 if (matchesCurrentRoll && selectedOption != null && selectedOption.RequiresColumnChoice)
                 {
                     ColumnChoicePanel.IsVisible = true;
@@ -291,12 +307,12 @@ namespace RiskGame.Views
                     FirstColumnChoiceButton.Tag = new PairChoice
                     {
                         RollId = boardState.RollId, PairIndex = selectedOption.PairIndex,
-                        PreferredColumn = selectedOption.FirstSum
+                        PreferredColumn = selectedOption.FirstSum, TurnId = boardState.TurnId
                     };
                     SecondColumnChoiceButton.Tag = new PairChoice
                     {
                         RollId = boardState.RollId, PairIndex = selectedOption.PairIndex,
-                        PreferredColumn = selectedOption.SecondSum
+                        PreferredColumn = selectedOption.SecondSum, TurnId = boardState.TurnId
                     };
                 }
                 else
@@ -331,7 +347,7 @@ namespace RiskGame.Views
             FirstColumnChoiceButton.IsEnabled = false;
             SecondColumnChoiceButton.IsEnabled = false;
             bool isWindowBlocked = hasClosed || isActionPending;
-            bool isWindowReady = hasLiveStream && !isWindowBlocked;
+            bool isWindowReady = hasLiveStream && !isWindowBlocked && matchViewModel.Countdown.HasTimeRemaining;
             if (currentBoardState != null && isWindowReady)
             {
                 bool isCurrentPlayerTurn = currentBoardState.CurrentTurnUserId
@@ -381,9 +397,10 @@ namespace RiskGame.Views
             if (RollDiceButton.IsEnabled && currentBoardState != null)
             {
                 long expectedRollId = currentBoardState.RollId;
+                long turnId = currentBoardState.TurnId;
                 isActionPending = true;
                 UpdateActionButtons();
-                Task.Run(() => SubmitRoll(expectedRollId));
+                Task.Run(() => SubmitRoll(expectedRollId, turnId));
             }
         }
 
@@ -395,7 +412,10 @@ namespace RiskGame.Views
                 {
                     PairOption selectedOption = currentBoardState.PairOptions
                         .First(option => option.PairIndex == pairIndex);
-                    PairChoice choice = new PairChoice { RollId = currentBoardState.RollId, PairIndex = pairIndex };
+                    PairChoice choice = new PairChoice
+                    {
+                        RollId = currentBoardState.RollId, PairIndex = pairIndex, TurnId = currentBoardState.TurnId
+                    };
                     if (selectedOption.RequiresColumnChoice)
                     {
                         pendingColumnChoice = choice;
@@ -427,11 +447,11 @@ namespace RiskGame.Views
             Task.Run(() => SubmitPairChoice(choice));
         }
 
-        private void SubmitRoll(long expectedRollId)
+        private void SubmitRoll(long expectedRollId, long turnId)
         {
             try
             {
-                BoardState boardState = matchViewModel.RollDice(matchIdentifier, expectedRollId);
+                BoardState boardState = matchViewModel.RollDice(matchIdentifier, expectedRollId, turnId);
                 Dispatcher.UIThread.Post(() => CompleteAction(boardState));
             }
             catch (DataOperationException dataOperationException)
@@ -487,6 +507,10 @@ namespace RiskGame.Views
                     if (boardState.LastTurnBusted)
                     {
                         outcomeFormat = Strings.MatchTurnBustedFormat;
+                    }
+                    if (boardState.LastTurnTimedOut)
+                    {
+                        outcomeFormat = Strings.MatchTurnTimedOutFormat;
                     }
                     TurnOutcomeTextBlock.Text = string.Format(outcomeFormat, player.Nickname);
                 }

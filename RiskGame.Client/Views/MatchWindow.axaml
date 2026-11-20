@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:res="using:RiskGame.Resources"
+        xmlns:vm="using:RiskGame.ViewModels"
         x:Class="RiskGame.Views.MatchWindow" Title="{x:Static res:Strings.MatchTitleLabel}"
         Width="{StaticResource MatchWidth}" Height="{StaticResource MatchHeight}"
         MinWidth="{StaticResource MatchWidth}" MinHeight="{StaticResource MinimumMatchHeight}"
@@ -48,6 +49,9 @@
             <TextBlock x:Name="MatchIdTextBlock" FontSize="{StaticResource CaptionFontSize}"
                        Foreground="{StaticResource CaptionBrush}" HorizontalAlignment="Center"/>
             <TextBlock x:Name="CurrentTurnTextBlock" FontSize="{StaticResource TurnFontSize}"
+                       Foreground="{StaticResource TurnBrush}" HorizontalAlignment="Center"/>
+            <TextBlock x:DataType="vm:MatchViewModel" Text="{Binding Countdown.Text}"
+                       IsVisible="{Binding Countdown.IsVisible}" FontSize="{StaticResource TurnFontSize}"
                        Foreground="{StaticResource TurnBrush}" HorizontalAlignment="Center"/>
             <TextBlock x:Name="MatchRulesTextBlock" FontSize="{StaticResource CaptionFontSize}"
                        HorizontalAlignment="Center"/>

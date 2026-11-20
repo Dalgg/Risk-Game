@@ -24,14 +24,22 @@ namespace RiskGame.Server.Services
         private readonly Dictionary<int, Dictionary<int, IServerStreamWriter<BoardState>>> subscribersByMatchId =
             new Dictionary<int, Dictionary<int, IServerStreamWriter<BoardState>>>();
         private readonly ProfileSessionRegistry sessionRegistry;
+        private readonly TimeProvider timeProvider;
         private readonly ICompletedMatchRepository completedMatchRepository;
         private readonly HashSet<int> storedCompletions = new HashSet<int>();
 
         public MatchSessionManager(ProfileSessionRegistry sessionRegistry,
             ICompletedMatchRepository completedMatchRepository)
+            : this(sessionRegistry, completedMatchRepository, TimeProvider.System)
+        {
+        }
+
+        public MatchSessionManager(ProfileSessionRegistry sessionRegistry,
+            ICompletedMatchRepository completedMatchRepository, TimeProvider timeProvider)
         {
             this.sessionRegistry = sessionRegistry;
             this.completedMatchRepository = completedMatchRepository;
+            this.timeProvider = timeProvider;
         }
         
         public ActiveMatch CreateMatch(int matchId, LobbyDetails lobbyDetails)
@@ -47,7 +55,7 @@ namespace RiskGame.Server.Services
                 {
                     throw new InvalidOperationException("The match has already been initialized.");
                 }
-                ActiveMatch activeMatch = new ActiveMatch(matchId, lobbyDetails);
+                ActiveMatch activeMatch = new ActiveMatch(matchId, lobbyDetails, timeProvider);
                 matchesById.Add(matchId, activeMatch);
                 subscribersByMatchId.Add(matchId, new Dictionary<int, IServerStreamWriter<BoardState>>());
                 return activeMatch;
@@ -133,6 +141,10 @@ namespace RiskGame.Server.Services
             {
                 throw new InvalidSessionException("A valid guest participant is required.");
             }
+            if (activeMatch.ExpireTurnIfNeeded())
+            {
+                BroadcastBoardState(matchId);
+            }
             return activeMatch;
         }
 
@@ -156,7 +168,7 @@ namespace RiskGame.Server.Services
             lock (matchLock)
             {
                 ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
-                ValidateTurn(activeMatch, request.UserId);
+                ValidateTurn(activeMatch, request.UserId, request.TurnId);
                 activeMatch.ApplyRoll(DiceRoller.RollFourDice(), request.ExpectedRollId);
                 boardState = BuildBoardState(activeMatch);
             }
@@ -170,7 +182,7 @@ namespace RiskGame.Server.Services
             lock (matchLock)
             {
                 ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
-                ValidateTurn(activeMatch, request.UserId);
+                ValidateTurn(activeMatch, request.UserId, request.TurnId);
                 activeMatch.ChoosePair(request.RollId, request.PairIndex, request.PreferredColumn);
                 boardState = BuildBoardState(activeMatch);
             }
@@ -184,10 +196,10 @@ namespace RiskGame.Server.Services
             lock (matchLock)
             {
                 ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
-                ValidateTurn(activeMatch, request.UserId);
-                bool canRetryCompletion = CanRetryCompletion(activeMatch, request.TurnId);
+                bool canRetryCompletion = CanRetryCompletion(activeMatch, request.TurnId, request.UserId);
                 if (!canRetryCompletion)
                 {
+                    ValidateTurn(activeMatch, request.UserId, request.TurnId);
                     activeMatch.StopTurn(request.TurnId);
                 }
                 StoreCompletion(activeMatch);
@@ -197,18 +209,38 @@ namespace RiskGame.Server.Services
             return boardState;
         }
 
-        private void ValidateTurn(ActiveMatch activeMatch, int userId)
+        private void ValidateTurn(ActiveMatch activeMatch, int userId, long turnId)
         {
-            if (activeMatch.CurrentTurnUserId != userId)
+            if (activeMatch.CurrentTurnUserId != userId || activeMatch.TurnId != turnId)
             {
                 throw new MatchActionException("Only the current player can roll or choose a pair.");
             }
         }
 
-        private bool CanRetryCompletion(ActiveMatch match, long turnId)
+        public void ExpireTurns()
+        {
+            List<int> changedMatchIds = new List<int>();
+            lock (matchLock)
+            {
+                foreach (ActiveMatch match in matchesById.Values)
+                {
+                    if (match.ExpireTurnIfNeeded())
+                    {
+                        changedMatchIds.Add(match.MatchId);
+                    }
+                }
+            }
+            foreach (int matchId in changedMatchIds)
+            {
+                BroadcastBoardState(matchId);
+            }
+        }
+
+        private bool CanRetryCompletion(ActiveMatch match, long turnId, int userId)
         {
             bool hasPendingCompletion = match.IsFinished && !storedCompletions.Contains(match.MatchId);
-            return hasPendingCompletion && turnId == match.TurnId - CompletedTurnOffset;
+            bool isWinnerRetry = userId == match.WinnerUserId && turnId == match.TurnId - CompletedTurnOffset;
+            return hasPendingCompletion && isWinnerRetry;
         }
 
         private void StoreCompletion(ActiveMatch match)
@@ -255,7 +287,9 @@ namespace RiskGame.Server.Services
                 CanStop = activeMatch.CanStop,
                 IsFinished = activeMatch.IsFinished,
                 WinnerUserId = activeMatch.WinnerUserId,
-                ColumnsToWin = activeMatch.ColumnsToWin
+                ColumnsToWin = activeMatch.ColumnsToWin,
+                TurnRemainingMilliseconds = (long)Math.Ceiling(activeMatch.GetRemainingTurnTime().TotalMilliseconds),
+                LastTurnTimedOut = activeMatch.LastTurnTimedOut
             };
             foreach (KeyValuePair<int, int> progress in activeMatch.TurnProgress.StepsByColumn)
             {

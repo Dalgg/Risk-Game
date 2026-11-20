@@ -402,5 +402,9 @@ namespace RiskGame.Resources
 
         public static string LobbyRulesSummary => ResourceManager.GetString("LobbyRulesSummary", _resourceCulture);
 
+        public static string MatchTimeRemainingFormat => ResourceManager.GetString("MatchTimeRemainingFormat", _resourceCulture);
+
+        public static string MatchTurnTimedOutFormat => ResourceManager.GetString("MatchTurnTimedOutFormat", _resourceCulture);
+
     }
 }

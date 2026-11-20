@@ -17,6 +17,8 @@ namespace RiskGame.ViewModels
         private const int ActionTimeoutSeconds = 10;
         private CancellationTokenSource? streamCancellation;
 
+        public MatchCountdownViewModel Countdown { get; } = new MatchCountdownViewModel();
+
         public BoardState StopTurn(int matchId, long turnId)
         {
             SessionUser session = SessionService.GetOrCreateCurrentUser();
@@ -39,13 +41,13 @@ namespace RiskGame.ViewModels
             }
         }
 
-        public BoardState RollDice(int matchId, long expectedRollId)
+        public BoardState RollDice(int matchId, long expectedRollId, long turnId)
         {
             SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
             RollDiceRequest request = new RollDiceRequest
             {
                 MatchId = matchId, UserId = currentSessionUser.IdUser,
-                SessionToken = currentSessionUser.SessionToken, ExpectedRollId = expectedRollId
+                SessionToken = currentSessionUser.SessionToken, ExpectedRollId = expectedRollId, TurnId = turnId
             };
             try
             {
