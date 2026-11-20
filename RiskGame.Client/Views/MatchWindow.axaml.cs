@@ -348,32 +348,54 @@ namespace RiskGame.Views
 
         private void UpdateActionButtons()
         {
-            StopTurnButton.IsEnabled = false;
-            RollDiceButton.IsEnabled = false;
-            FirstPairButton.IsEnabled = false;
-            SecondPairButton.IsEnabled = false;
-            ThirdPairButton.IsEnabled = false;
-            FirstColumnChoiceButton.IsEnabled = false;
-            SecondColumnChoiceButton.IsEnabled = false;
-            bool isWindowBlocked = hasClosed || isActionPending;
-            bool isWindowReady = hasLiveStream && !isWindowBlocked && matchViewModel.Countdown.HasTimeRemaining;
-            if (currentBoardState != null && isWindowReady)
+            bool canStopTurn = false;
+            bool canRollDice = false;
+            bool canChooseFirstPair = false;
+            bool canChooseSecondPair = false;
+            bool canChooseThirdPair = false;
+            bool canChooseColumn = false;
+
+            BoardState? boardState = currentBoardState;
+            if (boardState != null && CanInteractWithBoard(boardState))
             {
-                bool isCurrentPlayerTurn = currentBoardState.CurrentTurnUserId
-                    == SessionService.GetOrCreateCurrentUser().IdUser;
-                if (!currentBoardState.IsFinished && isCurrentPlayerTurn)
-                {
-                    RollDiceButton.IsEnabled = !currentBoardState.AwaitingPairChoice;
-                    StopTurnButton.IsEnabled = currentBoardState.CanStop;
-                    foreach (PairOption pairOption in currentBoardState.PairOptions)
-                    {
-                        GetPairButton(pairOption.PairIndex).IsEnabled =
-                            currentBoardState.AwaitingPairChoice && pairOption.IsPlayable;
-                    }
-                    FirstColumnChoiceButton.IsEnabled = ColumnChoicePanel.IsVisible;
-                    SecondColumnChoiceButton.IsEnabled = ColumnChoicePanel.IsVisible;
-                }
+                canRollDice = !boardState.AwaitingPairChoice;
+                canStopTurn = boardState.CanStop;
+                canChooseFirstPair = IsPairOptionEnabled(boardState, FirstPairIndex);
+                canChooseSecondPair = IsPairOptionEnabled(boardState, SecondPairIndex);
+                canChooseThirdPair = IsPairOptionEnabled(boardState, ThirdPairIndex);
+                canChooseColumn = ColumnChoicePanel.IsVisible;
             }
+
+            StopTurnButton.IsEnabled = canStopTurn;
+            RollDiceButton.IsEnabled = canRollDice;
+            FirstPairButton.IsEnabled = canChooseFirstPair;
+            SecondPairButton.IsEnabled = canChooseSecondPair;
+            ThirdPairButton.IsEnabled = canChooseThirdPair;
+            FirstColumnChoiceButton.IsEnabled = canChooseColumn;
+            SecondColumnChoiceButton.IsEnabled = canChooseColumn;
+        }
+
+        private bool CanInteractWithBoard(BoardState boardState)
+        {
+            bool isWindowActive = !hasClosed && !isActionPending;
+            bool hasReadyStream = hasLiveStream && isWindowActive;
+            bool hasActiveTurn = !boardState.IsFinished && matchViewModel.Countdown.HasTimeRemaining;
+            if (hasReadyStream && hasActiveTurn)
+            {
+                return boardState.CurrentTurnUserId == SessionService.GetOrCreateCurrentUser().IdUser;
+            }
+            return false;
+        }
+
+        private static bool IsPairOptionEnabled(BoardState boardState, int pairIndex)
+        {
+            if (!boardState.AwaitingPairChoice)
+            {
+                return false;
+            }
+            PairOption? option = boardState.PairOptions.FirstOrDefault(
+                candidate => candidate.PairIndex == pairIndex);
+            return option != null && option.IsPlayable;
         }
 
         private void StopTurnClick(object? sender, RoutedEventArgs routedEventArgs)

@@ -104,12 +104,26 @@ namespace RiskGame.Services
         private const uint WindowsPovRight = 9000;
         private const uint WindowsPovDown = 18000;
         private const uint WindowsPovLeft = 27000;
+        private const uint WindowsXInputSuccess = 0;
+        private const ushort XInputDpadUpMask = 0x0001;
+        private const ushort XInputDpadDownMask = 0x0002;
+        private const ushort XInputDpadLeftMask = 0x0004;
+        private const ushort XInputDpadRightMask = 0x0008;
+        private const ushort XInputStartMask = 0x0010;
+        private const ushort XInputBackMask = 0x0020;
+        private const ushort XInputLeftShoulderMask = 0x0100;
+        private const ushort XInputRightShoulderMask = 0x0200;
+        private const ushort XInputButtonAMask = 0x1000;
+        private const ushort XInputButtonBMask = 0x2000;
+        private const ushort XInputButtonXMask = 0x4000;
+        private const ushort XInputButtonYMask = 0x8000;
         private const int DirectionNegative = -1;
         private const int DirectionNeutral = 0;
         private const int DirectionPositive = 1;
 
         private static readonly object SyncRoot = new object();
         private static CancellationTokenSource? pollingCancellation;
+        private static bool isWindowsXInputAvailable = true;
 
         public static event EventHandler<GamepadActionEventArgs>? ActionTriggered;
 
@@ -411,8 +425,7 @@ namespace RiskGame.Services
 
         private static void PollWindowsControllers(CancellationToken cancellationToken)
         {
-            uint[] previousButtons = new uint[MaximumControllers];
-            ControllerDirectionState[] directionStates = new ControllerDirectionState[MaximumControllers];
+            ControllerDirectionState[] slotStates = new ControllerDirectionState[MaximumControllers];
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -420,29 +433,22 @@ namespace RiskGame.Services
 
                 for (uint controllerId = FirstControllerIndex; controllerId < MaximumControllers; controllerId++)
                 {
-                    WindowsJoyInfoEx joyInfo = new WindowsJoyInfoEx
-                    {
-                        Size = (uint)Marshal.SizeOf<WindowsJoyInfoEx>(),
-                        Flags = WindowsReturnAllFlags
-                    };
-
                     int controllerIndex = (int)controllerId;
-                    directionStates[controllerIndex].ControllerIndex = controllerIndex;
-                    uint result = joyGetPosEx(controllerId, ref joyInfo);
-                    if (result != WindowsJoystickNoError)
+                    slotStates[controllerIndex].ControllerIndex = controllerIndex;
+
+                    if (TryPollWindowsXInputSlot(controllerId, ref slotStates[controllerIndex]))
                     {
-                        previousButtons[controllerIndex] = NoButtonsPressedMask;
-                        directionStates[controllerIndex].StickHorizontal = DirectionNeutral;
-                        directionStates[controllerIndex].StickVertical = DirectionNeutral;
+                        anyControllerConnected = true;
+                        slotStates[controllerIndex].PreviousWinmmButtons = NoButtonsPressedMask;
+                    }
+                    else if (PollWindowsWinmmSlot(controllerId, ref slotStates[controllerIndex]))
+                    {
+                        anyControllerConnected = true;
+                        slotStates[controllerIndex].PreviousXInputButtons = NoFlags;
                     }
                     else
                     {
-                        anyControllerConnected = true;
-                        uint newlyPressed = joyInfo.Buttons & ~previousButtons[controllerIndex];
-                        previousButtons[controllerIndex] = joyInfo.Buttons;
-
-                        DispatchWindowsButtons(newlyPressed, controllerIndex);
-                        DispatchWindowsDirections(joyInfo, ref directionStates[controllerIndex]);
+                        ResetWindowsSlotState(ref slotStates[controllerIndex]);
                     }
                 }
 
@@ -454,6 +460,167 @@ namespace RiskGame.Services
 
                 WaitBeforeRetry(delayMilliseconds, cancellationToken);
             }
+        }
+
+        private static bool TryPollWindowsXInputSlot(uint controllerId, ref ControllerDirectionState slotState)
+        {
+            if (!isWindowsXInputAvailable)
+            {
+                return false;
+            }
+
+            try
+            {
+                WindowsXInputState xinputState = new WindowsXInputState();
+                uint status = QueryWindowsXInputState(controllerId, ref xinputState);
+                if (status != WindowsXInputSuccess)
+                {
+                    return false;
+                }
+
+                ushort currentButtons = xinputState.Gamepad.Buttons;
+                ushort newlyPressed = (ushort)(currentButtons & ~slotState.PreviousXInputButtons);
+                slotState.PreviousXInputButtons = currentButtons;
+
+                DispatchWindowsXInputButtons(newlyPressed, slotState.ControllerIndex);
+                DispatchWindowsXInputDirections(xinputState.Gamepad, ref slotState);
+                return true;
+            }
+            catch (DllNotFoundException)
+            {
+                isWindowsXInputAvailable = false;
+                return false;
+            }
+            catch (EntryPointNotFoundException)
+            {
+                isWindowsXInputAvailable = false;
+                return false;
+            }
+        }
+
+        private static bool PollWindowsWinmmSlot(uint controllerId, ref ControllerDirectionState slotState)
+        {
+            WindowsJoyInfoEx joyInfo = new WindowsJoyInfoEx
+            {
+                Size = (uint)Marshal.SizeOf<WindowsJoyInfoEx>(),
+                Flags = WindowsReturnAllFlags
+            };
+
+            uint result = joyGetPosEx(controllerId, ref joyInfo);
+            if (result != WindowsJoystickNoError)
+            {
+                return false;
+            }
+
+            uint newlyPressed = joyInfo.Buttons & ~slotState.PreviousWinmmButtons;
+            slotState.PreviousWinmmButtons = joyInfo.Buttons;
+
+            DispatchWindowsButtons(newlyPressed, slotState.ControllerIndex);
+            DispatchWindowsDirections(joyInfo, ref slotState);
+            return true;
+        }
+
+        private static void ResetWindowsSlotState(ref ControllerDirectionState slotState)
+        {
+            slotState.PreviousWinmmButtons = NoButtonsPressedMask;
+            slotState.PreviousXInputButtons = NoFlags;
+            slotState.StickHorizontal = DirectionNeutral;
+            slotState.StickVertical = DirectionNeutral;
+            slotState.DpadHorizontal = DirectionNeutral;
+            slotState.DpadVertical = DirectionNeutral;
+        }
+
+        private static void DispatchWindowsXInputButtons(ushort newlyPressedMask, int controllerIndex)
+        {
+            if ((newlyPressedMask & (XInputButtonAMask | XInputStartMask)) != NoFlags)
+            {
+                TriggerAction(GamepadAction.Confirm, controllerIndex);
+            }
+
+            if ((newlyPressedMask & (XInputButtonBMask | XInputBackMask)) != NoFlags)
+            {
+                TriggerAction(GamepadAction.Cancel, controllerIndex);
+            }
+
+            if ((newlyPressedMask & XInputButtonXMask) != NoFlags)
+            {
+                TriggerAction(GamepadAction.RollDice, controllerIndex);
+            }
+
+            if ((newlyPressedMask & XInputButtonYMask) != NoFlags)
+            {
+                TriggerAction(GamepadAction.SelectOption2, controllerIndex);
+            }
+
+            if ((newlyPressedMask & XInputLeftShoulderMask) != NoFlags)
+            {
+                TriggerAction(GamepadAction.SelectOption1, controllerIndex);
+            }
+
+            if ((newlyPressedMask & XInputRightShoulderMask) != NoFlags)
+            {
+                TriggerAction(GamepadAction.SelectOption3, controllerIndex);
+            }
+        }
+
+        private static void DispatchWindowsXInputDirections(
+            WindowsXInputGamepad gamepad,
+            ref ControllerDirectionState directionState)
+        {
+            int stickHorizontal = GetAxisDirection(gamepad.ThumbLeftX, AxisThreshold);
+            int stickVertical = GetInvertedAxisDirection(gamepad.ThumbLeftY, AxisThreshold);
+            int dpadHorizontal = ResolveXInputDpadHorizontal(gamepad.Buttons);
+            int dpadVertical = ResolveXInputDpadVertical(gamepad.Buttons);
+
+            UpdateHorizontalState(stickHorizontal, ref directionState.StickHorizontal, directionState.ControllerIndex);
+            UpdateVerticalState(stickVertical, ref directionState.StickVertical, directionState.ControllerIndex);
+            UpdateHorizontalState(dpadHorizontal, ref directionState.DpadHorizontal, directionState.ControllerIndex);
+            UpdateVerticalState(dpadVertical, ref directionState.DpadVertical, directionState.ControllerIndex);
+        }
+
+        private static int GetInvertedAxisDirection(short axisValue, short threshold)
+        {
+            if (axisValue > threshold)
+            {
+                return DirectionNegative;
+            }
+
+            if (axisValue < -threshold)
+            {
+                return DirectionPositive;
+            }
+
+            return DirectionNeutral;
+        }
+
+        private static int ResolveXInputDpadHorizontal(ushort buttonsMask)
+        {
+            if ((buttonsMask & XInputDpadLeftMask) != NoFlags)
+            {
+                return DirectionNegative;
+            }
+
+            if ((buttonsMask & XInputDpadRightMask) != NoFlags)
+            {
+                return DirectionPositive;
+            }
+
+            return DirectionNeutral;
+        }
+
+        private static int ResolveXInputDpadVertical(ushort buttonsMask)
+        {
+            if ((buttonsMask & XInputDpadUpMask) != NoFlags)
+            {
+                return DirectionNegative;
+            }
+
+            if ((buttonsMask & XInputDpadDownMask) != NoFlags)
+            {
+                return DirectionPositive;
+            }
+
+            return DirectionNeutral;
         }
 
         private static void DispatchWindowsButtons(uint newlyPressedMask, int controllerIndex)
@@ -596,6 +763,9 @@ namespace RiskGame.Services
         [LibraryImport("libc", EntryPoint = "ioctl", SetLastError = true)]
         private static partial int QueryLinuxButtonMap(SafeFileHandle fileHandle, ulong request, [Out] ushort[] buttonMap);
 
+        [LibraryImport("xinput1_4.dll", EntryPoint = "XInputGetState")]
+        private static partial uint QueryWindowsXInputState(uint userIndex, ref WindowsXInputState state);
+
         [LibraryImport("winmm.dll")]
         private static partial uint joyGetPosEx(uint joyId, ref WindowsJoyInfoEx joyInfo);
 
@@ -614,6 +784,27 @@ namespace RiskGame.Services
             public int DpadHorizontal;
             public int DpadVertical;
             public int ControllerIndex;
+            public uint PreviousWinmmButtons;
+            public ushort PreviousXInputButtons;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct WindowsXInputGamepad
+        {
+            public ushort Buttons;
+            public byte LeftTrigger;
+            public byte RightTrigger;
+            public short ThumbLeftX;
+            public short ThumbLeftY;
+            public short ThumbRightX;
+            public short ThumbRightY;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct WindowsXInputState
+        {
+            public uint PacketNumber;
+            public WindowsXInputGamepad Gamepad;
         }
 
         [StructLayout(LayoutKind.Sequential)]
