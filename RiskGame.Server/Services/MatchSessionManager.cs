@@ -209,7 +209,7 @@ namespace RiskGame.Server.Services
             return boardState;
         }
 
-        private void ValidateTurn(ActiveMatch activeMatch, int userId, long turnId)
+        private static void ValidateTurn(ActiveMatch activeMatch, int userId, long turnId)
         {
             if (activeMatch.CurrentTurnUserId != userId || activeMatch.TurnId != turnId)
             {
@@ -222,12 +222,9 @@ namespace RiskGame.Server.Services
             List<int> changedMatchIds = new List<int>();
             lock (matchLock)
             {
-                foreach (ActiveMatch match in matchesById.Values)
+                foreach (ActiveMatch match in matchesById.Values.Where(candidateMatch => candidateMatch.ExpireTurnIfNeeded()))
                 {
-                    if (match.ExpireTurnIfNeeded())
-                    {
-                        changedMatchIds.Add(match.MatchId);
-                    }
+                    changedMatchIds.Add(match.MatchId);
                 }
             }
             foreach (int matchId in changedMatchIds)
