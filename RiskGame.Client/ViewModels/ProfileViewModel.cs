@@ -28,14 +28,14 @@ namespace RiskGame.ViewModels
         private string username;
 
         [ObservableProperty]
-        private string nickname;
+        public partial string Nickname { get; set; }
 
         [ObservableProperty]
-        private string editedNickname;
+        public partial string EditedNickname { get; set; }
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(AvatarImage))]
-        private string avatarReference = string.Empty;
+        public partial string AvatarReference { get; set; }
 
         [ObservableProperty]
         private string matchesPlayed = Strings.ProfileStatisticUnavailable;
@@ -47,13 +47,13 @@ namespace RiskGame.ViewModels
         private string statusMessage = string.Empty;
 
         [ObservableProperty]
-        private bool isEditingNickname;
+        public partial bool IsEditingNickname { get; set; }
 
         [ObservableProperty]
-        private bool isChoosingAvatar;
+        public partial bool IsChoosingAvatar { get; set; }
 
         [ObservableProperty]
-        private ProfileAvatarOption? selectedAvatar;
+        public partial ProfileAvatarOption? SelectedAvatar { get; set; }
 
         [ObservableProperty]
         [NotifyCanExecuteChangedFor(nameof(RetryCommand))]
@@ -70,19 +70,20 @@ namespace RiskGame.ViewModels
         {
             currentSessionUser = session;
             username = session.Username;
-            nickname = session.Nickname;
-            editedNickname = session.Nickname;
+            Nickname = session.Nickname;
+            EditedNickname = session.Nickname;
+            AvatarReference = string.Empty;
             if (session.AvatarReference != null)
             {
-                avatarReference = session.AvatarReference;
+                AvatarReference = session.AvatarReference;
             }
             Avatars = ProfileAvatarCatalog.CreateOptions();
-            selectedAvatar = Avatars[FirstAvatarIndex];
+            SelectedAvatar = Avatars[FirstAvatarIndex];
         }
 
         public string UserId => currentSessionUser.IdUser.ToString(CultureInfo.CurrentCulture);
 
-        public int NicknameMaximumLength => MaximumNicknameLength;
+        public static int NicknameMaximumLength => MaximumNicknameLength;
 
         public IImage AvatarImage => ProfileAvatarCatalog.GetImage(AvatarReference);
 

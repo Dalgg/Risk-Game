@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using RiskGame.Resources;
 
@@ -51,17 +50,9 @@ namespace RiskGame.Services
         public static IImage GetImage(string? reference)
         {
             string resourceKey = ResolveResourceKey(reference);
-            if (Application.Current != null)
+            if (Application.Current != null && Application.Current.FindResource(resourceKey) is IImage image)
             {
-                foreach (IResourceProvider provider in Application.Current.Resources.MergedDictionaries)
-                {
-                    IResourceDictionary? dictionary = ResolveDictionary(provider);
-                    IImage? foundImage = FindImage(dictionary, resourceKey);
-                    if (foundImage != null)
-                    {
-                        return foundImage;
-                    }
-                }
+                return image;
             }
             throw new InvalidOperationException("The profile avatar resources are not available.");
         }
@@ -81,35 +72,6 @@ namespace RiskGame.Services
                 default:
                     return DefaultImageResourceKey;
             }
-        }
-
-        private static IResourceDictionary? ResolveDictionary(IResourceProvider provider)
-        {
-            if (provider is ResourceInclude include)
-            {
-                return include.Loaded;
-            }
-            return provider as IResourceDictionary;
-        }
-
-        private static IImage? FindImage(IResourceDictionary? dictionary, string resourceKey)
-        {
-            IImage? matchedImage = null;
-            if (dictionary != null)
-            {
-                matchedImage = ReadMaterializedImage(dictionary, resourceKey);
-            }
-            return matchedImage;
-        }
-
-        private static IImage? ReadMaterializedImage(IResourceDictionary dictionary, string resourceKey)
-        {
-            IImage? matchedImage = null;
-            if (dictionary.Keys.Contains(resourceKey) && dictionary[resourceKey] is IImage image)
-            {
-                matchedImage = image;
-            }
-            return matchedImage;
         }
     }
 }

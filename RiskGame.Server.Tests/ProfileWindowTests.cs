@@ -107,7 +107,7 @@ namespace RiskGame.Server.Tests
             {
                 using ProfileWindowBuilder setup = new ProfileWindowBuilder();
     
-                SessionService.UpdateProfile(setup.Session, setup.UpdatedProfile());
+                SessionService.UpdateProfile(setup.Session, ProfileWindowBuilder.UpdatedProfile());
     
                 Assert.Equal(ProfileWindowBuilder.ChangedNickname, new MainViewModel().LoggedNickname);
             });
@@ -120,7 +120,7 @@ namespace RiskGame.Server.Tests
             {
                 using ProfileWindowBuilder setup = new ProfileWindowBuilder();
     
-                SessionService.UpdateProfile(setup.Session, setup.UpdatedProfile());
+                SessionService.UpdateProfile(setup.Session, ProfileWindowBuilder.UpdatedProfile());
     
                 Assert.Same(ProfileAvatarCatalog.GetImage(ProfileAvatarCatalog.TowerAvatarReference), new MainViewModel().AvatarImage);
             });
@@ -133,7 +133,7 @@ namespace RiskGame.Server.Tests
             {
                 using ProfileWindowBuilder setup = new ProfileWindowBuilder();
     
-                SessionService.UpdateProfile(setup.Session, setup.UpdatedProfile());
+                SessionService.UpdateProfile(setup.Session, ProfileWindowBuilder.UpdatedProfile());
     
                 Assert.Equal(ProfileWindowBuilder.Token, SessionService.GetOrCreateCurrentUser().SessionToken);
             });
@@ -145,7 +145,7 @@ namespace RiskGame.Server.Tests
             ProfileTestApplication.Run(() =>
             {
                 using ProfileWindowBuilder setup = new ProfileWindowBuilder();
-                UserProfile profile = setup.UpdatedProfile();
+                UserProfile profile = ProfileWindowBuilder.UpdatedProfile();
                 profile.UserId = AnotherUserId;
     
                 bool updated = SessionService.UpdateProfile(setup.Session, profile);
@@ -163,7 +163,7 @@ namespace RiskGame.Server.Tests
                 SessionService.Login(new SessionUser(ProfileWindowBuilder.UserId, ProfileWindowBuilder.Username,
                     ProfileWindowBuilder.Nickname) { SessionToken = ReplacementSessionToken });
     
-                bool updated = SessionService.UpdateProfile(setup.Session, setup.UpdatedProfile());
+                bool updated = SessionService.UpdateProfile(setup.Session, ProfileWindowBuilder.UpdatedProfile());
     
                 Assert.False(updated);
             });

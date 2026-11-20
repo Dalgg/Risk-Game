@@ -37,7 +37,7 @@ namespace RiskGame.Server.Tests.Builders
 
         public ProfileWindow Window { get; }
 
-        public UserProfile UpdatedProfile()
+        public static UserProfile UpdatedProfile()
         {
             return new UserProfile
             {

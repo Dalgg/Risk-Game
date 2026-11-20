@@ -57,7 +57,7 @@
                 <Border Classes="ProfilePanel" IsVisible="{Binding IsEditingNickname}">
                     <StackPanel Spacing="{StaticResource ScoreboardSpacing}">
                         <TextBlock Text="{x:Static res:Strings.ProfileNicknameHint}" TextWrapping="Wrap" />
-                        <TextBox Text="{Binding EditedNickname}" MaxLength="{Binding NicknameMaximumLength}"
+                        <TextBox Text="{Binding EditedNickname}" MaxLength="{x:Static vm:ProfileViewModel.NicknameMaximumLength}"
                                  IsEnabled="{Binding !IsLoading}"
                                  PlaceholderText="{x:Static res:Strings.ProfileNicknamePlaceholder}" />
                         <StackPanel Orientation="Horizontal" Spacing="{StaticResource ScoreboardSpacing}">

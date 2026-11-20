@@ -34,7 +34,7 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public override Task<UserProfile> UpdateNickname(UpdateNicknameRequest request, ServerCallContext callContext)
+        public override Task<UserProfile> UpdateNickname(UpdateNicknameRequest request, ServerCallContext context)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public override Task<UserProfile> UpdateAvatar(UpdateAvatarRequest request, ServerCallContext callContext)
+        public override Task<UserProfile> UpdateAvatar(UpdateAvatarRequest request, ServerCallContext context)
         {
             try
             {

@@ -12,7 +12,7 @@ namespace RiskGame.ViewModels
         private bool isLoggedIn;
 
         [ObservableProperty]
-        private string loggedNickname = string.Empty;
+        public partial string LoggedNickname { get; set; }
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(AvatarImage))]
@@ -20,6 +20,7 @@ namespace RiskGame.ViewModels
 
         public MainViewModel()
         {
+            LoggedNickname = string.Empty;
             RefreshFromSession();
         }
 
