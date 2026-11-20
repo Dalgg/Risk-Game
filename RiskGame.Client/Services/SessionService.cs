@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Grpc.Core;
 using Grpc.Net.Client;
 using RiskGame.Contracts.Auth;
+using RiskGame.Contracts.Profile;
 
 namespace RiskGame.Services
 {
@@ -19,6 +20,27 @@ namespace RiskGame.Services
         public static void Login(SessionUser user)
         {
             CurrentUser = user;
+        }
+
+        public static bool UpdateProfile(SessionUser expectedSession, UserProfile profile)
+        {
+            bool updated = false;
+            SessionUser? session = CurrentUser;
+            if (session != null && session.IdUser == profile.UserId)
+            {
+                bool sameSession = session.IdUser == expectedSession.IdUser
+                    && session.SessionToken == expectedSession.SessionToken;
+                if (sameSession)
+                {
+                    CurrentUser = new SessionUser(session.IdUser, session.Username, profile.Nickname)
+                    {
+                        SessionToken = session.SessionToken,
+                        AvatarReference = profile.AvatarReference
+                    };
+                    updated = true;
+                }
+            }
+            return updated;
         }
 
         public static SessionUser GetOrCreateCurrentUser()

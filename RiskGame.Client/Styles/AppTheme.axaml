@@ -1,6 +1,16 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Styles.Resources>
+        <SolidColorBrush x:Key="ProfileLogoutBrush">#A12431</SolidColorBrush>
+        <x:Double x:Key="ProfileWidth">600</x:Double>
+        <x:Double x:Key="ProfileHeight">760</x:Double>
+        <x:Double x:Key="ProfileMinimumHeight">490</x:Double>
+        <x:Double x:Key="ProfileAvatarSize">90</x:Double>
+        <CornerRadius x:Key="ProfileAvatarRadius">45</CornerRadius>
+        <x:Double x:Key="ProfileNicknameSize">22</x:Double>
+        <x:Double x:Key="ProfileCatalogItemWidth">100</x:Double>
+        <x:Double x:Key="ProfileCatalogImageSize">64</x:Double>
+        <Thickness x:Key="ProfileAvatarMargin">0,0,24,0</Thickness>
         <SolidColorBrush x:Key="ScoreboardBackgroundBrush">#181A25</SolidColorBrush>
         <SolidColorBrush x:Key="ScoreboardPanelBrush">#25293A</SolidColorBrush>
         <SolidColorBrush x:Key="ScoreboardBorderBrush">#353A5A</SolidColorBrush>

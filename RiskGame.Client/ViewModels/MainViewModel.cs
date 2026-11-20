@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RiskGame.Services;
+using Avalonia.Media;
 
 namespace RiskGame.ViewModels
 {
@@ -11,9 +12,10 @@ namespace RiskGame.ViewModels
         private bool isLoggedIn;
 
         [ObservableProperty]
-        private string loggedUsername = string.Empty;
+        private string loggedNickname = string.Empty;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(AvatarImage))]
         private string? avatarPath;
 
         public MainViewModel()
@@ -22,6 +24,8 @@ namespace RiskGame.ViewModels
         }
 
         public bool IsGuest => !IsLoggedIn;
+
+        public IImage AvatarImage => ProfileAvatarCatalog.GetImage(AvatarPath);
 
         [RelayCommand]
         private void OpenProfile()
@@ -42,13 +46,13 @@ namespace RiskGame.ViewModels
             if (currentSessionUser != null && !currentSessionUser.IsGuest)
             {
                 IsLoggedIn = true;
-                LoggedUsername = currentSessionUser.Username;
+                LoggedNickname = currentSessionUser.Nickname;
                 AvatarPath = currentSessionUser.AvatarReference;
             }
             else
             {
                 IsLoggedIn = false;
-                LoggedUsername = string.Empty;
+                LoggedNickname = string.Empty;
                 AvatarPath = null;
             }
         }

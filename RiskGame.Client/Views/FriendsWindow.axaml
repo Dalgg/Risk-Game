@@ -81,7 +81,7 @@
                                                 CornerRadius="{StaticResource AvatarCornerRadius}"
                                                     Background="{StaticResource AvatarBackground}" ClipToBounds="True"
                                                         Margin="{StaticResource AvatarMargin}">
-                                                <Image Source="{Binding AvatarPath}" Stretch="UniformToFill"/>
+                                                <Image Source="{Binding AvatarImage}" Stretch="UniformToFill"/>
                                             </Border>
                                             <TextBlock Grid.Column="1" Text="{Binding Nickname}"
                                                 FontSize="{StaticResource FriendNameFontSize}"

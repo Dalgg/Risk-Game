@@ -4,6 +4,8 @@ package riskgame.profile;
 
 service Profile {
   rpc GetProfile (ProfileQuery) returns (UserProfile);
+  rpc UpdateNickname (UpdateNicknameRequest) returns (UserProfile);
+  rpc UpdateAvatar (UpdateAvatarRequest) returns (UserProfile);
 }
 
 message ProfileQuery {
@@ -17,4 +19,17 @@ message UserProfile {
   string avatar_reference = 3;
   int32 matches_played = 4;
   int32 matches_won = 5;
+  string nickname = 6;
+}
+
+message UpdateNicknameRequest {
+  int32 user_id = 1;
+  string session_token = 2;
+  string nickname = 3;
+}
+
+message UpdateAvatarRequest {
+  int32 user_id = 1;
+  string session_token = 2;
+  string avatar_reference = 3;
 }

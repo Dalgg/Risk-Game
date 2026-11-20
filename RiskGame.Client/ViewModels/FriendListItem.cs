@@ -1,15 +1,18 @@
 using RiskGame.Contracts.Lobby;
 using RiskGame.Resources;
+using RiskGame.Services;
+using Avalonia.Media;
 
 namespace RiskGame.ViewModels
 {
     public sealed class FriendListItem
     {
-        private const string DefaultAvatarPath = "/Assets/default_avatar.png";
+        private readonly string avatarReference;
 
         public FriendListItem(FriendSummary friend)
         {
             Nickname = friend.Nickname;
+            avatarReference = friend.AvatarReference;
             IsOnline = friend.IsOnline;
             StatusText = Strings.LobbyFriendOfflineStatus;
             if (friend.IsOnline)
@@ -24,6 +27,6 @@ namespace RiskGame.ViewModels
 
         public string StatusText { get; }
 
-        public string AvatarPath => DefaultAvatarPath;
+        public IImage AvatarImage => ProfileAvatarCatalog.GetImage(avatarReference);
     }
 }

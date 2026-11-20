@@ -1,66 +1,119 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:RiskGame.ViewModels"
+        xmlns:services="using:RiskGame.Services"
         xmlns:res="using:RiskGame.Resources"
-        x:Class="RiskGame.Views.ProfileWindow"
-        x:DataType="vm:ProfileViewModel"
+        x:Class="RiskGame.Views.ProfileWindow" x:DataType="vm:ProfileViewModel"
         Title="{x:Static res:Strings.ProfileTitle}"
-        Width="550" Height="490" MinWidth="550" MinHeight="490"
-        WindowStartupLocation="CenterScreen" Background="#151722">
+        Width="{StaticResource ProfileWidth}" Height="{StaticResource ProfileHeight}"
+        MinWidth="{StaticResource ProfileWidth}" MinHeight="{StaticResource ProfileMinimumHeight}"
+        WindowStartupLocation="CenterScreen" Background="{StaticResource ScoreboardBackgroundBrush}">
     <Window.Styles>
         <Style Selector="TextBlock">
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource ScoreboardTextBrush}" />
         </Style>
         <Style Selector="Button">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="{StaticResource ScoreboardButtonBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource ScoreboardTextBrush}" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="CornerRadius" Value="{StaticResource ScoreboardRadius}" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="{StaticResource ScoreboardButtonPadding}" />
+        </Style>
+        <Style Selector="Border.ProfilePanel">
+            <Setter Property="Background" Value="{StaticResource ScoreboardPanelBrush}" />
+            <Setter Property="CornerRadius" Value="{StaticResource ScoreboardRadius}" />
+            <Setter Property="Padding" Value="{StaticResource ScoreboardRowPadding}" />
         </Style>
     </Window.Styles>
-    <Border BorderBrush="#353A5A" BorderThickness="2" CornerRadius="6" Margin="10">
-        <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" Margin="20">
-            <TextBlock Text="{x:Static res:Strings.ProfileTitle}" FontSize="28" FontWeight="Bold"
-                       HorizontalAlignment="Center" Margin="0,0,0,25"/>
-            <Grid Grid.Row="1" ColumnDefinitions="Auto,*" Margin="20,0,20,25">
-                <Border Width="90" Height="90" CornerRadius="45" Background="#E0E2E8"
-                        ClipToBounds="True" BorderBrush="White" BorderThickness="3" Margin="0,0,25,0">
-                    <Image Source="{Binding AvatarPath}" Stretch="UniformToFill"/>
+    <Border BorderBrush="{StaticResource ScoreboardBorderBrush}"
+            BorderThickness="{StaticResource ScoreboardBorderThickness}"
+            CornerRadius="{StaticResource ScoreboardRadius}" Margin="{StaticResource ScoreboardWindowMargin}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="{StaticResource ScoreboardWindowMargin}" Spacing="{StaticResource ScoreboardSpacing}">
+                <TextBlock Text="{x:Static res:Strings.ProfileTitle}"
+                           FontSize="{StaticResource ScoreboardTitleSize}" FontWeight="Bold"
+                           HorizontalAlignment="Center" />
+                <Grid ColumnDefinitions="Auto,*">
+                    <Border Width="{StaticResource ProfileAvatarSize}" Height="{StaticResource ProfileAvatarSize}"
+                            CornerRadius="{StaticResource ProfileAvatarRadius}" ClipToBounds="True"
+                            Margin="{StaticResource ProfileAvatarMargin}">
+                        <Image Source="{Binding AvatarImage}" Stretch="UniformToFill" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="{StaticResource ScoreboardSpacing}">
+                        <TextBlock Text="{Binding Nickname}" FontSize="{StaticResource ProfileNicknameSize}"
+                                   FontWeight="Bold" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Nickname}" />
+                        <TextBlock Text="{Binding Username}" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                </Grid>
+                <Grid ColumnDefinitions="*,*">
+                    <Button Content="{x:Static res:Strings.ProfileEditNickname}" Command="{Binding EditNicknameCommand}"
+                            Classes="ScoreboardAction" HorizontalAlignment="Stretch" />
+                    <Button Grid.Column="1" Content="{x:Static res:Strings.ProfileChooseAvatar}"
+                            Command="{Binding ChooseAvatarCommand}" Classes="ScoreboardAction"
+                            HorizontalAlignment="Stretch" />
+                </Grid>
+                <Border Classes="ProfilePanel" IsVisible="{Binding IsEditingNickname}">
+                    <StackPanel Spacing="{StaticResource ScoreboardSpacing}">
+                        <TextBlock Text="{x:Static res:Strings.ProfileNicknameHint}" TextWrapping="Wrap" />
+                        <TextBox Text="{Binding EditedNickname}" MaxLength="{Binding NicknameMaximumLength}"
+                                 IsEnabled="{Binding !IsLoading}"
+                                 PlaceholderText="{x:Static res:Strings.ProfileNicknamePlaceholder}" />
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource ScoreboardSpacing}">
+                            <Button Content="{x:Static res:Strings.ProfileSave}" Command="{Binding SaveNicknameCommand}" />
+                            <Button Content="{x:Static res:Strings.ProfileCancel}" Command="{Binding CancelEditCommand}" />
+                        </StackPanel>
+                    </StackPanel>
                 </Border>
-                <Border Grid.Column="1" Background="#1D2136" BorderBrush="#353A5A" BorderThickness="2"
-                        CornerRadius="6" Height="50" VerticalAlignment="Center" Padding="15,0">
-                    <TextBlock Text="{Binding Username}" FontSize="22" VerticalAlignment="Center"
-                               TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Username}"/>
+                <Border Classes="ProfilePanel" IsVisible="{Binding IsChoosingAvatar}">
+                    <StackPanel Spacing="{StaticResource ScoreboardSpacing}">
+                        <TextBlock Text="{x:Static res:Strings.ProfileAvatarCatalog}" />
+                        <ListBox ItemsSource="{Binding Avatars}" SelectedItem="{Binding SelectedAvatar}"
+                                 Background="{StaticResource ScoreboardPanelBrush}"
+                                 Foreground="{StaticResource ScoreboardTextBrush}"
+                                 IsEnabled="{Binding !IsLoading}">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate x:DataType="services:ProfileAvatarOption">
+                                    <StackPanel Width="{StaticResource ProfileCatalogItemWidth}">
+                                        <Image Source="{Binding Image}" Width="{StaticResource ProfileCatalogImageSize}"
+                                               Height="{StaticResource ProfileCatalogImageSize}" />
+                                        <TextBlock Text="{Binding Label}" HorizontalAlignment="Center" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource ScoreboardSpacing}">
+                            <Button Content="{x:Static res:Strings.ProfileSave}" Command="{Binding SaveAvatarCommand}" />
+                            <Button Content="{x:Static res:Strings.ProfileCancel}" Command="{Binding CancelEditCommand}" />
+                        </StackPanel>
+                    </StackPanel>
                 </Border>
-            </Grid>
-            <Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="Auto,*" Margin="30,0">
-                <TextBlock Text="{x:Static res:Strings.ProfileIdentifier}" FontSize="20" Margin="0,0,15,15"/>
-                <TextBlock Grid.Column="1" Text="{Binding UserId}" Foreground="#D1A762" FontSize="20"/>
-                <TextBlock Grid.Row="1" Text="{x:Static res:Strings.ProfileMatchesPlayed}"
-                           FontSize="20" Margin="0,0,15,15"/>
-                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MatchesPlayed}"
-                           Foreground="#D1A762" FontSize="20"/>
-                <TextBlock Grid.Row="2" Text="{x:Static res:Strings.ProfileMatchesWon}"
-                           FontSize="20" Margin="0,0,15,0"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding MatchesWon}"
-                           Foreground="#D1A762" FontSize="20"/>
-            </Grid>
-            <StackPanel Grid.Row="3" Spacing="5" Margin="0,12,0,0">
-                <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" Foreground="#F2B8B5"/>
+                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{x:Static res:Strings.ProfileIdentifier}" Classes="ScoreboardText" />
+                    <TextBlock Grid.Column="1" Text="{Binding UserId}" Classes="ScoreboardText" />
+                    <TextBlock Grid.Row="1" Text="{x:Static res:Strings.ProfileMatchesPlayed}" Classes="ScoreboardText" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MatchesPlayed}" Classes="ScoreboardText" />
+                    <TextBlock Grid.Row="2" Text="{x:Static res:Strings.ProfileMatchesWon}" Classes="ScoreboardText" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding MatchesWon}" Classes="ScoreboardText" />
+                </Grid>
+                <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap"
+                           Foreground="{StaticResource ScoreboardAccentBrush}" />
                 <Button x:Name="RefreshButton" Content="{x:Static res:Strings.ProfileRefresh}"
-                        Command="{Binding RetryCommand}"
-                        TabIndex="0" HotKey="Enter" HorizontalAlignment="Right"/>
+                        Command="{Binding RetryCommand}" HorizontalAlignment="Right" />
+                <Grid ColumnDefinitions="*,*">
+                    <Button Content="{x:Static res:Strings.ProfileBack}" Command="{Binding BackCommand}"
+                            Classes="ScoreboardAction" HotKey="Escape" HorizontalAlignment="Stretch" />
+                    <Button Grid.Column="1" Content="{x:Static res:Strings.ProfileChangePassword}"
+                            IsEnabled="False" ToolTip.Tip="{x:Static res:Strings.ProfilePasswordPending}"
+                            HorizontalAlignment="Stretch" />
+                </Grid>
+                <Button Content="{x:Static res:Strings.ProfileLogout}" Command="{Binding LogoutCommand}"
+                        Background="{StaticResource ProfileLogoutBrush}" HorizontalAlignment="Stretch" />
             </StackPanel>
-            <Grid Grid.Row="4" ColumnDefinitions="*,*" Margin="0,15,0,0">
-                <Button Content="{x:Static res:Strings.ProfileBack}" Background="#A12431"
-                        Height="40" Margin="0,0,10,0" TabIndex="1" HotKey="Escape"
-                        Command="{Binding BackCommand}" HorizontalAlignment="Stretch"/>
-                <Button Grid.Column="1" Content="{x:Static res:Strings.ProfileChangePassword}"
-                        Background="#CDA036" Height="40" TabIndex="2" IsEnabled="False"
-                        ToolTip.Tip="{x:Static res:Strings.ProfilePasswordPending}"
-                        HorizontalAlignment="Stretch"/>
-            </Grid>
-        </Grid>
+        </ScrollViewer>
     </Border>
 </Window>

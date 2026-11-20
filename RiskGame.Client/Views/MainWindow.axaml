@@ -33,9 +33,9 @@
                 Command="{Binding OpenProfileCommand}">
             <StackPanel Orientation="Horizontal" Spacing="12">
                 <Border Width="40" Height="40" CornerRadius="20" ClipToBounds="True" Background="White">
-                    <Image Source="/Assets/default_avatar.png" Stretch="UniformToFill"/>
+                    <Image Source="{Binding AvatarImage}" Stretch="UniformToFill"/>
                 </Border>
-                <TextBlock Text="{Binding LoggedUsername}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding LoggedNickname}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
             </StackPanel>
         </Button>
 

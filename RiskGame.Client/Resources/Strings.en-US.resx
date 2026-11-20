@@ -213,4 +213,20 @@
   <data name="LobbyRulesSummary" xml:space="preserve"><value>{0} · {1}-second turns</value></data>
   <data name="MatchTimeRemainingFormat" xml:space="preserve"><value>Time remaining: {0} s</value></data>
   <data name="MatchTurnTimedOutFormat" xml:space="preserve"><value>{0} ran out of time: temporary progress was lost and the turn passed.</value></data>
+  <data name="ProfileSaved" xml:space="preserve"><value>Profile updated.</value></data>
+  <data name="ProfileSaveError" xml:space="preserve"><value>Could not save the change. Check your connection and session, then try again.</value></data>
+  <data name="ProfileNicknameInvalid" xml:space="preserve"><value>Enter a nickname with 1 to 50 characters, without line breaks or control characters.</value></data>
+  <data name="ProfileAvatarCatalog" xml:space="preserve"><value>Choose your profile image</value></data>
+  <data name="ProfileEditNickname" xml:space="preserve"><value>CHANGE NICKNAME</value></data>
+  <data name="ProfileNicknamePlaceholder" xml:space="preserve"><value>New nickname</value></data>
+  <data name="ProfileSave" xml:space="preserve"><value>SAVE</value></data>
+  <data name="ProfileAvatarExplorer" xml:space="preserve"><value>Explorer</value></data>
+  <data name="ProfileCancel" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="ProfileAvatarTower" xml:space="preserve"><value>Tower</value></data>
+  <data name="ProfileAvatarCrown" xml:space="preserve"><value>Crown</value></data>
+  <data name="ProfileNicknameHint" xml:space="preserve"><value>Your nickname can have 1 to 50 characters. Your sign-in username stays the same.</value></data>
+  <data name="ProfileAvatarDice" xml:space="preserve"><value>Dice</value></data>
+  <data name="ProfileAvatarDefault" xml:space="preserve"><value>Classic</value></data>
+  <data name="ProfileChooseAvatar" xml:space="preserve"><value>CHANGE IMAGE</value></data>
+  <data name="ProfileLogout" xml:space="preserve"><value>LOG OUT</value></data>
 </root>

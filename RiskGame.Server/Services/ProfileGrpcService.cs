@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Grpc.Core;
 using RiskGame.Contracts.Profile;
@@ -8,6 +9,7 @@ namespace RiskGame.Server.Services
 {
     public sealed class ProfileGrpcService : Profile.ProfileBase
     {
+        private const int MinimumRegisteredIdentifier = 1;
         private readonly IProfileRepository profileRepository;
         private readonly ProfileSessionRegistry profileSessions;
 
@@ -32,6 +34,61 @@ namespace RiskGame.Server.Services
             }
         }
 
+        public override Task<UserProfile> UpdateNickname(UpdateNicknameRequest request, ServerCallContext callContext)
+        {
+            try
+            {
+                int userId = AuthenticateUser(request.UserId, request.SessionToken);
+                return Task.FromResult(profileRepository.UpdateNickname(userId, request.Nickname));
+            }
+            catch (ArgumentException argumentException)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, argumentException.Message));
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                throw CreateUpdateFailure(dataOperationException);
+            }
+        }
+
+        public override Task<UserProfile> UpdateAvatar(UpdateAvatarRequest request, ServerCallContext callContext)
+        {
+            try
+            {
+                int userId = AuthenticateUser(request.UserId, request.SessionToken);
+                return Task.FromResult(profileRepository.UpdateAvatar(userId, request.AvatarReference));
+            }
+            catch (ArgumentException argumentException)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, argumentException.Message));
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                throw CreateUpdateFailure(dataOperationException);
+            }
+        }
+
+        private int AuthenticateUser(int requestedUserId, string token)
+        {
+            int userId = profileSessions.GetUserId(token);
+            ValidateUserIdentity(requestedUserId, userId);
+            if (userId < MinimumRegisteredIdentifier)
+            {
+                throw new GuestNotAllowedException("A registered account is required to edit the profile.");
+            }
+            return userId;
+        }
+
+        private RpcException CreateUpdateFailure(DataOperationException exception)
+        {
+            bool expectedFailure = exception is InvalidSessionException || exception is ProfileNotFoundException;
+            if (!expectedFailure && exception is not GuestNotAllowedException)
+            {
+                JsonLogger.Error(exception, "Could not update the player profile.");
+            }
+            return CreateRpcException(exception);
+        }
+
         private void ValidateUserIdentity(int requestedUserId, int authenticatedUserId)
         {
             if (requestedUserId != authenticatedUserId)
@@ -50,6 +107,10 @@ namespace RiskGame.Server.Services
             if (dataOperationException is ProfileNotFoundException)
             {
                 statusCode = StatusCode.NotFound;
+            }
+            if (dataOperationException is GuestNotAllowedException)
+            {
+                statusCode = StatusCode.PermissionDenied;
             }
             return new RpcException(new Status(statusCode, dataOperationException.Message));
         }

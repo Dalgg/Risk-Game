@@ -406,5 +406,37 @@ namespace RiskGame.Resources
 
         public static string MatchTurnTimedOutFormat => ResourceManager.GetString("MatchTurnTimedOutFormat", _resourceCulture);
 
+        public static string ProfileSaved => ResourceManager.GetString("ProfileSaved", _resourceCulture);
+
+        public static string ProfileSaveError => ResourceManager.GetString("ProfileSaveError", _resourceCulture);
+
+        public static string ProfileNicknameInvalid => ResourceManager.GetString("ProfileNicknameInvalid", _resourceCulture);
+
+        public static string ProfileAvatarCatalog => ResourceManager.GetString("ProfileAvatarCatalog", _resourceCulture);
+
+        public static string ProfileEditNickname => ResourceManager.GetString("ProfileEditNickname", _resourceCulture);
+
+        public static string ProfileNicknamePlaceholder => ResourceManager.GetString("ProfileNicknamePlaceholder", _resourceCulture);
+
+        public static string ProfileSave => ResourceManager.GetString("ProfileSave", _resourceCulture);
+
+        public static string ProfileAvatarExplorer => ResourceManager.GetString("ProfileAvatarExplorer", _resourceCulture);
+
+        public static string ProfileCancel => ResourceManager.GetString("ProfileCancel", _resourceCulture);
+
+        public static string ProfileAvatarTower => ResourceManager.GetString("ProfileAvatarTower", _resourceCulture);
+
+        public static string ProfileAvatarCrown => ResourceManager.GetString("ProfileAvatarCrown", _resourceCulture);
+
+        public static string ProfileNicknameHint => ResourceManager.GetString("ProfileNicknameHint", _resourceCulture);
+
+        public static string ProfileAvatarDice => ResourceManager.GetString("ProfileAvatarDice", _resourceCulture);
+
+        public static string ProfileAvatarDefault => ResourceManager.GetString("ProfileAvatarDefault", _resourceCulture);
+
+        public static string ProfileChooseAvatar => ResourceManager.GetString("ProfileChooseAvatar", _resourceCulture);
+
+        public static string ProfileLogout => ResourceManager.GetString("ProfileLogout", _resourceCulture);
+
     }
 }

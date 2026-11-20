@@ -215,4 +215,20 @@
   <data name="LobbyRulesSummary" xml:space="preserve"><value>{0} · Turnos de {1} segundos</value></data>
   <data name="MatchTimeRemainingFormat" xml:space="preserve"><value>Tiempo restante: {0} s</value></data>
   <data name="MatchTurnTimedOutFormat" xml:space="preserve"><value>Se agotó el tiempo de {0}: perdió el avance temporal y pasó el turno.</value></data>
+  <data name="ProfileSaved" xml:space="preserve"><value>Perfil actualizado.</value></data>
+  <data name="ProfileSaveError" xml:space="preserve"><value>No se pudo guardar el cambio. Revisa tu conexión y tu sesión e inténtalo de nuevo.</value></data>
+  <data name="ProfileNicknameInvalid" xml:space="preserve"><value>Escribe un apodo de 1 a 50 caracteres, sin saltos de línea ni caracteres de control.</value></data>
+  <data name="ProfileAvatarCatalog" xml:space="preserve"><value>Elige tu imagen de perfil</value></data>
+  <data name="ProfileEditNickname" xml:space="preserve"><value>CAMBIAR APODO</value></data>
+  <data name="ProfileNicknamePlaceholder" xml:space="preserve"><value>Nuevo apodo</value></data>
+  <data name="ProfileSave" xml:space="preserve"><value>GUARDAR</value></data>
+  <data name="ProfileAvatarExplorer" xml:space="preserve"><value>Explorador</value></data>
+  <data name="ProfileCancel" xml:space="preserve"><value>CANCELAR</value></data>
+  <data name="ProfileAvatarTower" xml:space="preserve"><value>Torre</value></data>
+  <data name="ProfileAvatarCrown" xml:space="preserve"><value>Corona</value></data>
+  <data name="ProfileNicknameHint" xml:space="preserve"><value>El apodo puede tener de 1 a 50 caracteres. Tu usuario de acceso se conserva.</value></data>
+  <data name="ProfileAvatarDice" xml:space="preserve"><value>Dados</value></data>
+  <data name="ProfileAvatarDefault" xml:space="preserve"><value>Clásico</value></data>
+  <data name="ProfileChooseAvatar" xml:space="preserve"><value>CAMBIAR IMAGEN</value></data>
+  <data name="ProfileLogout" xml:space="preserve"><value>CERRAR SESIÓN</value></data>
 </root>

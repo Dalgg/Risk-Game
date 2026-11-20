@@ -1,0 +1,43 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DrawingImage x:Key="ProfileDefaultImage">
+        <ImageDrawing Rect="0,0,96,96" ImageSource="avares://RiskGame.Client/Assets/default_avatar.png" />
+    </DrawingImage>
+    <DrawingImage x:Key="ProfileExplorerImage">
+        <DrawingGroup>
+            <GeometryDrawing Brush="#163B38" Geometry="M0,0 H96 V96 H0 Z" />
+            <GeometryDrawing Brush="#30A46C" Geometry="M8,96 L17,74 36,64 60,64 79,74 88,96 Z" />
+            <GeometryDrawing Brush="#EAC7A0" Geometry="M30,34 H66 V51 Q66,69 48,69 Q30,69 30,51 Z" />
+            <GeometryDrawing Brush="#D4A32D" Geometry="M17,33 H79 V42 H17 Z M29,33 L35,14 H61 L67,33 Z" />
+            <GeometryDrawing Brush="#151722" Geometry="M37,45 H42 V50 H37 Z M54,45 H59 V50 H54 Z" />
+            <GeometryDrawing Brush="#E9EEE8" Geometry="M42,75 H54 L51,94 H45 Z" />
+        </DrawingGroup>
+    </DrawingImage>
+    <DrawingImage x:Key="ProfileTowerImage">
+        <DrawingGroup>
+            <GeometryDrawing Brush="#1B2D55" Geometry="M0,0 H96 V96 H0 Z" />
+            <GeometryDrawing Brush="#3E63DD" Geometry="M14,79 H82 V87 H14 Z M23,38 H73 L67,79 H29 Z" />
+            <GeometryDrawing Brush="#C7D7FA" Geometry="M20,16 H33 V27 H41 V16 H55 V27 H63 V16 H76 V40 H20 Z" />
+            <GeometryDrawing Brush="#D4A32D" Geometry="M42,12 H48 V5 H69 L61,14 H48 V25 H42 Z" />
+            <GeometryDrawing Brush="#151722" Geometry="M40,79 V60 Q48,49 56,60 V79 Z" />
+        </DrawingGroup>
+    </DrawingImage>
+    <DrawingImage x:Key="ProfileCrownImage">
+        <DrawingGroup>
+            <GeometryDrawing Brush="#4B2832" Geometry="M0,0 H96 V96 H0 Z" />
+            <GeometryDrawing Brush="#A12431" Geometry="M11,70 L22,19 48,7 74,19 85,70 48,92 Z" />
+            <GeometryDrawing Brush="#F0C968" Geometry="M22,31 L36,44 48,20 60,44 74,31 68,65 H28 Z" />
+            <GeometryDrawing Brush="#D4A32D" Geometry="M28,69 H68 V77 H28 Z" />
+            <GeometryDrawing Brush="#FFF1CC" Geometry="M43,50 L48,44 53,50 48,57 Z" />
+        </DrawingGroup>
+    </DrawingImage>
+    <DrawingImage x:Key="ProfileDiceImage">
+        <DrawingGroup>
+            <GeometryDrawing Brush="#493B19" Geometry="M0,0 H96 V96 H0 Z" />
+            <GeometryDrawing Brush="#D4A32D" Geometry="M20,24 L65,12 84,61 39,84 Z" />
+            <GeometryDrawing Brush="#F4E8C8" Geometry="M19,23 H71 V75 H19 Z" />
+            <GeometryDrawing Brush="#25293A" Geometry="M28,32 H36 V40 H28 Z M54,32 H62 V40 H54 Z
+                M41,45 H49 V53 H41 Z M28,58 H36 V66 H28 Z M54,58 H62 V66 H54 Z" />
+        </DrawingGroup>
+    </DrawingImage>
+</ResourceDictionary>
