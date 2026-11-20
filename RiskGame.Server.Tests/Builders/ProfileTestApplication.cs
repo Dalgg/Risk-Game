@@ -10,6 +10,8 @@ namespace RiskGame.Server.Tests.Builders
     public sealed class ProfileTestApplication : Application
     {
         private const string ResourceRoot = "avares://RiskGame.Client/";
+        private const string ProfileImagesResourcePath = "Assets/ProfileImages/ProfileImages.axaml";
+        private const string AppThemeStylePath = "Styles/AppTheme.axaml";
 
         public static AppBuilder BuildAvaloniaApp()
         {
@@ -27,11 +29,11 @@ namespace RiskGame.Server.Tests.Builders
             Styles.Add(new FluentTheme());
             Resources.MergedDictionaries.Add(new ResourceInclude(new Uri(ResourceRoot))
             {
-                Source = new Uri(ResourceRoot + "Assets/ProfileImages/ProfileImages.axaml")
+                Source = new Uri(ResourceRoot + ProfileImagesResourcePath)
             });
             Styles.Add(new StyleInclude(new Uri(ResourceRoot))
             {
-                Source = new Uri(ResourceRoot + "Styles/AppTheme.axaml")
+                Source = new Uri(ResourceRoot + AppThemeStylePath)
             });
         }
     }

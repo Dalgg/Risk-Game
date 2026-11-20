@@ -1,7 +1,7 @@
+using Avalonia.Media;
 using RiskGame.Contracts.Lobby;
 using RiskGame.Resources;
 using RiskGame.Services;
-using Avalonia.Media;
 
 namespace RiskGame.ViewModels
 {

@@ -79,7 +79,7 @@ namespace RiskGame.Server.Services
             return userId;
         }
 
-        private RpcException CreateUpdateFailure(DataOperationException exception)
+        private static RpcException CreateUpdateFailure(DataOperationException exception)
         {
             bool expectedFailure = exception is InvalidSessionException || exception is ProfileNotFoundException;
             if (!expectedFailure && exception is not GuestNotAllowedException)
@@ -89,7 +89,7 @@ namespace RiskGame.Server.Services
             return CreateRpcException(exception);
         }
 
-        private void ValidateUserIdentity(int requestedUserId, int authenticatedUserId)
+        private static void ValidateUserIdentity(int requestedUserId, int authenticatedUserId)
         {
             if (requestedUserId != authenticatedUserId)
             {
@@ -97,7 +97,7 @@ namespace RiskGame.Server.Services
             }
         }
 
-        private RpcException CreateRpcException(DataOperationException dataOperationException)
+        private static RpcException CreateRpcException(DataOperationException dataOperationException)
         {
             StatusCode statusCode = StatusCode.Unavailable;
             if (dataOperationException is InvalidSessionException)

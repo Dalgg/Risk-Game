@@ -1,12 +1,26 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace RiskGame.Server.Services
 {
     public static class ProfileCustomizationRules
     {
+        public const string DefaultAvatarReference = "default";
+        public const string ExplorerAvatarReference = "explorer";
+        public const string TowerAvatarReference = "tower";
+        public const string CrownAvatarReference = "crown";
+        public const string DiceAvatarReference = "dice";
         private const int MinimumNicknameLength = 1;
         private const int MaximumNicknameLength = 50;
+        private static readonly HashSet<string> AllowedAvatarReferences = new HashSet<string>(StringComparer.Ordinal)
+        {
+            DefaultAvatarReference,
+            ExplorerAvatarReference,
+            TowerAvatarReference,
+            CrownAvatarReference,
+            DiceAvatarReference
+        };
 
         public static string NormalizeNickname(string nickname)
         {
@@ -25,9 +39,7 @@ namespace RiskGame.Server.Services
 
         public static string ValidateAvatar(string avatarReference)
         {
-            bool isKnownAvatar = avatarReference == "default" || avatarReference == "explorer";
-            bool isOtherAvatar = avatarReference == "tower" || avatarReference == "crown";
-            if (!isKnownAvatar && !isOtherAvatar && avatarReference != "dice")
+            if (!AllowedAvatarReferences.Contains(avatarReference))
             {
                 throw new ArgumentException("The avatar must be selected from the profile catalog.");
             }

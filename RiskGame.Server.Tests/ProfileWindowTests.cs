@@ -17,6 +17,9 @@ namespace RiskGame.Server.Tests
     {
         private const int CatalogSize = 5;
         private const int AnotherUserId = 43;
+        private const string LegacyAvatarReference = "legacy-avatar.png";
+        private const string WhitespaceNickname = "   ";
+        private const string ReplacementSessionToken = "replacement-session";
 
         [Fact]
         public void AvatarCatalog_AllChoices_LoadImages()
@@ -34,9 +37,9 @@ namespace RiskGame.Server.Tests
         {
             ProfileTestApplication.Run(() =>
             {
-                IImage image = ProfileAvatarCatalog.GetImage("legacy-avatar.png");
+                IImage image = ProfileAvatarCatalog.GetImage(LegacyAvatarReference);
     
-                Assert.Same(ProfileAvatarCatalog.GetImage("default"), image);
+                Assert.Same(ProfileAvatarCatalog.GetImage(ProfileAvatarCatalog.DefaultAvatarReference), image);
             });
         }
 
@@ -74,7 +77,7 @@ namespace RiskGame.Server.Tests
             ProfileTestApplication.Run(() =>
             {
                 using ProfileWindowBuilder setup = new ProfileWindowBuilder();
-                setup.ViewModel.EditedNickname = "   ";
+                setup.ViewModel.EditedNickname = WhitespaceNickname;
     
                 setup.ViewModel.SaveNicknameCommand.Execute(null);
     
@@ -119,7 +122,7 @@ namespace RiskGame.Server.Tests
     
                 SessionService.UpdateProfile(setup.Session, setup.UpdatedProfile());
     
-                Assert.Same(ProfileAvatarCatalog.GetImage("tower"), new MainViewModel().AvatarImage);
+                Assert.Same(ProfileAvatarCatalog.GetImage(ProfileAvatarCatalog.TowerAvatarReference), new MainViewModel().AvatarImage);
             });
         }
 
@@ -158,7 +161,7 @@ namespace RiskGame.Server.Tests
             {
                 using ProfileWindowBuilder setup = new ProfileWindowBuilder();
                 SessionService.Login(new SessionUser(ProfileWindowBuilder.UserId, ProfileWindowBuilder.Username,
-                    ProfileWindowBuilder.Nickname) { SessionToken = "replacement-session" });
+                    ProfileWindowBuilder.Nickname) { SessionToken = ReplacementSessionToken });
     
                 bool updated = SessionService.UpdateProfile(setup.Session, setup.UpdatedProfile());
     

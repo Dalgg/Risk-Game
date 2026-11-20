@@ -17,7 +17,8 @@ namespace RiskGame.Server.Tests.Builders
         public const string OriginalNickname = "Original";
         public const string OriginalEmail = "original@example.com";
         public const string PasswordHash = "test-password-hash";
-        private readonly SqliteConnection connection = new SqliteConnection("Data Source=:memory:");
+        private const string InMemoryConnectionString = "Data Source=:memory:";
+        private readonly SqliteConnection connection = new SqliteConnection(InMemoryConnectionString);
         private readonly DbContextOptions<RiskGameContext> options;
         private readonly ProfileSessionRegistry sessions = new ProfileSessionRegistry();
 
@@ -30,7 +31,8 @@ namespace RiskGame.Server.Tests.Builders
             context.Users.Add(new User
             {
                 IdUser = UserId, Username = Username, Nickname = OriginalNickname, Email = OriginalEmail,
-                PasswordHash = PasswordHash, RegistrationDate = DateTime.UtcNow, AvatarReference = "default"
+                PasswordHash = PasswordHash, RegistrationDate = DateTime.UtcNow,
+                AvatarReference = ProfileCustomizationRules.DefaultAvatarReference
             });
             context.SaveChanges();
             Repository = new ProfileRepositoryService(CreateContext);

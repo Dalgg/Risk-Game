@@ -4,6 +4,7 @@ using System;
 using Avalonia.Threading;
 using SessionService = Client::RiskGame.Services.SessionService;
 using SessionUser = Client::RiskGame.Services.SessionUser;
+using ProfileAvatarCatalog = Client::RiskGame.Services.ProfileAvatarCatalog;
 using UserProfile = Client::RiskGame.Contracts.Profile.UserProfile;
 using ProfileViewModel = Client::RiskGame.ViewModels.ProfileViewModel;
 using ProfileWindow = Client::RiskGame.Views.ProfileWindow;
@@ -40,7 +41,10 @@ namespace RiskGame.Server.Tests.Builders
         {
             return new UserProfile
             {
-                UserId = UserId, Username = Username, Nickname = ChangedNickname, AvatarReference = "tower"
+                UserId = UserId,
+                Username = Username,
+                Nickname = ChangedNickname,
+                AvatarReference = ProfileAvatarCatalog.TowerAvatarReference
             };
         }
 

@@ -1,7 +1,7 @@
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RiskGame.Services;
-using Avalonia.Media;
 
 namespace RiskGame.ViewModels
 {

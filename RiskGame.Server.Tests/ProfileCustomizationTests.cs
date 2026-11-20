@@ -10,7 +10,8 @@ namespace RiskGame.Server.Tests
     {
         private const string NewNickname = "Diego León";
         private const string PaddedNickname = "  Diego León  ";
-        private const string SelectedAvatar = "tower";
+        private const string SelectedAvatar = ProfileCustomizationRules.TowerAvatarReference;
+        private const char FillerCharacter = 'A';
         private const int ExcessiveLength = 51;
 
         [Fact]
@@ -66,17 +67,17 @@ namespace RiskGame.Server.Tests
         [Fact]
         public void NormalizeNickname_TooLong_Rejects()
         {
-            string nickname = new string('A', ExcessiveLength);
+            string nickname = new string(FillerCharacter, ExcessiveLength);
 
             Assert.Throws<ArgumentException>(() => ProfileCustomizationRules.NormalizeNickname(nickname));
         }
 
         [Theory]
-        [InlineData("default")]
-        [InlineData("explorer")]
-        [InlineData("tower")]
-        [InlineData("crown")]
-        [InlineData("dice")]
+        [InlineData(ProfileCustomizationRules.DefaultAvatarReference)]
+        [InlineData(ProfileCustomizationRules.ExplorerAvatarReference)]
+        [InlineData(ProfileCustomizationRules.TowerAvatarReference)]
+        [InlineData(ProfileCustomizationRules.CrownAvatarReference)]
+        [InlineData(ProfileCustomizationRules.DiceAvatarReference)]
         public void UpdateAvatar_CatalogChoice_Persists(string reference)
         {
             using ProfileCustomizationBuilder setup = new ProfileCustomizationBuilder();

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -213,7 +214,10 @@ namespace RiskGame.ViewModels
             };
             GrpcChannel channel = GrpcChannelProvider.GetChannel();
             Profile.ProfileClient client = new Profile.ProfileClient(channel);
-            return client.GetProfile(request, deadline: DateTime.UtcNow.AddSeconds(RequestTimeoutSeconds));
+            return client.GetProfile(
+                request,
+                deadline: DateTime.UtcNow.AddSeconds(RequestTimeoutSeconds),
+                cancellationToken: CancellationToken.None);
         }
 
         private UserProfile RequestNicknameUpdate(string nickname)
@@ -224,7 +228,10 @@ namespace RiskGame.ViewModels
             };
             GrpcChannel channel = GrpcChannelProvider.GetChannel();
             Profile.ProfileClient client = new Profile.ProfileClient(channel);
-            return client.UpdateNickname(request, deadline: DateTime.UtcNow.AddSeconds(RequestTimeoutSeconds));
+            return client.UpdateNickname(
+                request,
+                deadline: DateTime.UtcNow.AddSeconds(RequestTimeoutSeconds),
+                cancellationToken: CancellationToken.None);
         }
 
         private UserProfile RequestAvatarUpdate(string reference)
@@ -236,7 +243,10 @@ namespace RiskGame.ViewModels
             };
             GrpcChannel channel = GrpcChannelProvider.GetChannel();
             Profile.ProfileClient client = new Profile.ProfileClient(channel);
-            return client.UpdateAvatar(request, deadline: DateTime.UtcNow.AddSeconds(RequestTimeoutSeconds));
+            return client.UpdateAvatar(
+                request,
+                deadline: DateTime.UtcNow.AddSeconds(RequestTimeoutSeconds),
+                cancellationToken: CancellationToken.None);
         }
 
         private bool ApplyProfile(UserProfile profile)
