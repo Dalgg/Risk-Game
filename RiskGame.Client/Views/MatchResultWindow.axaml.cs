@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using RiskGame.Contracts.Lobby;
@@ -37,29 +38,19 @@ namespace RiskGame.Views
             }
         }
 
-        private void OnWindowLoaded(object? sender, RoutedEventArgs routedEventArgs)
-        {
-            GamepadService.ActionTriggered += OnGamepadAction;
-            ReturnButton.Focus();
-        }
-
-        private void OnGamepadAction(object? sender, GamepadActionEventArgs eventArgs)
-        {
-            if (eventArgs.Action == GamepadAction.Confirm || eventArgs.Action == GamepadAction.Cancel)
-            {
-                Dispatcher.UIThread.Post(() => ReturnClick(ReturnButton, new RoutedEventArgs()));
-            }
-        }
-
         protected override void OnClosed(EventArgs eventArgs)
         {
             hasClosed = true;
-            GamepadService.ActionTriggered -= OnGamepadAction;
             if (!hasReturned)
             {
                 Task.Run(resultViewModel.LeaveLobby);
             }
             base.OnClosed(eventArgs);
+        }
+
+        private void OnWindowLoaded(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            ReturnButton.Focus(NavigationMethod.Tab);
         }
 
         private void ReturnClick(object? sender, RoutedEventArgs routedEventArgs)

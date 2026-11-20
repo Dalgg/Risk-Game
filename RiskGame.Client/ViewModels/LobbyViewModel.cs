@@ -39,7 +39,7 @@ namespace RiskGame.ViewModels
                     }
                 };
 
-                return lobbyClient.CreateLobby(createRequest);
+                return lobbyClient.CreateLobby(createRequest, cancellationToken: CancellationToken.None);
             }
             catch (RpcException rpcException)
             {
@@ -59,7 +59,7 @@ namespace RiskGame.ViewModels
                     Player = BuildCurrentPlayerSummary()
                 };
 
-                return lobbyClient.JoinLobby(joinRequest);
+                return lobbyClient.JoinLobby(joinRequest, cancellationToken: CancellationToken.None);
             }
             catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.NotFound)
             {
@@ -84,7 +84,7 @@ namespace RiskGame.ViewModels
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                 Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
                 UserLobbyRequest leaveRequest = BuildUserLobbyRequest();
-                lobbyClient.LeaveLobby(leaveRequest);
+                lobbyClient.LeaveLobby(leaveRequest, cancellationToken: CancellationToken.None);
             }
             catch (RpcException rpcException)
             {
@@ -99,7 +99,8 @@ namespace RiskGame.ViewModels
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                 Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
                 UserLobbyRequest startRequest = BuildUserLobbyRequest();
-                StartMatchResponse startResponse = lobbyClient.StartMatch(startRequest);
+                StartMatchResponse startResponse = lobbyClient.StartMatch(
+                    startRequest, cancellationToken: CancellationToken.None);
                 return startResponse.MatchId;
             }
             catch (RpcException rpcException) when (rpcException.StatusCode == StatusCode.FailedPrecondition)
@@ -130,7 +131,7 @@ namespace RiskGame.ViewModels
                     RecipientUserId = friendUserId
                 };
 
-                lobbyClient.InviteFriend(inviteRequest);
+                lobbyClient.InviteFriend(inviteRequest, cancellationToken: CancellationToken.None);
             }
             catch (RpcException rpcException)
             {
@@ -152,7 +153,7 @@ namespace RiskGame.ViewModels
                         Sender = BuildCurrentPlayerSummary()
                     };
 
-                    chatClient.SendMessage(outgoingMessage);
+                    chatClient.SendMessage(outgoingMessage, cancellationToken: CancellationToken.None);
                 }
                 catch (RpcException rpcException)
                 {
@@ -166,7 +167,7 @@ namespace RiskGame.ViewModels
             StopSubscription();
             streamCancellation = new CancellationTokenSource();
             CancellationToken cancellationToken = streamCancellation.Token;
-            Task.Run(() => ReadLobbyEventStream(lobbyCallback, cancellationToken));
+            Task.Run(() => ReadLobbyEventStream(lobbyCallback, cancellationToken), cancellationToken);
         }
 
         private void ReadLobbyEventStream(ILobbyCallback lobbyCallback, CancellationToken cancellationToken)
@@ -208,7 +209,7 @@ namespace RiskGame.ViewModels
             StopChatSubscription();
             chatStreamCancellation = new CancellationTokenSource();
             CancellationToken cancellationToken = chatStreamCancellation.Token;
-            Task.Run(() => ReadChatStream(chatCallback, cancellationToken));
+            Task.Run(() => ReadChatStream(chatCallback, cancellationToken), cancellationToken);
         }
 
         private void ReadChatStream(IChatCallback chatCallback, CancellationToken cancellationToken)

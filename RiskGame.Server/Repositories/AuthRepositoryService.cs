@@ -12,11 +12,15 @@ namespace RiskGame.Server.Services
     public class AuthRepositoryService
     {
         private const int MaxEmailLength = 100;
+        private const int RegexTimeoutMilliseconds = 250;
         private static readonly Regex EmailRegex = new Regex(
-            @"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$", RegexOptions.Compiled);
+            @"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$",
+            RegexOptions.Compiled,
+            TimeSpan.FromMilliseconds(RegexTimeoutMilliseconds));
         private static readonly Regex UsernameRegex = new Regex(
             @"^[A-Za-z0-9._\-]{3,50}$",
-            RegexOptions.Compiled);
+            RegexOptions.Compiled,
+            TimeSpan.FromMilliseconds(RegexTimeoutMilliseconds));
 
         public User AuthenticateUser(string username, string password)
         {

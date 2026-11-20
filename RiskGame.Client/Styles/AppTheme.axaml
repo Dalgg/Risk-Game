@@ -7,6 +7,8 @@
         <SolidColorBrush x:Key="ScoreboardTextBrush">White</SolidColorBrush>
         <SolidColorBrush x:Key="ScoreboardAccentBrush">#D4A32D</SolidColorBrush>
         <SolidColorBrush x:Key="ScoreboardButtonBrush">#3273B2</SolidColorBrush>
+        <SolidColorBrush x:Key="FocusHighlightBrush">#F5D90A</SolidColorBrush>
+        <Thickness x:Key="FocusHighlightThickness">3</Thickness>
         <x:Double x:Key="ScoreboardWidth">760</x:Double>
         <x:Double x:Key="ScoreboardHeight">650</x:Double>
         <x:Double x:Key="ScoreboardTitleSize">28</x:Double>
@@ -39,5 +41,47 @@
         <Setter Property="Foreground" Value="{StaticResource ScoreboardTextBrush}" />
         <Setter Property="FontSize" Value="{StaticResource ScoreboardTextSize}" />
         <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Control">
+        <Setter Property="FocusAdorner">
+            <FocusAdornerTemplate>
+                <Border BorderBrush="{StaticResource FocusHighlightBrush}"
+                        BorderThickness="{StaticResource FocusHighlightThickness}"
+                        CornerRadius="8"
+                        Margin="-3" />
+            </FocusAdornerTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="Button:focus-visible">
+        <Setter Property="BorderBrush" Value="{StaticResource FocusHighlightBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource FocusHighlightThickness}" />
+        <Setter Property="RenderTransform" Value="scale(1.03)" />
+    </Style>
+
+    <Style Selector="Button:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="{StaticResource FocusHighlightBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource FocusHighlightThickness}" />
+    </Style>
+
+    <Style Selector="TextBox:focus-visible">
+        <Setter Property="BorderBrush" Value="{StaticResource FocusHighlightBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource FocusHighlightThickness}" />
+    </Style>
+
+    <Style Selector="ComboBox:focus-visible">
+        <Setter Property="BorderBrush" Value="{StaticResource FocusHighlightBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource FocusHighlightThickness}" />
+    </Style>
+
+    <Style Selector="TabItem:focus-visible">
+        <Setter Property="BorderBrush" Value="{StaticResource FocusHighlightBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource FocusHighlightThickness}" />
+    </Style>
+
+    <Style Selector="ListBoxItem:focus-visible">
+        <Setter Property="BorderBrush" Value="{StaticResource FocusHighlightBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource FocusHighlightThickness}" />
     </Style>
 </Styles>

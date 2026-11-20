@@ -13,12 +13,18 @@ namespace RiskGame.ViewModels
     public class RegisterViewModel : ViewModelBase
     {
         private const int RegistrationTimeoutSeconds = 20;
-        public string RegistrationId { get; private set; } = string.Empty;
         private const int MaxEmailLength = 100;
-        private static readonly Regex EmailRegex = new Regex(@"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$",
-            RegexOptions.Compiled);
-        private static readonly Regex UsernameRegex = new Regex(@"^[A-Za-z0-9._\-]{3,50}$",
-            RegexOptions.Compiled);
+        private const int RegexTimeoutMilliseconds = 250;
+        private static readonly Regex EmailRegex = new Regex(
+            @"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$",
+            RegexOptions.Compiled,
+            TimeSpan.FromMilliseconds(RegexTimeoutMilliseconds));
+        private static readonly Regex UsernameRegex = new Regex(
+            @"^[A-Za-z0-9._\-]{3,50}$",
+            RegexOptions.Compiled,
+            TimeSpan.FromMilliseconds(RegexTimeoutMilliseconds));
+
+        public string RegistrationId { get; private set; } = string.Empty;
 
         public RegisterResult RegisterUser(string email, string username, string password)
         {

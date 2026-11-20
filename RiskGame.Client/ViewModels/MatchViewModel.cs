@@ -28,7 +28,10 @@ namespace RiskGame.ViewModels
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                 Match.MatchClient matchClient = new Match.MatchClient(grpcChannel);
-                return matchClient.StopTurn(request, deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds));
+                return matchClient.StopTurn(
+                    request,
+                    deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds),
+                    cancellationToken: CancellationToken.None);
             }
             catch (RpcException rpcException)
             {
@@ -48,7 +51,10 @@ namespace RiskGame.ViewModels
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                 Match.MatchClient matchClient = new Match.MatchClient(grpcChannel);
-                return matchClient.RollDice(request, deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds));
+                return matchClient.RollDice(
+                    request,
+                    deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds),
+                    cancellationToken: CancellationToken.None);
             }
             catch (RpcException rpcException)
             {
@@ -66,7 +72,10 @@ namespace RiskGame.ViewModels
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                 Match.MatchClient matchClient = new Match.MatchClient(grpcChannel);
-                return matchClient.ChooseDicePair(request, deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds));
+                return matchClient.ChooseDicePair(
+                    request,
+                    deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds),
+                    cancellationToken: CancellationToken.None);
             }
             catch (RpcException rpcException)
             {
@@ -95,7 +104,7 @@ namespace RiskGame.ViewModels
             };
             streamCancellation = new CancellationTokenSource();
             CancellationToken cancellationToken = streamCancellation.Token;
-            Task.Run(() => ReadMatchStream(subscription, matchCallback, cancellationToken));
+            Task.Run(() => ReadMatchStream(subscription, matchCallback, cancellationToken), cancellationToken);
         }
 
         public void StopSubscription()
@@ -114,9 +123,12 @@ namespace RiskGame.ViewModels
             try
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
-                Lobby.LobbyClient LobbyClient = new Lobby.LobbyClient(grpcChannel);
+                Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
                 UserLobbyRequest leaveRequest = new UserLobbyRequest { UserId = currentSessionUser.IdUser };
-                LobbyClient.LeaveLobby(leaveRequest, deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds));
+                lobbyClient.LeaveLobby(
+                    leaveRequest,
+                    deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds),
+                    cancellationToken: CancellationToken.None);
             }
             catch (RpcException rpcException)
             {

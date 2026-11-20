@@ -170,7 +170,7 @@ namespace RiskGame.Server.Services
 
                 lock (responseStream)
                 {
-                    responseStream.WriteAsync(snapshotEvent).GetAwaiter().GetResult();
+                    responseStream.WriteAsync(snapshotEvent, callContext.CancellationToken).GetAwaiter().GetResult();
                 }
 
                 callContext.CancellationToken.WaitHandle.WaitOne();

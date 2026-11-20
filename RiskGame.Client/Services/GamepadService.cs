@@ -37,7 +37,6 @@ namespace RiskGame.Services
     {
         private const int MaximumControllers = 4;
         private const int FirstControllerIndex = 0;
-        private const int NoControllerIndex = -1;
         private const int LinuxPacketSize = 8;
         private const int PacketStartOffset = 0;
         private const int EventValueIndex = 4;
@@ -49,18 +48,41 @@ namespace RiskGame.Services
         private const byte NoFlags = 0;
         private const short ButtonPressedValue = 1;
         private const short AxisThreshold = 16000;
-        private const byte ButtonSouth = 0;
-        private const byte ButtonEast = 1;
-        private const byte ButtonWest = 2;
-        private const byte ButtonNorth = 3;
-        private const byte ButtonLeftShoulder = 4;
-        private const byte ButtonRightShoulder = 5;
-        private const byte ButtonSelect = 6;
-        private const byte ButtonStart = 7;
-        private const byte AxisLeftStickHorizontal = 0;
-        private const byte AxisLeftStickVertical = 1;
-        private const byte AxisDpadHorizontal = 6;
-        private const byte AxisDpadVertical = 7;
+        private const short HatThreshold = 0;
+        private const int LinuxAxisMapLength = 64;
+        private const int LinuxButtonMapLength = 512;
+        private const ulong LinuxIoctlGetAxisMap = 0x80406A32UL;
+        private const ulong LinuxIoctlGetButtonMap = 0x84006A34UL;
+        private const int IoctlFailureResult = -1;
+        private const byte LinuxAbsX = 0;
+        private const byte LinuxAbsY = 1;
+        private const byte LinuxAbsHat0X = 16;
+        private const byte LinuxAbsHat0Y = 17;
+        private const ushort LinuxKeyBack = 158;
+        private const ushort LinuxBtnSouth = 304;
+        private const ushort LinuxBtnEast = 305;
+        private const ushort LinuxBtnNorth = 307;
+        private const ushort LinuxBtnWest = 308;
+        private const ushort LinuxBtnLeftShoulder = 310;
+        private const ushort LinuxBtnRightShoulder = 311;
+        private const ushort LinuxBtnSelect = 314;
+        private const ushort LinuxBtnStart = 315;
+        private const ushort LinuxBtnDpadUp = 544;
+        private const ushort LinuxBtnDpadDown = 545;
+        private const ushort LinuxBtnDpadLeft = 546;
+        private const ushort LinuxBtnDpadRight = 547;
+        private const byte FallbackButtonSouth = 0;
+        private const byte FallbackButtonEast = 1;
+        private const byte FallbackButtonWest = 2;
+        private const byte FallbackButtonNorth = 3;
+        private const byte FallbackButtonLeftShoulder = 4;
+        private const byte FallbackButtonRightShoulder = 5;
+        private const byte FallbackButtonSelect = 6;
+        private const byte FallbackButtonStart = 7;
+        private const byte FallbackAxisLeftStickHorizontal = 0;
+        private const byte FallbackAxisLeftStickVertical = 1;
+        private const byte FallbackAxisDpadHorizontal = 6;
+        private const byte FallbackAxisDpadVertical = 7;
         private const int PollingDelayMilliseconds = 25;
         private const int ReconnectDelayMilliseconds = 1000;
         private const uint WindowsReturnAllFlags = 0x00FF;
@@ -98,7 +120,7 @@ namespace RiskGame.Services
                 {
                     pollingCancellation = new CancellationTokenSource();
                     CancellationToken cancellationToken = pollingCancellation.Token;
-                    Task.Run(() => RunHardwareLoop(cancellationToken));
+                    Task.Run(() => RunHardwareLoop(cancellationToken), cancellationToken);
                 }
             }
         }
@@ -139,34 +161,27 @@ namespace RiskGame.Services
 
         private static void PollLinuxControllers(CancellationToken cancellationToken)
         {
+            for (int slotIndex = FirstControllerIndex; slotIndex < MaximumControllers; slotIndex++)
+            {
+                int capturedSlot = slotIndex;
+                Task.Run(() => RunLinuxControllerSlot(capturedSlot, cancellationToken), cancellationToken);
+            }
+        }
+
+        private static void RunLinuxControllerSlot(int controllerIndex, CancellationToken cancellationToken)
+        {
+            string devicePath = $"/dev/input/js{controllerIndex}";
             while (!cancellationToken.IsCancellationRequested)
             {
-                int controllerIndex = FindLinuxControllerIndex();
-                if (controllerIndex == NoControllerIndex)
+                if (!File.Exists(devicePath))
                 {
                     WaitBeforeRetry(cancellationToken, ReconnectDelayMilliseconds);
                 }
                 else
                 {
-                    string devicePath = $"/dev/input/js{controllerIndex}";
                     ReadLinuxJoystickStream(devicePath, controllerIndex, cancellationToken);
                 }
             }
-        }
-
-        private static int FindLinuxControllerIndex()
-        {
-            int detectedIndex = NoControllerIndex;
-            for (int candidateIndex = FirstControllerIndex; candidateIndex < MaximumControllers; candidateIndex++)
-            {
-                string candidatePath = $"/dev/input/js{candidateIndex}";
-                if (detectedIndex == NoControllerIndex && File.Exists(candidatePath))
-                {
-                    detectedIndex = candidateIndex;
-                }
-            }
-
-            return detectedIndex;
         }
 
         private static void ReadLinuxJoystickStream(string devicePath, int controllerIndex,
@@ -182,6 +197,7 @@ namespace RiskGame.Services
             {
                 using FileStream deviceStream = new FileStream(
                     devicePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                LinuxJoystickLayout layout = ReadLinuxJoystickLayout(deviceStream);
                 bool isStreamOpen = true;
 
                 while (!cancellationToken.IsCancellationRequested && isStreamOpen)
@@ -193,7 +209,7 @@ namespace RiskGame.Services
                     }
                     else
                     {
-                        ProcessLinuxPacket(packetBuffer, ref directionState);
+                        ProcessLinuxPacket(packetBuffer, layout, ref directionState);
                     }
                 }
             }
@@ -208,7 +224,26 @@ namespace RiskGame.Services
             }
         }
 
-        private static void ProcessLinuxPacket(byte[] packetBuffer, ref ControllerDirectionState directionState)
+        private static LinuxJoystickLayout ReadLinuxJoystickLayout(FileStream deviceStream)
+        {
+            byte[] axisMap = new byte[LinuxAxisMapLength];
+            ushort[] buttonMap = new ushort[LinuxButtonMapLength];
+            int fileDescriptor = (int)deviceStream.SafeFileHandle.DangerousGetHandle();
+            bool hasAxisMap = QueryLinuxAxisMap(fileDescriptor, LinuxIoctlGetAxisMap, axisMap) != IoctlFailureResult;
+            bool hasButtonMap = QueryLinuxButtonMap(fileDescriptor, LinuxIoctlGetButtonMap, buttonMap)
+                != IoctlFailureResult;
+
+            return new LinuxJoystickLayout
+            {
+                AxisMap = axisMap,
+                ButtonMap = buttonMap,
+                HasAxisMap = hasAxisMap,
+                HasButtonMap = hasButtonMap
+            };
+        }
+
+        private static void ProcessLinuxPacket(byte[] packetBuffer, LinuxJoystickLayout layout,
+            ref ControllerDirectionState directionState)
         {
             byte rawEventType = packetBuffer[EventTypeIndex];
             if ((rawEventType & LinuxInitFlag) == NoFlags)
@@ -219,70 +254,153 @@ namespace RiskGame.Services
 
                 if (cleanEventType == LinuxButtonEvent && eventValue == ButtonPressedValue)
                 {
-                    GamepadAction buttonAction = MapLinuxButton(eventNumber);
+                    GamepadAction buttonAction = ResolveLinuxButtonAction(eventNumber, layout);
                     TriggerAction(buttonAction, directionState.ControllerIndex);
                 }
                 else if (cleanEventType == LinuxAxisEvent)
                 {
-                    ProcessLinuxAxis(eventNumber, eventValue, ref directionState);
+                    ProcessLinuxAxis(eventNumber, eventValue, layout, ref directionState);
                 }
             }
         }
 
-        private static GamepadAction MapLinuxButton(byte buttonNumber)
+        private static GamepadAction ResolveLinuxButtonAction(byte buttonNumber, LinuxJoystickLayout layout)
+        {
+            if (layout.HasButtonMap && buttonNumber < layout.ButtonMap.Length)
+            {
+                return MapLinuxButtonCode(layout.ButtonMap[buttonNumber]);
+            }
+            return MapFallbackLinuxButton(buttonNumber);
+        }
+
+        private static GamepadAction MapLinuxButtonCode(ushort buttonCode)
+        {
+            switch (buttonCode)
+            {
+                case LinuxBtnSouth:
+                case LinuxBtnStart:
+                    return GamepadAction.Confirm;
+                case LinuxBtnEast:
+                case LinuxBtnSelect:
+                case LinuxKeyBack:
+                    return GamepadAction.Cancel;
+                case LinuxBtnWest:
+                    return GamepadAction.RollDice;
+                case LinuxBtnNorth:
+                    return GamepadAction.SelectOption2;
+                case LinuxBtnLeftShoulder:
+                    return GamepadAction.SelectOption1;
+                case LinuxBtnRightShoulder:
+                    return GamepadAction.SelectOption3;
+                case LinuxBtnDpadUp:
+                    return GamepadAction.NavigateUp;
+                case LinuxBtnDpadDown:
+                    return GamepadAction.NavigateDown;
+                case LinuxBtnDpadLeft:
+                    return GamepadAction.NavigateLeft;
+                case LinuxBtnDpadRight:
+                    return GamepadAction.NavigateRight;
+                default:
+                    return GamepadAction.None;
+            }
+        }
+
+        private static GamepadAction MapFallbackLinuxButton(byte buttonNumber)
         {
             switch (buttonNumber)
             {
-                case ButtonSouth:
-                case ButtonStart:
+                case FallbackButtonSouth:
+                case FallbackButtonStart:
                     return GamepadAction.Confirm;
-                case ButtonEast:
-                case ButtonSelect:
+                case FallbackButtonEast:
+                case FallbackButtonSelect:
                     return GamepadAction.Cancel;
-                case ButtonWest:
+                case FallbackButtonWest:
                     return GamepadAction.RollDice;
-                case ButtonNorth:
+                case FallbackButtonNorth:
                     return GamepadAction.SelectOption2;
-                case ButtonLeftShoulder:
+                case FallbackButtonLeftShoulder:
                     return GamepadAction.SelectOption1;
-                case ButtonRightShoulder:
+                case FallbackButtonRightShoulder:
                     return GamepadAction.SelectOption3;
                 default:
                     return GamepadAction.None;
             }
         }
 
-        private static void ProcessLinuxAxis(byte axisNumber, short axisValue,
+        private static void ProcessLinuxAxis(byte axisNumber, short axisValue, LinuxJoystickLayout layout,
             ref ControllerDirectionState directionState)
         {
-            if (axisNumber == AxisLeftStickHorizontal || axisNumber == AxisDpadHorizontal)
+            byte axisCode = ResolveLinuxAxisCode(axisNumber, layout);
+            if (axisCode == LinuxAbsX)
             {
-                int currentHorizontal = GetAxisDirection(axisValue);
-                if (currentHorizontal != directionState.Horizontal)
-                {
-                    directionState.Horizontal = currentHorizontal;
-                    DispatchHorizontalAction(currentHorizontal, directionState.ControllerIndex);
-                }
+                UpdateHorizontalState(GetAxisDirection(axisValue, AxisThreshold), ref directionState.StickHorizontal,
+                    directionState.ControllerIndex);
             }
-            else if (axisNumber == AxisLeftStickVertical || axisNumber == AxisDpadVertical)
+            else if (axisCode == LinuxAbsY)
             {
-                int currentVertical = GetAxisDirection(axisValue);
-                if (currentVertical != directionState.Vertical)
-                {
-                    directionState.Vertical = currentVertical;
-                    DispatchVerticalAction(currentVertical, directionState.ControllerIndex);
-                }
+                UpdateVerticalState(GetAxisDirection(axisValue, AxisThreshold), ref directionState.StickVertical,
+                    directionState.ControllerIndex);
+            }
+            else if (axisCode == LinuxAbsHat0X)
+            {
+                UpdateHorizontalState(GetAxisDirection(axisValue, HatThreshold), ref directionState.DpadHorizontal,
+                    directionState.ControllerIndex);
+            }
+            else if (axisCode == LinuxAbsHat0Y)
+            {
+                UpdateVerticalState(GetAxisDirection(axisValue, HatThreshold), ref directionState.DpadVertical,
+                    directionState.ControllerIndex);
             }
         }
 
-        private static int GetAxisDirection(short axisValue)
+        private static byte ResolveLinuxAxisCode(byte axisNumber, LinuxJoystickLayout layout)
         {
-            if (axisValue < -AxisThreshold)
+            if (layout.HasAxisMap && axisNumber < layout.AxisMap.Length)
+            {
+                return layout.AxisMap[axisNumber];
+            }
+            switch (axisNumber)
+            {
+                case FallbackAxisLeftStickHorizontal:
+                    return LinuxAbsX;
+                case FallbackAxisLeftStickVertical:
+                    return LinuxAbsY;
+                case FallbackAxisDpadHorizontal:
+                    return LinuxAbsHat0X;
+                case FallbackAxisDpadVertical:
+                    return LinuxAbsHat0Y;
+                default:
+                    return byte.MaxValue;
+            }
+        }
+
+        private static void UpdateHorizontalState(int currentDirection, ref int previousDirection, int controllerIndex)
+        {
+            if (currentDirection != previousDirection)
+            {
+                previousDirection = currentDirection;
+                DispatchHorizontalAction(currentDirection, controllerIndex);
+            }
+        }
+
+        private static void UpdateVerticalState(int currentDirection, ref int previousDirection, int controllerIndex)
+        {
+            if (currentDirection != previousDirection)
+            {
+                previousDirection = currentDirection;
+                DispatchVerticalAction(currentDirection, controllerIndex);
+            }
+        }
+
+        private static int GetAxisDirection(short axisValue, short threshold)
+        {
+            if (axisValue < -threshold)
             {
                 return DirectionNegative;
             }
 
-            if (axisValue > AxisThreshold)
+            if (axisValue > threshold)
             {
                 return DirectionPositive;
             }
@@ -313,8 +431,8 @@ namespace RiskGame.Services
                     if (result != WindowsJoystickNoError)
                     {
                         previousButtons[controllerIndex] = NoButtonsPressedMask;
-                        directionStates[controllerIndex].Horizontal = DirectionNeutral;
-                        directionStates[controllerIndex].Vertical = DirectionNeutral;
+                        directionStates[controllerIndex].StickHorizontal = DirectionNeutral;
+                        directionStates[controllerIndex].StickVertical = DirectionNeutral;
                     }
                     else
                     {
@@ -376,17 +494,8 @@ namespace RiskGame.Services
             int currentHorizontal = ResolveWindowsHorizontal(joyInfo);
             int currentVertical = ResolveWindowsVertical(joyInfo);
 
-            if (currentHorizontal != directionState.Horizontal)
-            {
-                directionState.Horizontal = currentHorizontal;
-                DispatchHorizontalAction(currentHorizontal, directionState.ControllerIndex);
-            }
-
-            if (currentVertical != directionState.Vertical)
-            {
-                directionState.Vertical = currentVertical;
-                DispatchVerticalAction(currentVertical, directionState.ControllerIndex);
-            }
+            UpdateHorizontalState(currentHorizontal, ref directionState.StickHorizontal, directionState.ControllerIndex);
+            UpdateVerticalState(currentVertical, ref directionState.StickVertical, directionState.ControllerIndex);
         }
 
         private static int ResolveWindowsHorizontal(WindowsJoyInfoEx joyInfo)
@@ -480,13 +589,29 @@ namespace RiskGame.Services
             cancellationToken.WaitHandle.WaitOne(delayMilliseconds);
         }
 
+        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
+        private static extern int QueryLinuxAxisMap(int fileDescriptor, ulong request, [Out] byte[] axisMap);
+
+        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
+        private static extern int QueryLinuxButtonMap(int fileDescriptor, ulong request, [Out] ushort[] buttonMap);
+
         [DllImport("winmm.dll")]
         private static extern uint joyGetPosEx(uint joyId, ref WindowsJoyInfoEx joyInfo);
 
+        private sealed class LinuxJoystickLayout
+        {
+            public byte[] AxisMap { get; init; } = Array.Empty<byte>();
+            public ushort[] ButtonMap { get; init; } = Array.Empty<ushort>();
+            public bool HasAxisMap { get; init; }
+            public bool HasButtonMap { get; init; }
+        }
+
         private struct ControllerDirectionState
         {
-            public int Horizontal;
-            public int Vertical;
+            public int StickHorizontal;
+            public int StickVertical;
+            public int DpadHorizontal;
+            public int DpadVertical;
             public int ControllerIndex;
         }
 

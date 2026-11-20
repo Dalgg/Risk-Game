@@ -15,3 +15,5 @@ appsettings.local.json
 logs/
 *.jsonl
 .vscode/
+.sonarqube/
+TestResults/

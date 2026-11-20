@@ -19,6 +19,7 @@ namespace RiskGame
         {
             RiskGame.Resources.Strings.Culture = new CultureInfo("en-US");
             GamepadService.Initialize();
+            GamepadFocusNavigator.Initialize();
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
@@ -32,8 +33,9 @@ namespace RiskGame
             base.OnFrameworkInitializationCompleted();
         }
 
-        private void OnApplicationExit(object? sender, ControlledApplicationLifetimeExitEventArgs exitEventArgs)
+        private static void OnApplicationExit(object? sender, ControlledApplicationLifetimeExitEventArgs exitEventArgs)
         {
+            GamepadFocusNavigator.Shutdown();
             GamepadService.Shutdown();
             SessionService.Logout();
         }
