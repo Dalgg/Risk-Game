@@ -368,5 +368,21 @@ namespace RiskGame.Resources
 
         public static string LobbyWaitingForReturns => ResourceManager.GetString("LobbyWaitingForReturns", _resourceCulture);
 
+        public static string LeaderboardLoadingLabel => ResourceManager.GetString("LeaderboardLoadingLabel", _resourceCulture);
+
+        public static string LeaderboardEmptyLabel => ResourceManager.GetString("LeaderboardEmptyLabel", _resourceCulture);
+
+        public static string LeaderboardOrderingRuleLabel => ResourceManager.GetString("LeaderboardOrderingRuleLabel", _resourceCulture);
+
+        public static string LeaderboardSortButton => ResourceManager.GetString("LeaderboardSortButton", _resourceCulture);
+
+        public static string LeaderboardRefreshButton => ResourceManager.GetString("LeaderboardRefreshButton", _resourceCulture);
+
+        public static string LeaderboardPlayerLabel => ResourceManager.GetString("LeaderboardPlayerLabel", _resourceCulture);
+
+        public static string LeaderboardWinsLabel => ResourceManager.GetString("LeaderboardWinsLabel", _resourceCulture);
+
+        public static string LeaderboardColumnsLabel => ResourceManager.GetString("LeaderboardColumnsLabel", _resourceCulture);
+
     }
 }

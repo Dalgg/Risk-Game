@@ -18,15 +18,20 @@ namespace RiskGame.Server.Services
         private const int MinimumParticipants = 2;
         private const int MaximumParticipants = 4;
         private const int InvalidPlayerIdentifier = 0;
+        private const int CompletedTurnOffset = 1;
         private readonly object matchLock = new object();
         private readonly Dictionary<int, ActiveMatch> matchesById = new Dictionary<int, ActiveMatch>();
         private readonly Dictionary<int, Dictionary<int, IServerStreamWriter<BoardState>>> subscribersByMatchId =
             new Dictionary<int, Dictionary<int, IServerStreamWriter<BoardState>>>();
         private readonly ProfileSessionRegistry sessionRegistry;
+        private readonly ICompletedMatchRepository completedMatchRepository;
+        private readonly HashSet<int> storedCompletions = new HashSet<int>();
 
-        public MatchSessionManager(ProfileSessionRegistry sessionRegistry)
+        public MatchSessionManager(ProfileSessionRegistry sessionRegistry,
+            ICompletedMatchRepository completedMatchRepository)
         {
             this.sessionRegistry = sessionRegistry;
+            this.completedMatchRepository = completedMatchRepository;
         }
         
         public ActiveMatch CreateMatch(int matchId, LobbyDetails lobbyDetails)
@@ -71,6 +76,7 @@ namespace RiskGame.Server.Services
             {
                 ActiveMatch activeMatch = GetAuthorizedMatch(subscription.MatchId, subscription.UserId,
                     subscription.SessionToken);
+                StoreCompletion(activeMatch);
                 subscribersByMatchId[subscription.MatchId][subscription.UserId] = responseStream;
                 activeMatch.UpdateConnection(subscription.UserId, true);
             }
@@ -139,6 +145,7 @@ namespace RiskGame.Server.Services
                 {
                     throw new MatchActionException("The match has not finished yet.");
                 }
+                StoreCompletion(activeMatch);
                 return activeMatch.LobbyId;
             }
         }
@@ -178,7 +185,12 @@ namespace RiskGame.Server.Services
             {
                 ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
                 ValidateTurn(activeMatch, request.UserId);
-                activeMatch.StopTurn(request.TurnId);
+                bool canRetryCompletion = CanRetryCompletion(activeMatch, request.TurnId);
+                if (!canRetryCompletion)
+                {
+                    activeMatch.StopTurn(request.TurnId);
+                }
+                StoreCompletion(activeMatch);
                 boardState = BuildBoardState(activeMatch);
             }
             BroadcastBoardState(request.MatchId);
@@ -190,6 +202,22 @@ namespace RiskGame.Server.Services
             if (activeMatch.CurrentTurnUserId != userId)
             {
                 throw new MatchActionException("Only the current player can roll or choose a pair.");
+            }
+        }
+
+        private bool CanRetryCompletion(ActiveMatch match, long turnId)
+        {
+            bool hasPendingCompletion = match.IsFinished && !storedCompletions.Contains(match.MatchId);
+            return hasPendingCompletion && turnId == match.TurnId - CompletedTurnOffset;
+        }
+
+        private void StoreCompletion(ActiveMatch match)
+        {
+            bool shouldStore = match.IsFinished && !storedCompletions.Contains(match.MatchId);
+            if (shouldStore)
+            {
+                completedMatchRepository.SaveCompletedMatch(match);
+                storedCompletions.Add(match.MatchId);
             }
         }
 

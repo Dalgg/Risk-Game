@@ -25,7 +25,6 @@ namespace RiskGame.Server.Services
             }
             catch (DataOperationException dataOperationException)
             {
-                JsonLogger.Error(dataOperationException, "Could not subscribe to the requested match.");
                 throw CreateRpcException(dataOperationException);
             }
         }
@@ -38,7 +37,6 @@ namespace RiskGame.Server.Services
             }
             catch (DataOperationException dataOperationException)
             {
-                JsonLogger.Error(dataOperationException, "Could not roll dice for the requested match.");
                 throw CreateRpcException(dataOperationException);
             }
         }
@@ -51,7 +49,6 @@ namespace RiskGame.Server.Services
             }
             catch (DataOperationException dataOperationException)
             {
-                JsonLogger.Error(dataOperationException, "Could not choose a pair for the requested match.");
                 throw CreateRpcException(dataOperationException);
             }
         }
@@ -64,14 +61,18 @@ namespace RiskGame.Server.Services
             }
             catch (DataOperationException dataOperationException)
             {
-                JsonLogger.Error(dataOperationException, "Could not stop the current turn.");
                 throw CreateRpcException(dataOperationException);
             }
         }
 
         private RpcException CreateRpcException(DataOperationException dataOperationException)
         {
-            StatusCode statusCode = StatusCode.Unauthenticated;
+            LogTechnicalFailure(dataOperationException);
+            StatusCode statusCode = StatusCode.Unavailable;
+            if (dataOperationException is InvalidSessionException)
+            {
+                statusCode = StatusCode.Unauthenticated;
+            }
             if (dataOperationException is MatchNotFoundException)
             {
                 statusCode = StatusCode.NotFound;
@@ -81,6 +82,14 @@ namespace RiskGame.Server.Services
                 statusCode = StatusCode.FailedPrecondition;
             }
             return new RpcException(new Status(statusCode, dataOperationException.Message));
+        }
+
+        private void LogTechnicalFailure(DataOperationException dataOperationException)
+        {
+            if (dataOperationException.GetType() == typeof(DataOperationException))
+            {
+                JsonLogger.Error(dataOperationException, "The match operation failed due to an infrastructure error.");
+            }
         }
     }
 }

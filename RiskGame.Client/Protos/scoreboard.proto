@@ -1,0 +1,24 @@
+syntax = "proto3";
+option csharp_namespace = "RiskGame.Contracts.Scoreboard";
+package riskgame.scoreboard;
+
+service Scoreboard {
+  rpc GetScores (ScoreQuery) returns (ScoreList);
+}
+
+message ScoreQuery {
+  int32 top_limit = 1;
+  bool friends_only = 2;
+  bool descending = 3;
+}
+
+message ScoreList {
+  repeated ScoreEntry players = 1;
+}
+
+message ScoreEntry {
+  reserved 1;
+  string username = 2;
+  int32 total_wins = 3;
+  int32 total_score = 4;
+}

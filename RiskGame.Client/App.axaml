@@ -33,5 +33,6 @@
 
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://RiskGame.Client/Styles/AppTheme.axaml" />
     </Application.Styles>
 </Application>

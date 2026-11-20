@@ -1,0 +1,43 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Styles.Resources>
+        <SolidColorBrush x:Key="ScoreboardBackgroundBrush">#181A25</SolidColorBrush>
+        <SolidColorBrush x:Key="ScoreboardPanelBrush">#25293A</SolidColorBrush>
+        <SolidColorBrush x:Key="ScoreboardBorderBrush">#353A5A</SolidColorBrush>
+        <SolidColorBrush x:Key="ScoreboardTextBrush">White</SolidColorBrush>
+        <SolidColorBrush x:Key="ScoreboardAccentBrush">#D4A32D</SolidColorBrush>
+        <SolidColorBrush x:Key="ScoreboardButtonBrush">#3273B2</SolidColorBrush>
+        <x:Double x:Key="ScoreboardWidth">760</x:Double>
+        <x:Double x:Key="ScoreboardHeight">650</x:Double>
+        <x:Double x:Key="ScoreboardTitleSize">28</x:Double>
+        <x:Double x:Key="ScoreboardTextSize">16</x:Double>
+        <x:Double x:Key="ScoreboardSpacing">12</x:Double>
+        <x:Double x:Key="ScoreboardButtonHeight">40</x:Double>
+        <x:Double x:Key="ScoreboardValueWidth">110</x:Double>
+        <Thickness x:Key="ScoreboardWindowMargin">24</Thickness>
+        <Thickness x:Key="ScoreboardRowPadding">12,8</Thickness>
+        <Thickness x:Key="ScoreboardButtonPadding">16,8</Thickness>
+        <Thickness x:Key="ScoreboardBorderThickness">2</Thickness>
+        <Thickness x:Key="ScoreboardItemPadding">0</Thickness>
+        <CornerRadius x:Key="ScoreboardRadius">8</CornerRadius>
+    </Styles.Resources>
+
+    <Style Selector="ListBox.ScoreboardList ListBoxItem">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Padding" Value="{StaticResource ScoreboardItemPadding}" />
+    </Style>
+
+    <Style Selector="Button.ScoreboardAction">
+        <Setter Property="Background" Value="{StaticResource ScoreboardButtonBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource ScoreboardTextBrush}" />
+        <Setter Property="Height" Value="{StaticResource ScoreboardButtonHeight}" />
+        <Setter Property="Padding" Value="{StaticResource ScoreboardButtonPadding}" />
+        <Setter Property="CornerRadius" Value="{StaticResource ScoreboardRadius}" />
+    </Style>
+
+    <Style Selector="TextBlock.ScoreboardText">
+        <Setter Property="Foreground" Value="{StaticResource ScoreboardTextBrush}" />
+        <Setter Property="FontSize" Value="{StaticResource ScoreboardTextSize}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+</Styles>

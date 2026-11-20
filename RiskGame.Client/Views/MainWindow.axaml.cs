@@ -198,7 +198,8 @@ namespace RiskGame.Views
 
         private void OnLeaderboardClick(object? sender, RoutedEventArgs routedEventArgs)
         {
-            ChangeWindow(new LeaderboardWindow());
+            LeaderboardNavigationService navigation = new LeaderboardNavigationService();
+            navigation.OpenLeaderboard();
         }
 
         private void OnExitClick(object? sender, RoutedEventArgs routedEventArgs)

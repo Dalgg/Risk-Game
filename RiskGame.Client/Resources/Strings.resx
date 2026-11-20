@@ -196,4 +196,12 @@
   <data name="MatchResultReturnButton" xml:space="preserve"><value>REGRESAR A LA SALA</value></data>
   <data name="MatchResultReturnError" xml:space="preserve"><value>No se pudo regresar a la sala original. Comprueba la conexión e inténtalo de nuevo.</value></data>
   <data name="LobbyWaitingForReturns" xml:space="preserve"><value>Esperando a que los participantes regresen o salgan de la sala.</value></data>
+  <data name="LeaderboardLoadingLabel" xml:space="preserve"><value>Cargando clasificación…</value></data>
+  <data name="LeaderboardEmptyLabel" xml:space="preserve"><value>Todavía no hay jugadores para mostrar.</value></data>
+  <data name="LeaderboardOrderingRuleLabel" xml:space="preserve"><value>Orden: victorias, columnas conquistadas y nombre.</value></data>
+  <data name="LeaderboardSortButton" xml:space="preserve"><value>Invertir orden</value></data>
+  <data name="LeaderboardRefreshButton" xml:space="preserve"><value>Actualizar</value></data>
+  <data name="LeaderboardPlayerLabel" xml:space="preserve"><value>Jugador</value></data>
+  <data name="LeaderboardWinsLabel" xml:space="preserve"><value>Victorias</value></data>
+  <data name="LeaderboardColumnsLabel" xml:space="preserve"><value>Columnas</value></data>
 </root>

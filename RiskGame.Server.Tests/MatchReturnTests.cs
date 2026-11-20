@@ -2,6 +2,7 @@ using RiskGame.Contracts.Common;
 using RiskGame.Contracts.Lobby;
 using RiskGame.Exceptions;
 using RiskGame.Server.Services;
+using RiskGame.Server.Tests.Builders;
 using Xunit;
 
 namespace RiskGame.Server.Tests
@@ -26,7 +27,7 @@ namespace RiskGame.Server.Tests
         {
             ProfileSessionRegistry registry = new ProfileSessionRegistry();
             token = registry.Register(UserId);
-            manager = new MatchSessionManager(registry);
+            manager = new MatchSessionManager(registry, new RecordingMatchRepository());
             LobbyDetails lobby = new LobbyDetails { LobbyId = LobbyId, Rules = new LobbyRules() };
             lobby.Players.Add(new LobbyPlayer { Player = new PlayerSummary { UserId = UserId } });
             lobby.Players.Add(new LobbyPlayer { Player = new PlayerSummary { UserId = OtherUserId } });

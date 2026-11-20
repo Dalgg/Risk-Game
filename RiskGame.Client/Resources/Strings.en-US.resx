@@ -41,7 +41,7 @@
   <data name="RoomsErrorNotEnoughPlayers" xml:space="preserve"><value>Not enough players to start.</value></data>
 
   <data name="LeaderboardTitle" xml:space="preserve"><value>Top Players</value></data>
-  <data name="LeaderboardSubtitle" xml:space="preserve"><value>Ranking</value></data>
+  <data name="LeaderboardSubtitle" xml:space="preserve"><value>Leaderboard</value></data>
   <data name="LeaderboardGlobalButton" xml:space="preserve"><value>Global</value></data>
   <data name="LeaderboardFriendsButton" xml:space="preserve"><value>Friends</value></data>
   
@@ -194,4 +194,12 @@
   <data name="MatchResultReturnButton" xml:space="preserve"><value>RETURN TO LOBBY</value></data>
   <data name="MatchResultReturnError" xml:space="preserve"><value>Could not return to the original lobby. Check your connection and try again.</value></data>
   <data name="LobbyWaitingForReturns" xml:space="preserve"><value>Waiting for participants to return or leave the lobby.</value></data>
+  <data name="LeaderboardLoadingLabel" xml:space="preserve"><value>Loading leaderboard…</value></data>
+  <data name="LeaderboardEmptyLabel" xml:space="preserve"><value>There are no players to display yet.</value></data>
+  <data name="LeaderboardOrderingRuleLabel" xml:space="preserve"><value>Order: wins, claimed columns and name.</value></data>
+  <data name="LeaderboardSortButton" xml:space="preserve"><value>Reverse order</value></data>
+  <data name="LeaderboardRefreshButton" xml:space="preserve"><value>Refresh</value></data>
+  <data name="LeaderboardPlayerLabel" xml:space="preserve"><value>Player</value></data>
+  <data name="LeaderboardWinsLabel" xml:space="preserve"><value>Wins</value></data>
+  <data name="LeaderboardColumnsLabel" xml:space="preserve"><value>Columns</value></data>
 </root>

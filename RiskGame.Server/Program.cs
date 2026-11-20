@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
+using RiskGame.Models;
 using RiskGame.Server.Services;
 
 namespace RiskGame.Server
@@ -32,7 +33,11 @@ namespace RiskGame.Server
             builder.Services.AddSingleton<ProfileSessionRegistry>();
             builder.Services.AddScoped<IProfileRepository, ProfileRepositoryService>();
             builder.Services.AddSingleton<AuthRepositoryService>();
-            builder.Services.AddSingleton<ScoreboardRepositoryService>();
+            builder.Services.AddSingleton<ICompletedMatchRepository>(
+                new MatchResultsRepositoryService(CreateDatabaseContext));
+            builder.Services.AddSingleton<IScoreboardRepository>(
+                new ScoreboardRepositoryService(CreateDatabaseContext));
+            builder.Services.AddSingleton<GrpcSessionAuthenticator>();
             builder.Services.AddSingleton<LobbyRepositoryService>();
             builder.Services.AddSingleton<MatchSessionManager>();
             builder.Services.AddSingleton<LobbySessionManager>();
@@ -46,8 +51,14 @@ namespace RiskGame.Server
             app.MapGrpcService<LobbyGrpcService>();
             app.MapGrpcService<ChatGrpcService>();
             app.MapGrpcService<MatchGrpcService>();
+            app.MapGrpcService<ScoreboardGrpcService>();
 
             app.Run();
+        }
+
+        private static RiskGameContext CreateDatabaseContext()
+        {
+            return new RiskGameContext();
         }
     }
 }

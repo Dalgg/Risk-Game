@@ -1,8 +1,8 @@
-using Avalonia;
+using System;
+using System.Collections.Generic;
+using System.Windows.Input;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Interactivity;
-using RiskGame.Exceptions;
+using Avalonia.Threading;
 using RiskGame.Services;
 using RiskGame.ViewModels;
 
@@ -10,57 +10,100 @@ namespace RiskGame.Views
 {
     public partial class LeaderboardWindow : Window
     {
-        private readonly LeaderboardViewModel leaderboardViewModel;
+        private const int FirstAction = 0;
+        private const int NextAction = 1;
+        private const int PreviousAction = -1;
+        private Button[] navigationButtons = Array.Empty<Button>();
+        private int focusedIndex = FirstAction;
+        private bool hasClosed;
 
         public LeaderboardWindow()
         {
             InitializeComponent();
+        }
 
-            leaderboardViewModel = new LeaderboardViewModel();
-            DataContext = leaderboardViewModel;
+        protected override void OnOpened(EventArgs eventArgs)
+        {
+            base.OnOpened(eventArgs);
+            navigationButtons = new Button[] { GlobalButton, FriendsButton, SortButton, RefreshButton, BackButton };
+            GamepadService.ActionTriggered += OnGamepadAction;
+            GlobalButton.Focus();
+        }
 
-            try
+        protected override void OnClosed(EventArgs eventArgs)
+        {
+            hasClosed = true;
+            GamepadService.ActionTriggered -= OnGamepadAction;
+            if (DataContext is LeaderboardViewModel viewModel)
             {
-                leaderboardViewModel.LoadGlobalScores();
+                viewModel.Deactivate();
             }
-            catch (DataOperationException dataOperationException)
+            base.OnClosed(eventArgs);
+        }
+
+        private void OnGamepadAction(object? sender, GamepadActionEventArgs eventArgs)
+        {
+            Dispatcher.UIThread.Post(() => HandleGamepadAction(eventArgs.Action));
+        }
+
+        private void HandleGamepadAction(GamepadAction action)
+        {
+            if (!hasClosed)
             {
-                JsonLogger.Error(dataOperationException, "Could not load global scores upon opening leaderboard window.");
+                switch (action)
+                {
+                    case GamepadAction.NavigateLeft:
+                    case GamepadAction.NavigateUp:
+                        MoveFocus(PreviousAction);
+                        break;
+                    case GamepadAction.NavigateRight:
+                    case GamepadAction.NavigateDown:
+                        MoveFocus(NextAction);
+                        break;
+                    case GamepadAction.Confirm:
+                        ConfirmSelection();
+                        break;
+                    case GamepadAction.Cancel:
+                        if (DataContext is LeaderboardViewModel viewModel)
+                        {
+                            viewModel.BackCommand.Execute(null);
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
-        private void OnSortClick(object? sender, RoutedEventArgs routedEventArgs)
+        private void MoveFocus(int direction)
         {
-            try
+            List<Button> buttons = new List<Button>();
+            foreach (Button button in navigationButtons)
             {
-                leaderboardViewModel.ToggleSortDirection();
+                if (button.IsEnabled)
+                {
+                    buttons.Add(button);
+                }
             }
-            catch (DataOperationException dataOperationException)
+            if (buttons.Count > FirstAction)
             {
-                JsonLogger.Error(dataOperationException, "Could not toggle sort direction in leaderboard window.");
+                focusedIndex = (focusedIndex + direction + buttons.Count) % buttons.Count;
+                buttons[focusedIndex].Focus();
             }
         }
 
-        private void OnGlobalClick(object? sender, RoutedEventArgs routedEventArgs)
+        private void ConfirmSelection()
         {
-            try
+            if (FocusManager != null)
             {
-                leaderboardViewModel.LoadGlobalScores();
-            }
-            catch (DataOperationException dataOperationException)
-            {
-                JsonLogger.Error(dataOperationException, "Could not reload global scores in leaderboard window.");
-            }
-        }
-
-        private void BackClick(object? sender, RoutedEventArgs routedEventArgs)
-        {
-            if (Application.Current != null && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
-            {
-                MainWindow mainWindow = new MainWindow();
-                desktopLifetime.MainWindow = mainWindow;
-                mainWindow.Show();
-                Close();
+                if (FocusManager.GetFocusedElement() is Button button)
+                {
+                    ICommand? command = button.Command;
+                    if (command != null && button.IsEnabled)
+                    {
+                        command.Execute(button.CommandParameter);
+                    }
+                }
             }
         }
     }
