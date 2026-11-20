@@ -103,8 +103,10 @@ namespace RiskGame.Server.Services
             {
                 currentStep = proposedSteps[columnNumber];
             }
-            if (column.IsClaimed || currentStep >= column.MaximumSteps
-                || (!proposedSteps.ContainsKey(columnNumber) && proposedSteps.Count >= MaximumMarkers))
+            bool isColumnBlocked = column.IsClaimed || currentStep >= column.MaximumSteps;
+            bool exceedsMarkerLimit = !proposedSteps.ContainsKey(columnNumber)
+                && proposedSteps.Count >= MaximumMarkers;
+            if (isColumnBlocked || exceedsMarkerLimit)
             {
                 advance = false;
             }

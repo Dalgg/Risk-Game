@@ -278,7 +278,8 @@ namespace RiskGame.Views
 
         private void ApplyBoardState(BoardState boardState)
         {
-            if (!hasClosed && boardState.MatchId == matchIdentifier && boardState.Revision >= latestRevision)
+            bool isValidRevision = boardState.MatchId == matchIdentifier && boardState.Revision >= latestRevision;
+            if (!hasClosed && isValidRevision)
             {
                 latestRevision = boardState.Revision;
                 currentBoardState = boardState;
@@ -298,14 +299,17 @@ namespace RiskGame.Views
 
         private void OpenResultWindow(BoardState boardState)
         {
-            if (!hasOpenedResult && !hasClosed && Application.Current != null
-                && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            bool isAlreadyHandled = hasOpenedResult || hasClosed;
+            if (!isAlreadyHandled && Application.Current != null)
             {
-                hasOpenedResult = true;
-                MatchResultWindow result = new MatchResultWindow(boardState);
-                desktopLifetime.MainWindow = result;
-                result.Show();
-                Close();
+                if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+                {
+                    hasOpenedResult = true;
+                    MatchResultWindow result = new MatchResultWindow(boardState);
+                    desktopLifetime.MainWindow = result;
+                    result.Show();
+                    Close();
+                }
             }
         }
 
@@ -359,8 +363,9 @@ namespace RiskGame.Views
             {
                 PairOption? selectedOption = boardState.PairOptions
                     .FirstOrDefault(option => option.PairIndex == pendingColumnChoice.PairIndex);
-                if (boardState.AwaitingPairChoice && pendingColumnChoice.RollId == boardState.RollId
-                    && selectedOption != null && selectedOption.RequiresColumnChoice)
+                bool matchesCurrentRoll = boardState.AwaitingPairChoice
+                    && pendingColumnChoice.RollId == boardState.RollId;
+                if (matchesCurrentRoll && selectedOption != null && selectedOption.RequiresColumnChoice)
                 {
                     ColumnChoicePanel.IsVisible = true;
                     FirstColumnChoiceButton.Content = string.Format(Strings.MatchAdvanceColumnFormat,
@@ -409,19 +414,24 @@ namespace RiskGame.Views
             ThirdPairButton.IsEnabled = false;
             FirstColumnChoiceButton.IsEnabled = false;
             SecondColumnChoiceButton.IsEnabled = false;
-            if (currentBoardState != null && !currentBoardState.IsFinished && hasLiveStream
-                && !hasClosed && !isActionPending
-                && currentBoardState.CurrentTurnUserId == SessionService.GetOrCreateCurrentUser().IdUser)
+            bool isWindowBlocked = hasClosed || isActionPending;
+            bool isWindowReady = hasLiveStream && !isWindowBlocked;
+            if (currentBoardState != null && isWindowReady)
             {
-                RollDiceButton.IsEnabled = !currentBoardState.AwaitingPairChoice;
-                StopTurnButton.IsEnabled = currentBoardState.CanStop;
-                foreach (PairOption pairOption in currentBoardState.PairOptions)
+                bool isCurrentPlayerTurn = currentBoardState.CurrentTurnUserId
+                    == SessionService.GetOrCreateCurrentUser().IdUser;
+                if (!currentBoardState.IsFinished && isCurrentPlayerTurn)
                 {
-                    GetPairButton(pairOption.PairIndex).IsEnabled =
-                        currentBoardState.AwaitingPairChoice && pairOption.IsPlayable;
+                    RollDiceButton.IsEnabled = !currentBoardState.AwaitingPairChoice;
+                    StopTurnButton.IsEnabled = currentBoardState.CanStop;
+                    foreach (PairOption pairOption in currentBoardState.PairOptions)
+                    {
+                        GetPairButton(pairOption.PairIndex).IsEnabled =
+                            currentBoardState.AwaitingPairChoice && pairOption.IsPlayable;
+                    }
+                    FirstColumnChoiceButton.IsEnabled = ColumnChoicePanel.IsVisible;
+                    SecondColumnChoiceButton.IsEnabled = ColumnChoicePanel.IsVisible;
                 }
-                FirstColumnChoiceButton.IsEnabled = ColumnChoicePanel.IsVisible;
-                SecondColumnChoiceButton.IsEnabled = ColumnChoicePanel.IsVisible;
             }
         }
 
@@ -463,22 +473,24 @@ namespace RiskGame.Views
 
         private void ChoosePairClick(object? sender, RoutedEventArgs routedEventArgs)
         {
-            if (sender is Button pairButton && pairButton.IsEnabled && pairButton.Tag is int pairIndex
-                && currentBoardState != null)
+            if (sender is Button pairButton && pairButton.IsEnabled && currentBoardState != null)
             {
-                PairOption selectedOption = currentBoardState.PairOptions
-                    .First(option => option.PairIndex == pairIndex);
-                PairChoice choice = new PairChoice { RollId = currentBoardState.RollId, PairIndex = pairIndex };
-                if (selectedOption.RequiresColumnChoice)
+                if (pairButton.Tag is int pairIndex)
                 {
-                    pendingColumnChoice = choice;
-                    RefreshColumnChoice(currentBoardState);
+                    PairOption selectedOption = currentBoardState.PairOptions
+                        .First(option => option.PairIndex == pairIndex);
+                    PairChoice choice = new PairChoice { RollId = currentBoardState.RollId, PairIndex = pairIndex };
+                    if (selectedOption.RequiresColumnChoice)
+                    {
+                        pendingColumnChoice = choice;
+                        RefreshColumnChoice(currentBoardState);
+                    }
+                    else
+                    {
+                        BeginPairChoice(choice);
+                    }
+                    UpdateActionButtons();
                 }
-                else
-                {
-                    BeginPairChoice(choice);
-                }
-                UpdateActionButtons();
             }
         }
 
@@ -645,8 +657,10 @@ namespace RiskGame.Views
             };
             foreach (BoardPlayer player in boardState.Players)
             {
-                if ((!column.IsClaimed || column.OwnerUserId == player.UserId)
-                    && column.StepsByUserId.ContainsKey(player.UserId) && column.StepsByUserId[player.UserId] == step)
+                bool canShowMarker = !column.IsClaimed || column.OwnerUserId == player.UserId;
+                bool isPlayerAtStep = column.StepsByUserId.ContainsKey(player.UserId)
+                    && column.StepsByUserId[player.UserId] == step;
+                if (canShowMarker && isPlayerAtStep)
                 {
                     markers.Children.Add(new Border
                     {

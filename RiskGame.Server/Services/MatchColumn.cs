@@ -36,7 +36,8 @@ namespace RiskGame.Server.Services
             {
                 throw new MatchActionException("The column has already been claimed.");
             }
-            if (!stepsByUserId.ContainsKey(userId) || step < InitialStep || step > MaximumSteps)
+            bool isStepOutOfRange = step < InitialStep || step > MaximumSteps;
+            if (!stepsByUserId.ContainsKey(userId) || isStepOutOfRange)
             {
                 throw new MatchActionException("The permanent progress does not belong to a valid board position.");
             }

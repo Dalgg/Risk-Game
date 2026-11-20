@@ -105,8 +105,8 @@ namespace RiskGame.Views
 
             LobbyPlayButton.IsVisible = isCurrentUserHost;
             LobbyPlayButton.IsEnabled = isCurrentUserHost && lobbyDetails.CanStartMatch;
-            if (lobbyDetails.Status == LobbyStatus.Waiting && !lobbyDetails.CanStartMatch
-                && lobbyDetails.Players.Count >= MinimumPlayersToStart)
+            bool isWaitingForReturns = lobbyDetails.Status == LobbyStatus.Waiting && !lobbyDetails.CanStartMatch;
+            if (isWaitingForReturns && lobbyDetails.Players.Count >= MinimumPlayersToStart)
             {
                 ShowLobbyMessage(Strings.LobbyWaitingForReturns);
             }

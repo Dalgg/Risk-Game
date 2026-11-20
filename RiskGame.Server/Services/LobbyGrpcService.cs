@@ -67,10 +67,22 @@ namespace RiskGame.Server.Services
             {
                 return Task.FromResult(sessionManager.ReturnToLobby(request));
             }
+            catch (MatchNotFoundException matchNotFoundException)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, matchNotFoundException.Message));
+            }
+            catch (InvalidSessionException invalidSessionException)
+            {
+                throw new RpcException(new Status(StatusCode.Unauthenticated, invalidSessionException.Message));
+            }
+            catch (MatchActionException matchActionException)
+            {
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, matchActionException.Message));
+            }
             catch (DataOperationException dataOperationException)
             {
                 JsonLogger.Error(dataOperationException, "Could not return to the original lobby.");
-                throw new RpcException(new Status(StatusCode.FailedPrecondition, dataOperationException.Message));
+                throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
             }
         }
 

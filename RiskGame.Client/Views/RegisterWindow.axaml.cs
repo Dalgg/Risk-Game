@@ -1,13 +1,16 @@
+using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Threading;
+using RiskGame.Exceptions;
 using RiskGame.Models;
 using RiskGame.Resources;
-using RiskGame.Exceptions;
-using RiskGame.ViewModels;
 using RiskGame.Services;
+using RiskGame.ViewModels;
 
 namespace RiskGame.Views
 {
@@ -15,10 +18,17 @@ namespace RiskGame.Views
     {
         private static readonly IBrush ErrorBrush = new SolidColorBrush(Color.Parse("#FF8A8A"));
         private readonly RegisterViewModel registerViewModel = new RegisterViewModel();
+        private bool hasClosed;
 
         public RegisterWindow()
         {
             InitializeComponent();
+        }
+
+        protected override void OnClosed(EventArgs eventArgs)
+        {
+            hasClosed = true;
+            base.OnClosed(eventArgs);
         }
 
         private void OnConfirmClick(object? sender, RoutedEventArgs routedEventArgs)
@@ -41,34 +51,52 @@ namespace RiskGame.Views
                 password = PasswordTextBox.Text;
             }
 
-            RegisterResult? registerResult = null;
+            RegisterConfirmButton.IsEnabled = false;
+            MessageTextBlock.IsVisible = false;
+            Task.Run(() => SubmitRegistration(email, username, password));
+        }
+
+        private void SubmitRegistration(string email, string username, string password)
+        {
             try
             {
-                registerResult = registerViewModel.RegisterUser(email, username, password);
+                RegisterResult registerResult = registerViewModel.RegisterUser(email, username, password);
+                Dispatcher.UIThread.Post(() => ApplyRegistrationResult(registerResult));
             }
             catch (DataOperationException dataOperationException)
             {
                 JsonLogger.Error(dataOperationException, "Could not begin email verification during registration.");
-                MessageTextBlock.Text = dataOperationException.Message;
-                MessageTextBlock.Foreground = ErrorBrush;
-                MessageTextBlock.IsVisible = true;
+                Dispatcher.UIThread.Post(() => ShowRegistrationError(dataOperationException.Message));
             }
+        }
 
-            if (registerResult.HasValue && registerResult.Value == RegisterResult.Success)
+        private void ApplyRegistrationResult(RegisterResult registerResult)
+        {
+            if (!hasClosed)
             {
-                RegistrationForm.IsVisible = false;
-                RegisterConfirmButton.IsVisible = false;
-                VerificationPanel.IsVisible = true;
-                PasswordTextBox.Text = string.Empty;
-                MessageTextBlock.Text = Strings.VerificationSent;
-                MessageTextBlock.IsVisible = true;
-                VerificationCodeTextBox.Focus();
+                RegisterConfirmButton.IsEnabled = true;
+                if (registerResult == RegisterResult.Success)
+                {
+                    RegistrationForm.IsVisible = false;
+                    RegisterConfirmButton.IsVisible = false;
+                    VerificationPanel.IsVisible = true;
+                    PasswordTextBox.Text = string.Empty;
+                    ShowVerificationMessage(Strings.VerificationSent, Brushes.White);
+                    VerificationCodeTextBox.Focus();
+                }
+                else
+                {
+                    ShowRegistrationError(GetErrorMessage(registerResult));
+                }
             }
-            else if (registerResult.HasValue)
+        }
+
+        private void ShowRegistrationError(string message)
+        {
+            if (!hasClosed)
             {
-                MessageTextBlock.Text = GetErrorMessage(registerResult.Value);
-                MessageTextBlock.Foreground = ErrorBrush;
-                MessageTextBlock.IsVisible = true;
+                RegisterConfirmButton.IsEnabled = true;
+                ShowVerificationMessage(message, ErrorBrush);
             }
         }
 
@@ -79,42 +107,89 @@ namespace RiskGame.Views
             {
                 code = VerificationCodeTextBox.Text;
             }
+
+            SetVerificationButtonsEnabled(false);
+            Task.Run(() => SubmitVerification(code));
+        }
+
+        private void SubmitVerification(string code)
+        {
             try
             {
                 RegisterResult result = registerViewModel.ConfirmRegistration(code);
+                Dispatcher.UIThread.Post(() => ApplyVerificationResult(result));
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                JsonLogger.Error(dataOperationException, "Could not complete the email verification.");
+                Dispatcher.UIThread.Post(() => ShowVerificationError(dataOperationException.Message));
+            }
+        }
+
+        private void ApplyVerificationResult(RegisterResult result)
+        {
+            if (!hasClosed)
+            {
+                SetVerificationButtonsEnabled(true);
                 if (result == RegisterResult.Success)
                 {
                     NavigateToLogin(Strings.RegisterSuccess);
                 }
                 else
                 {
-                    ShowVerificationMessage(GetErrorMessage(result));
+                    ShowVerificationMessage(GetErrorMessage(result), ErrorBrush);
                 }
-            }
-            catch (DataOperationException dataOperationException)
-            {
-                JsonLogger.Error(dataOperationException, "Could not complete the email verification.");
-                ShowVerificationMessage(dataOperationException.Message);
             }
         }
 
         private void OnResendClick(object? sender, RoutedEventArgs routedEventArgs)
         {
+            SetVerificationButtonsEnabled(false);
+            Task.Run(SubmitResendVerification);
+        }
+
+        private void SubmitResendVerification()
+        {
             try
             {
                 registerViewModel.ResendVerification();
-                ShowVerificationMessage(Strings.VerificationSent);
+                Dispatcher.UIThread.Post(ApplyResendSuccess);
             }
             catch (DataOperationException dataOperationException)
             {
                 JsonLogger.Error(dataOperationException, "Could not resend the email verification.");
-                ShowVerificationMessage(dataOperationException.Message);
+                Dispatcher.UIThread.Post(() => ShowVerificationError(dataOperationException.Message));
             }
         }
 
-        private void ShowVerificationMessage(string message)
+        private void ApplyResendSuccess()
+        {
+            if (!hasClosed)
+            {
+                SetVerificationButtonsEnabled(true);
+                ShowVerificationMessage(Strings.VerificationSent, Brushes.White);
+            }
+        }
+
+        private void ShowVerificationError(string message)
+        {
+            if (!hasClosed)
+            {
+                SetVerificationButtonsEnabled(true);
+                ShowVerificationMessage(message, ErrorBrush);
+            }
+        }
+
+        private void SetVerificationButtonsEnabled(bool isEnabled)
+        {
+            VerifyConfirmButton.IsEnabled = isEnabled;
+            ResendCodeButton.IsEnabled = isEnabled;
+        }
+
+        private void ShowVerificationMessage(string message, IBrush foregroundBrush)
         {
             MessageTextBlock.Text = message;
+            MessageTextBlock.Foreground = foregroundBrush;
             MessageTextBlock.IsVisible = true;
         }
 
@@ -146,8 +221,8 @@ namespace RiskGame.Views
 
         private void NavigateToLogin(string? successMessage)
         {
-            if (Application.Current != null &&
-                Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            if (Application.Current != null
+                && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
                 LoginWindow loginWindow;
                 if (successMessage == null)
@@ -161,7 +236,7 @@ namespace RiskGame.Views
 
                 desktopLifetime.MainWindow = loginWindow;
                 loginWindow.Show();
-                this.Close();
+                Close();
             }
         }
     }

@@ -283,9 +283,13 @@ namespace RiskGame.Server.Services
             lock (syncLock)
             {
                 ActiveLobbyRoom? room = roomsByCode.Values.FirstOrDefault(candidate => candidate.LobbyId == lobbyId);
-                if (room == null || room.ActiveMatchId != request.MatchId
-                    || !userToLobbyCode.ContainsKey(request.UserId)
-                    || userToLobbyCode[request.UserId] != room.LobbyCode)
+                bool isParticipantInRoom = false;
+                if (room != null && room.ActiveMatchId == request.MatchId)
+                {
+                    isParticipantInRoom = userToLobbyCode.ContainsKey(request.UserId)
+                        && userToLobbyCode[request.UserId] == room.LobbyCode;
+                }
+                if (!isParticipantInRoom || room == null)
                 {
                     throw new MatchActionException("The original lobby is no longer available for this participant.");
                 }

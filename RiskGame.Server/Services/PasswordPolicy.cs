@@ -30,9 +30,13 @@ namespace RiskGame.Services
                 {
                     hasDigit = true;
                 }
-                else if (!char.IsLetterOrDigit(character) && !char.IsWhiteSpace(character))
+                else
                 {
-                    hasSpecial = true;
+                    bool isRegularCharacter = char.IsLetterOrDigit(character) || char.IsWhiteSpace(character);
+                    if (!isRegularCharacter)
+                    {
+                        hasSpecial = true;
+                    }
                 }
             }
 

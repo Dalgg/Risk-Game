@@ -88,14 +88,16 @@ namespace RiskGame.Views
 
         private void OpenLobby(LobbyDetails details)
         {
-            if (!hasClosed && Application.Current != null
-                && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            if (!hasClosed && Application.Current != null)
             {
-                LobbyWindow lobby = new LobbyWindow(details, new LobbyViewModel());
-                hasReturned = true;
-                desktopLifetime.MainWindow = lobby;
-                lobby.Show();
-                Close();
+                if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+                {
+                    LobbyWindow lobby = new LobbyWindow(details, new LobbyViewModel());
+                    hasReturned = true;
+                    desktopLifetime.MainWindow = lobby;
+                    lobby.Show();
+                    Close();
+                }
             }
         }
 

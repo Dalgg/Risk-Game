@@ -52,9 +52,9 @@
                            TextWrapping="Wrap"/>
                 <TextBox x:Name="VerificationCodeTextBox" MaxLength="{StaticResource VerificationCodeLength}"
                          TabIndex="0" PlaceholderText="{x:Static res:Strings.VerificationCodeLabel}"/>
-                <Button Content="{x:Static res:Strings.VerificationConfirm}" Click="OnVerifyClick"
+                <Button x:Name="VerifyConfirmButton" Content="{x:Static res:Strings.VerificationConfirm}" Click="OnVerifyClick"
                         HotKey="Enter" TabIndex="1"/>
-                <Button Content="{x:Static res:Strings.VerificationResend}" Click="OnResendClick" TabIndex="2"/>
+                <Button x:Name="ResendCodeButton" Content="{x:Static res:Strings.VerificationResend}" Click="OnResendClick" TabIndex="2"/>
             </StackPanel>
         </Grid>
     </Border>
