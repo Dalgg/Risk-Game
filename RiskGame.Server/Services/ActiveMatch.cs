@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using RiskGame.Contracts.Common;
 using RiskGame.Contracts.Lobby;
+using RiskGame.Contracts.Match;
 using RiskGame.Exceptions;
 
 namespace RiskGame.Server.Services
@@ -23,6 +24,9 @@ namespace RiskGame.Server.Services
         private const int FastColumnsToWin = 2;
         private const int DefaultTurnDurationSeconds = 60;
         private const int MinimumTurnDurationSeconds = 1;
+        private const int NoParticipants = 0;
+        private const int LastParticipant = 1;
+        private const int NoWinnerUserId = 0;
         private readonly TimeProvider timeProvider;
         private long turnStartedTimestamp;
         private int currentParticipantIndex = FirstParticipantIndex;
@@ -50,7 +54,7 @@ namespace RiskGame.Server.Services
             List<MatchParticipant> participants = new List<MatchParticipant>();
             foreach (LobbyPlayer player in lobbyDetails.Players)
             {
-                participants.Add(new MatchParticipant(player));
+                participants.Add(new MatchParticipant(player, timeProvider));
             }
             Participants = participants.AsReadOnly();
             CurrentTurnUserId = participants[FirstParticipantIndex].UserId;
@@ -94,6 +98,8 @@ namespace RiskGame.Server.Services
         public bool IsFinished { get; private set; }
 
         public int WinnerUserId { get; private set; }
+
+        public MatchEndReason EndReason { get; private set; }
 
         public int ColumnsToWin { get; }
 
@@ -150,7 +156,7 @@ namespace RiskGame.Server.Services
             int claimedColumns = Columns.Count(column => column.IsClaimed && column.OwnerUserId == CurrentTurnUserId);
             if (claimedColumns >= ColumnsToWin)
             {
-                FinishMatch();
+                FinishMatch(MatchEndReason.Victory, CurrentTurnUserId);
             }
             else
             {
@@ -196,9 +202,10 @@ namespace RiskGame.Server.Services
             return expired;
         }
 
-        private void FinishMatch()
+        private void FinishMatch(MatchEndReason reason, int winnerUserId)
         {
-            WinnerUserId = CurrentTurnUserId;
+            WinnerUserId = winnerUserId;
+            EndReason = reason;
             IsFinished = true;
             LastTurnUserId = CurrentTurnUserId;
             LastTurnBusted = false;
@@ -217,7 +224,11 @@ namespace RiskGame.Server.Services
             LastTurnUserId = CurrentTurnUserId;
             LastTurnBusted = busted;
             LastTurnTimedOut = false;
-            currentParticipantIndex = (currentParticipantIndex + NextParticipantStep) % Participants.Count;
+            do
+            {
+                currentParticipantIndex = (currentParticipantIndex + NextParticipantStep) % Participants.Count;
+            }
+            while (Participants[currentParticipantIndex].HasAbandoned);
             CurrentTurnUserId = Participants[currentParticipantIndex].UserId;
             turnStartedTimestamp = timeProvider.GetTimestamp();
             TurnProgress = new MatchTurnProgress(CurrentTurnUserId, Columns);
@@ -250,14 +261,67 @@ namespace RiskGame.Server.Services
 
         public void UpdateConnection(int userId, bool isConnected)
         {
-            foreach (MatchParticipant participant in Participants)
+            MatchParticipant participant = GetParticipant(userId);
+            participant.SetConnected(isConnected);
+            Revision++;
+            if (!IsFinished)
             {
-                if (participant.UserId == userId)
+                ResolveParticipantChanges();
+            }
+        }
+
+        public MatchParticipant GetParticipant(int userId)
+        {
+            MatchParticipant? participant = Participants.FirstOrDefault(player => player.UserId == userId);
+            if (participant == null)
+            {
+                throw new InvalidSessionException("The player is not part of this match.");
+            }
+            return participant;
+        }
+
+        public void ProcessConnectionTimeouts()
+        {
+            if (!IsFinished)
+            {
+                foreach (MatchParticipant participant in Participants)
                 {
-                    participant.SetConnected(isConnected);
-                    Revision++;
-                    break;
+                    if (participant.RefreshConnection())
+                    {
+                        Revision++;
+                    }
                 }
+                ResolveParticipantChanges();
+            }
+        }
+
+        public bool AbandonParticipant(int userId)
+        {
+            MatchParticipant participant = GetParticipant(userId);
+            bool changed = !IsFinished && !participant.HasAbandoned;
+            if (changed)
+            {
+                participant.Abandon();
+                Revision++;
+                ResolveParticipantChanges();
+            }
+            return changed;
+        }
+
+        private void ResolveParticipantChanges()
+        {
+            List<MatchParticipant> remaining = Participants.Where(player => !player.HasAbandoned).ToList();
+            if (remaining.Count == NoParticipants)
+            {
+                FinishMatch(MatchEndReason.Cancelled, NoWinnerUserId);
+            }
+            else if (remaining.Count == LastParticipant && remaining[FirstParticipantIndex].IsConnected)
+            {
+                FinishMatch(MatchEndReason.Abandonment, remaining[FirstParticipantIndex].UserId);
+            }
+            else if (GetParticipant(CurrentTurnUserId).HasAbandoned)
+            {
+                AdvanceTurn(true);
             }
         }
     }

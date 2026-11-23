@@ -233,6 +233,22 @@ namespace RiskGame.Server.Services
             }
         }
 
+        public void RemoveAbandonedParticipant(AbandonedMatchPlayer abandoned)
+        {
+            lock (syncLock)
+            {
+                if (userToLobbyCode.ContainsKey(abandoned.UserId))
+                {
+                    string code = userToLobbyCode[abandoned.UserId];
+                    ActiveLobbyRoom room = roomsByCode[code];
+                    if (room.LobbyId == abandoned.LobbyId && room.ActiveMatchId == abandoned.MatchId)
+                    {
+                        LeaveLobby(abandoned.UserId);
+                    }
+                }
+            }
+        }
+
         public LobbyDetails RegisterSubscriber(int subscriberUserId, IServerStreamWriter<LobbyEvent> responseStream)
         {
             lock (syncLock)

@@ -32,9 +32,19 @@ namespace RiskGame.Views
         {
             matchId = state.MatchId;
             BoardPlayer? winner = state.Players.FirstOrDefault(player => player.UserId == state.WinnerUserId);
+            WinnerTextBlock.Text = Strings.MatchCancelledNoWinner;
             if (winner != null)
             {
-                WinnerTextBlock.Text = string.Format(Strings.MatchWinnerFormat, winner.Nickname);
+                string winnerFormat = Strings.MatchWinnerFormat;
+                if (state.EndReason == MatchEndReason.Abandonment)
+                {
+                    winnerFormat = Strings.MatchWinnerByAbandonmentFormat;
+                }
+                WinnerTextBlock.Text = string.Format(winnerFormat, winner.Nickname);
+            }
+            if (state.EndReason == MatchEndReason.Cancelled)
+            {
+                MenuButton.IsVisible = true;
             }
         }
 
@@ -58,6 +68,7 @@ namespace RiskGame.Views
             if (!hasClosed && ReturnButton.IsEnabled)
             {
                 ReturnButton.IsEnabled = false;
+                MenuButton.IsEnabled = false;
                 ErrorTextBlock.Text = string.Empty;
                 Task.Run(ReturnToLobby);
             }
@@ -107,6 +118,37 @@ namespace RiskGame.Views
             {
                 ErrorTextBlock.Text = message;
                 ReturnButton.IsEnabled = true;
+                MenuButton.IsVisible = true;
+                MenuButton.IsEnabled = true;
+            }
+        }
+
+        private void MenuClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            if (!hasClosed && MenuButton.IsEnabled)
+            {
+                ReturnButton.IsEnabled = false;
+                MenuButton.IsEnabled = false;
+                Task.Run(LeaveForMenu);
+            }
+        }
+
+        private void LeaveForMenu()
+        {
+            resultViewModel.LeaveLobby();
+            Dispatcher.UIThread.Post(OpenMenu);
+        }
+
+        private void OpenMenu()
+        {
+            IClassicDesktopStyleApplicationLifetime? lifetime = ResolveDesktopLifetime();
+            if (!hasClosed && lifetime != null)
+            {
+                MainWindow menu = new MainWindow();
+                hasReturned = true;
+                lifetime.MainWindow = menu;
+                menu.Show();
+                Close();
             }
         }
     }

@@ -12,6 +12,7 @@ namespace RiskGame.Server.Tests.Builders
         private const string ResourceRoot = "avares://RiskGame.Client/";
         private const string ProfileImagesResourcePath = "Assets/ProfileImages/ProfileImages.axaml";
         private const string AppThemeStylePath = "Styles/AppTheme.axaml";
+        private static readonly object testSessionLock = new object();
 
         public static AppBuilder BuildAvaloniaApp()
         {
@@ -20,8 +21,11 @@ namespace RiskGame.Server.Tests.Builders
 
         public static void Run(Action action)
         {
-            using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(ProfileTestApplication));
-            session.Dispatch(action, CancellationToken.None).GetAwaiter().GetResult();
+            lock (testSessionLock)
+            {
+                using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(ProfileTestApplication));
+                session.Dispatch(action, CancellationToken.None).GetAwaiter().GetResult();
+            }
         }
 
         public override void Initialize()

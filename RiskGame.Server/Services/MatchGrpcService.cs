@@ -65,6 +65,18 @@ namespace RiskGame.Server.Services
             }
         }
 
+        public override Task<BoardState> LeaveMatch(MatchSubscription request, ServerCallContext callContext)
+        {
+            try
+            {
+                return Task.FromResult(matchSessionManager.LeaveMatch(request));
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                throw CreateRpcException(dataOperationException);
+            }
+        }
+
         private RpcException CreateRpcException(DataOperationException dataOperationException)
         {
             LogTechnicalFailure(dataOperationException);

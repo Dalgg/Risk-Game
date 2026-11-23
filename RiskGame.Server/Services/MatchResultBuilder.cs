@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using RiskGame.Contracts.Match;
 using RiskGame.Exceptions;
 using RiskGame.Models;
 
@@ -17,12 +18,16 @@ namespace RiskGame.Server.Services
                 throw new MatchActionException("Only completed matches have final results.");
             }
 
-            List<MatchParticipant> orderedPlayers = match.Participants
-                .OrderByDescending(player => player.UserId == match.WinnerUserId)
-                .ThenByDescending(player => CountClaims(match, player.UserId))
-                .ThenByDescending(player => CountSteps(match, player.UserId))
-                .ThenBy(player => player.UserId)
-                .ToList();
+            List<MatchParticipant> orderedPlayers = new List<MatchParticipant>();
+            if (match.EndReason != MatchEndReason.Cancelled)
+            {
+                orderedPlayers = match.Participants
+                    .OrderByDescending(player => player.UserId == match.WinnerUserId)
+                    .ThenByDescending(player => CountClaims(match, player.UserId))
+                    .ThenByDescending(player => CountSteps(match, player.UserId))
+                    .ThenBy(player => player.UserId)
+                    .ToList();
+            }
             List<MatchResult> results = new List<MatchResult>();
             int position = FirstPlace;
             foreach (MatchParticipant player in orderedPlayers)

@@ -231,4 +231,13 @@
   <data name="ProfileAvatarDefault" xml:space="preserve"><value>Clásico</value></data>
   <data name="ProfileChooseAvatar" xml:space="preserve"><value>CAMBIAR IMAGEN</value></data>
   <data name="ProfileLogout" xml:space="preserve"><value>CERRAR SESIÓN</value></data>
+  <data name="MatchLeaveError" xml:space="preserve"><value>No se pudo confirmar el abandono. Revisa la conexión e inténtalo de nuevo.</value></data>
+  <data name="MatchLeaving" xml:space="preserve"><value>Abandonando la partida…</value></data>
+  <data name="MatchCancelledNoWinner" xml:space="preserve"><value>Partida cancelada: no quedan participantes suficientes. No hay ganador.</value></data>
+  <data name="MatchParticipantReconnectingFormat" xml:space="preserve"><value>Reconectando: quedan {0} s de gracia</value></data>
+  <data name="MatchReconnectGraceFormat" xml:space="preserve"><value>{0} Puedes intentar reconectar durante el periodo de gracia de {1} segundos.</value></data>
+  <data name="MatchResultMenuButton" xml:space="preserve"><value>VOLVER AL MENÚ</value></data>
+  <data name="MatchReconnectUnavailable" xml:space="preserve"><value>No se puede recuperar esta conexión: el periodo de gracia terminó o el jugador ya abandonó.</value></data>
+  <data name="MatchWinnerByAbandonmentFormat" xml:space="preserve"><value>{0} ganó porque los demás participantes abandonaron la partida.</value></data>
+  <data name="MatchParticipantAbandoned" xml:space="preserve"><value>Abandonó la partida</value></data>
 </root>

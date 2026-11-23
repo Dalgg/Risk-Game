@@ -15,6 +15,9 @@ namespace RiskGame.ViewModels
     public sealed class MatchViewModel : ViewModelBase
     {
         private const int ActionTimeoutSeconds = 10;
+        private const int LeaveTimeoutSeconds = 3;
+        private readonly object subscriptionLock = new object();
+        private readonly SessionUser activeSession = SessionService.GetOrCreateCurrentUser();
         private CancellationTokenSource? streamCancellation;
 
         public MatchCountdownViewModel Countdown { get; } = new MatchCountdownViewModel();
@@ -104,29 +107,53 @@ namespace RiskGame.ViewModels
                 UserId = currentSessionUser.IdUser,
                 SessionToken = currentSessionUser.SessionToken
             };
-            streamCancellation = new CancellationTokenSource();
-            CancellationToken cancellationToken = streamCancellation.Token;
-            Task.Run(() => ReadMatchStream(subscription, matchCallback, cancellationToken), cancellationToken);
+            CancellationTokenSource cancellation = new CancellationTokenSource();
+            lock (subscriptionLock)
+            {
+                streamCancellation = cancellation;
+            }
+            Task.Run(() => ReadMatchStream(subscription, matchCallback, cancellation));
         }
 
         public void StopSubscription()
         {
-            if (streamCancellation != null)
+            lock (subscriptionLock)
             {
-                streamCancellation.Cancel();
-                streamCancellation.Dispose();
-                streamCancellation = null;
+                if (streamCancellation != null)
+                {
+                    streamCancellation.Cancel();
+                    streamCancellation = null;
+                }
+            }
+        }
+
+        public void LeaveMatch(int matchId)
+        {
+            MatchSubscription request = new MatchSubscription
+            {
+                MatchId = matchId, UserId = activeSession.IdUser, SessionToken = activeSession.SessionToken
+            };
+            try
+            {
+                GrpcChannel channel = GrpcChannelProvider.GetChannel();
+                Match.MatchClient client = new Match.MatchClient(channel);
+                client.LeaveMatch(request, deadline: DateTime.UtcNow.AddSeconds(LeaveTimeoutSeconds));
+                StopSubscription();
+                LeaveLobby();
+            }
+            catch (RpcException rpcException)
+            {
+                throw new DataOperationException(Strings.MatchLeaveError, rpcException);
             }
         }
 
         public void LeaveLobby()
         {
-            SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
             try
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                 Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
-                UserLobbyRequest leaveRequest = new UserLobbyRequest { UserId = currentSessionUser.IdUser };
+                UserLobbyRequest leaveRequest = new UserLobbyRequest { UserId = activeSession.IdUser };
                 lobbyClient.LeaveLobby(
                     leaveRequest,
                     deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds),
@@ -139,26 +166,34 @@ namespace RiskGame.ViewModels
         }
 
         private void ReadMatchStream(MatchSubscription subscription, IMatchCallback matchCallback,
-            CancellationToken cancellationToken)
+            CancellationTokenSource cancellation)
         {
+            CancellationToken cancellationToken = cancellation.Token;
+            bool matchFinished = false;
             try
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                 Match.MatchClient matchClient = new Match.MatchClient(grpcChannel);
                 using AsyncServerStreamingCall<BoardState> streamingCall = matchClient.SubscribeMatchEvents(
                     subscription, cancellationToken: cancellationToken);
-                while (streamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult())
+                while (!matchFinished
+                    && streamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult())
                 {
-                    matchCallback.MatchUpdated(streamingCall.ResponseStream.Current);
+                    if (!cancellationToken.IsCancellationRequested)
+                    {
+                        BoardState state = streamingCall.ResponseStream.Current;
+                        matchFinished = state.IsFinished;
+                        matchCallback.MatchUpdated(state);
+                    }
                 }
-                if (!cancellationToken.IsCancellationRequested)
+                if (!cancellationToken.IsCancellationRequested && !matchFinished)
                 {
                     matchCallback.MatchStreamStopped(Strings.MatchConnectionError);
                 }
             }
             catch (RpcException rpcException)
             {
-                if (!cancellationToken.IsCancellationRequested && rpcException.StatusCode != StatusCode.Cancelled)
+                if (!cancellationToken.IsCancellationRequested)
                 {
                     JsonLogger.Error(rpcException, "The match stream stopped with a gRPC error.");
                     matchCallback.MatchStreamStopped(GetStreamError(rpcException));
@@ -170,6 +205,18 @@ namespace RiskGame.ViewModels
                 {
                     JsonLogger.Error(canceledException, "The match subscription was cancelled unexpectedly.");
                     matchCallback.MatchStreamStopped(Strings.MatchConnectionError);
+                }
+            }
+            finally
+            {
+                cancellation.Cancel();
+                lock (subscriptionLock)
+                {
+                    if (ReferenceEquals(streamCancellation, cancellation))
+                    {
+                        streamCancellation = null;
+                    }
+                    cancellation.Dispose();
                 }
             }
         }
@@ -184,6 +231,10 @@ namespace RiskGame.ViewModels
             if (rpcException.StatusCode == StatusCode.Unauthenticated)
             {
                 errorMessage = Strings.MatchAccessDenied;
+            }
+            if (rpcException.StatusCode == StatusCode.FailedPrecondition)
+            {
+                errorMessage = Strings.MatchReconnectUnavailable;
             }
             return errorMessage;
         }

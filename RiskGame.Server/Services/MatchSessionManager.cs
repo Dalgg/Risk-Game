@@ -19,6 +19,9 @@ namespace RiskGame.Server.Services
         private const int MaximumParticipants = 4;
         private const int InvalidPlayerIdentifier = 0;
         private const int CompletedTurnOffset = 1;
+        private const int EmptyQueue = 0;
+        private const int CompletionRetrySeconds = 2;
+        private const int StreamCheckSeconds = 1;
         private readonly object matchLock = new object();
         private readonly Dictionary<int, ActiveMatch> matchesById = new Dictionary<int, ActiveMatch>();
         private readonly Dictionary<int, Dictionary<int, IServerStreamWriter<BoardState>>> subscribersByMatchId =
@@ -27,6 +30,9 @@ namespace RiskGame.Server.Services
         private readonly TimeProvider timeProvider;
         private readonly ICompletedMatchRepository completedMatchRepository;
         private readonly HashSet<int> storedCompletions = new HashSet<int>();
+        private readonly Queue<AbandonedMatchPlayer> pendingAbandonments = new Queue<AbandonedMatchPlayer>();
+        private readonly HashSet<AbandonedMatchPlayer> queuedAbandonments = new HashSet<AbandonedMatchPlayer>();
+        private readonly Dictionary<int, long> failedCompletionAttempts = new Dictionary<int, long>();
 
         public MatchSessionManager(ProfileSessionRegistry sessionRegistry,
             ICompletedMatchRepository completedMatchRepository)
@@ -65,16 +71,41 @@ namespace RiskGame.Server.Services
         public Task SubscribeMatchEvents(MatchSubscription subscription,
             IServerStreamWriter<BoardState> responseStream, CancellationToken cancellationToken)
         {
-            RegisterSubscriber(subscription, responseStream);
             try
             {
+                RegisterSubscriber(subscription, responseStream);
                 BroadcastBoardState(subscription.MatchId);
-                cancellationToken.WaitHandle.WaitOne();
+                bool subscribed = true;
+                TimeSpan checkInterval = TimeSpan.FromSeconds(StreamCheckSeconds);
+                while (subscribed && !cancellationToken.WaitHandle.WaitOne(checkInterval))
+                {
+                    subscribed = IsSubscriptionActive(subscription, responseStream);
+                }
                 return Task.CompletedTask;
             }
             finally
             {
                 UnregisterSubscriber(subscription, responseStream);
+            }
+        }
+
+        private bool IsSubscriptionActive(MatchSubscription subscription,
+            IServerStreamWriter<BoardState> responseStream)
+        {
+            lock (matchLock)
+            {
+                Dictionary<int, IServerStreamWriter<BoardState>> subscribers =
+                    subscribersByMatchId[subscription.MatchId];
+                bool registered = subscribers.ContainsKey(subscription.UserId);
+                bool activeParticipant = !matchesById[subscription.MatchId]
+                    .GetParticipant(subscription.UserId).HasAbandoned;
+                bool isSubscriptionActive = false;
+                if (registered && activeParticipant)
+                {
+                    isSubscriptionActive =
+                        ReferenceEquals(subscribers[subscription.UserId], responseStream);
+                }
+                return isSubscriptionActive;
             }
         }
 
@@ -84,32 +115,43 @@ namespace RiskGame.Server.Services
             {
                 ActiveMatch activeMatch = GetAuthorizedMatch(subscription.MatchId, subscription.UserId,
                     subscription.SessionToken);
-                StoreCompletion(activeMatch);
+                if (activeMatch.GetParticipant(subscription.UserId).HasAbandoned)
+                {
+                    throw new MatchActionException("The participant has already abandoned this match.");
+                }
                 subscribersByMatchId[subscription.MatchId][subscription.UserId] = responseStream;
                 activeMatch.UpdateConnection(subscription.UserId, true);
+                StoreCompletion(activeMatch);
             }
         }
 
         private void UnregisterSubscriber(MatchSubscription subscription,
             IServerStreamWriter<BoardState> responseStream)
         {
+            DisconnectSubscriber(subscription.MatchId, subscription.UserId, responseStream);
+        }
+
+        private bool DisconnectSubscriber(int matchId, int userId, IServerStreamWriter<BoardState> responseStream)
+        {
             bool subscriptionRemoved = false;
             lock (matchLock)
             {
-                Dictionary<int, IServerStreamWriter<BoardState>> subscribers =
-                    subscribersByMatchId[subscription.MatchId];
-                if (subscribers.ContainsKey(subscription.UserId)
-                    && ReferenceEquals(subscribers[subscription.UserId], responseStream))
+                if (subscribersByMatchId.ContainsKey(matchId))
                 {
-                    subscribers.Remove(subscription.UserId);
-                    matchesById[subscription.MatchId].UpdateConnection(subscription.UserId, false);
-                    subscriptionRemoved = true;
+                    Dictionary<int, IServerStreamWriter<BoardState>> subscribers = subscribersByMatchId[matchId];
+                    if (subscribers.ContainsKey(userId) && ReferenceEquals(subscribers[userId], responseStream))
+                    {
+                        subscribers.Remove(userId);
+                        matchesById[matchId].UpdateConnection(userId, false);
+                        subscriptionRemoved = true;
+                    }
                 }
             }
             if (subscriptionRemoved)
             {
-                BroadcastBoardState(subscription.MatchId);
+                BroadcastBoardState(matchId);
             }
+            return subscriptionRemoved;
         }
 
         private ActiveMatch GetActiveMatch(int matchId)
@@ -141,8 +183,9 @@ namespace RiskGame.Server.Services
             {
                 throw new InvalidSessionException("A valid guest participant is required.");
             }
-            if (activeMatch.ExpireTurnIfNeeded())
+            if (RefreshMatch(activeMatch))
             {
+                StoreCompletion(activeMatch);
                 BroadcastBoardState(matchId);
             }
             return activeMatch;
@@ -153,6 +196,10 @@ namespace RiskGame.Server.Services
             lock (matchLock)
             {
                 ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
+                if (activeMatch.GetParticipant(request.UserId).HasAbandoned)
+                {
+                    throw new MatchActionException("An abandoned participant cannot return to the original lobby.");
+                }
                 if (!activeMatch.IsFinished)
                 {
                     throw new MatchActionException("The match has not finished yet.");
@@ -211,7 +258,9 @@ namespace RiskGame.Server.Services
 
         private static void ValidateTurn(ActiveMatch activeMatch, int userId, long turnId)
         {
-            if (activeMatch.CurrentTurnUserId != userId || activeMatch.TurnId != turnId)
+            MatchParticipant participant = activeMatch.GetParticipant(userId);
+            bool activeParticipant = participant.IsConnected && !participant.HasAbandoned;
+            if (!activeParticipant || activeMatch.CurrentTurnUserId != userId || activeMatch.TurnId != turnId)
             {
                 throw new MatchActionException("Only the current player can roll or choose a pair.");
             }
@@ -222,15 +271,100 @@ namespace RiskGame.Server.Services
             List<int> changedMatchIds = new List<int>();
             lock (matchLock)
             {
-                foreach (ActiveMatch match in matchesById.Values.Where(candidateMatch => candidateMatch.ExpireTurnIfNeeded()))
+                foreach (ActiveMatch match in matchesById.Values.Where(candidate =>
+                    !candidate.IsFinished || !storedCompletions.Contains(candidate.MatchId)))
                 {
-                    changedMatchIds.Add(match.MatchId);
+                    if (ProcessTimedMatch(match))
+                    {
+                        changedMatchIds.Add(match.MatchId);
+                    }
                 }
             }
             foreach (int matchId in changedMatchIds)
             {
                 BroadcastBoardState(matchId);
             }
+        }
+
+        private bool RefreshMatch(ActiveMatch match)
+        {
+            long previousRevision = match.Revision;
+            match.ProcessConnectionTimeouts();
+            match.ExpireTurnIfNeeded();
+            foreach (MatchParticipant player in match.Participants.Where(player => player.HasAbandoned))
+            {
+                AbandonedMatchPlayer abandoned = new AbandonedMatchPlayer(match.MatchId, match.LobbyId, player.UserId);
+                if (queuedAbandonments.Add(abandoned))
+                {
+                    pendingAbandonments.Enqueue(abandoned);
+                }
+            }
+            return previousRevision != match.Revision;
+        }
+
+        private bool ProcessTimedMatch(ActiveMatch match)
+        {
+            bool changed = RefreshMatch(match);
+            bool pendingCompletion = match.IsFinished && !storedCompletions.Contains(match.MatchId);
+            if (pendingCompletion)
+            {
+                changed = RetryCompletion(match);
+            }
+            return changed;
+        }
+
+        private bool RetryCompletion(ActiveMatch match)
+        {
+            bool saved = false;
+            bool canAttempt = !failedCompletionAttempts.ContainsKey(match.MatchId);
+            if (!canAttempt)
+            {
+                canAttempt = timeProvider.GetElapsedTime(failedCompletionAttempts[match.MatchId]).TotalSeconds
+                    >= CompletionRetrySeconds;
+            }
+            if (canAttempt)
+            {
+                try
+                {
+                    StoreCompletion(match);
+                    failedCompletionAttempts.Remove(match.MatchId);
+                    saved = true;
+                }
+                catch (DataOperationException dataOperationException)
+                {
+                    failedCompletionAttempts[match.MatchId] = timeProvider.GetTimestamp();
+                    JsonLogger.Error(dataOperationException, "Could not persist a match completed by disconnection.");
+                }
+            }
+            return saved;
+        }
+
+        public IReadOnlyList<AbandonedMatchPlayer> TakeAbandonedParticipants()
+        {
+            List<AbandonedMatchPlayer> abandoned = new List<AbandonedMatchPlayer>();
+            lock (matchLock)
+            {
+                while (pendingAbandonments.Count > EmptyQueue)
+                {
+                    abandoned.Add(pendingAbandonments.Dequeue());
+                }
+            }
+            return abandoned;
+        }
+
+        public BoardState LeaveMatch(MatchSubscription request)
+        {
+            BoardState snapshot;
+            lock (matchLock)
+            {
+                ActiveMatch match = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
+                match.AbandonParticipant(request.UserId);
+                RefreshMatch(match);
+                StoreCompletion(match);
+                snapshot = BuildBoardState(match);
+            }
+            BroadcastBoardState(request.MatchId);
+            return snapshot;
         }
 
         private bool CanRetryCompletion(ActiveMatch match, long turnId, int userId)
@@ -253,15 +387,15 @@ namespace RiskGame.Server.Services
         private void BroadcastBoardState(int matchId)
         {
             BoardState boardState;
-            List<IServerStreamWriter<BoardState>> subscribers;
+            List<KeyValuePair<int, IServerStreamWriter<BoardState>>> subscribers;
             lock (matchLock)
             {
                 boardState = BuildBoardState(GetActiveMatch(matchId));
-                subscribers = subscribersByMatchId[matchId].Values.ToList();
+                subscribers = subscribersByMatchId[matchId].ToList();
             }
-            foreach (IServerStreamWriter<BoardState> subscriber in subscribers)
+            foreach (KeyValuePair<int, IServerStreamWriter<BoardState>> subscriber in subscribers)
             {
-                Task.Run(() => WriteBoardState(subscriber, boardState));
+                Task.Run(() => WriteBoardState(subscriber.Value, boardState, subscriber.Key));
             }
         }
 
@@ -286,7 +420,9 @@ namespace RiskGame.Server.Services
                 WinnerUserId = activeMatch.WinnerUserId,
                 ColumnsToWin = activeMatch.ColumnsToWin,
                 TurnRemainingMilliseconds = (long)Math.Ceiling(activeMatch.GetRemainingTurnTime().TotalMilliseconds),
-                LastTurnTimedOut = activeMatch.LastTurnTimedOut
+                LastTurnTimedOut = activeMatch.LastTurnTimedOut,
+                EndReason = activeMatch.EndReason,
+                ReconnectionGraceSeconds = MatchParticipant.ReconnectionGraceSeconds
             };
             foreach (KeyValuePair<int, int> progress in activeMatch.TurnProgress.StepsByColumn)
             {
@@ -313,6 +449,8 @@ namespace RiskGame.Server.Services
                 {
                     UserId = participant.UserId, Nickname = participant.Nickname,
                     Color = participant.Color, IsConnected = participant.IsConnected,
+                    HasAbandoned = participant.HasAbandoned,
+                    ReconnectionSecondsRemaining = participant.ReconnectionSecondsRemaining,
                     ClaimedColumns = activeMatch.Columns.Count(column =>
                         column.IsClaimed && column.OwnerUserId == participant.UserId)
                 });
@@ -333,7 +471,8 @@ namespace RiskGame.Server.Services
             return boardState;
         }
 
-        private void WriteBoardState(IServerStreamWriter<BoardState> responseStream, BoardState boardState)
+        private void WriteBoardState(IServerStreamWriter<BoardState> responseStream, BoardState boardState,
+            int subscriberUserId)
         {
             try
             {
@@ -344,15 +483,33 @@ namespace RiskGame.Server.Services
             }
             catch (RpcException rpcException)
             {
-                JsonLogger.Error(rpcException, "Could not deliver the match snapshot.");
+                bool disconnected = DisconnectSubscriber(boardState.MatchId, subscriberUserId, responseStream);
+                if (disconnected && rpcException.StatusCode != StatusCode.Cancelled)
+                {
+                    JsonLogger.Error(rpcException, "Could not deliver the match snapshot.");
+                }
             }
             catch (InvalidOperationException invalidOperationException)
             {
-                JsonLogger.Error(invalidOperationException, "The match stream cannot accept the snapshot.");
+                if (DisconnectSubscriber(boardState.MatchId, subscriberUserId, responseStream))
+                {
+                    JsonLogger.Error(invalidOperationException, "The match stream cannot accept the snapshot.");
+                }
             }
             catch (IOException ioException)
             {
-                JsonLogger.Error(ioException, "The match stream disconnected while sending the snapshot.");
+                if (DisconnectSubscriber(boardState.MatchId, subscriberUserId, responseStream))
+                {
+                    JsonLogger.Error(ioException, "The match stream disconnected while sending the snapshot.");
+                }
+            }
+            catch (OperationCanceledException canceledException)
+            {
+                bool disconnected = DisconnectSubscriber(boardState.MatchId, subscriberUserId, responseStream);
+                if (disconnected && !canceledException.CancellationToken.IsCancellationRequested)
+                {
+                    JsonLogger.Error(canceledException, "The match snapshot write was cancelled unexpectedly.");
+                }
             }
         }
 

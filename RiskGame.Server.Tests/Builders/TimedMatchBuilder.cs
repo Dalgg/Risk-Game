@@ -42,6 +42,18 @@ namespace RiskGame.Server.Tests.Builders
             lobby.Players.Add(new LobbyPlayer { Player = new PlayerSummary { UserId = FirstUserId } });
             lobby.Players.Add(new LobbyPlayer { Player = new PlayerSummary { UserId = SecondUserId } });
             Match = Manager.CreateMatch(MatchId, lobby);
+            KeepPlayersConnected();
+        }
+
+        private void KeepPlayersConnected()
+        {
+            if (!Match.IsFinished)
+            {
+                foreach (MatchParticipant participant in Match.Participants)
+                {
+                    Match.UpdateConnection(participant.UserId, true);
+                }
+            }
         }
 
         public ManualTimeProvider Time { get; }

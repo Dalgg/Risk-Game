@@ -59,8 +59,11 @@ namespace RiskGame.Views
         private bool hasOpenedResult;
         private bool hasLiveStream;
         private bool isActionPending;
+        private bool isLeavingMatch;
+        private bool hasLeftMatch;
         private BoardState? currentBoardState;
         private PairChoice? pendingColumnChoice;
+        private int subscriptionVersion;
 
         public MatchWindow()
         {
@@ -77,7 +80,18 @@ namespace RiskGame.Views
 
         public void MatchUpdated(BoardState boardState)
         {
-            Dispatcher.UIThread.Post(() => ReceiveStreamState(boardState));
+            QueueBoardState(boardState, subscriptionVersion);
+        }
+
+        private void QueueBoardState(BoardState state, int version)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (!hasClosed && version == subscriptionVersion)
+                {
+                    ReceiveStreamState(state);
+                }
+            });
         }
 
         private void ReceiveStreamState(BoardState boardState)
@@ -88,7 +102,18 @@ namespace RiskGame.Views
 
         public void MatchStreamStopped(string statusMessage)
         {
-            Dispatcher.UIThread.Post(() => ShowStreamStatus(statusMessage));
+            QueueStreamStatus(statusMessage, subscriptionVersion);
+        }
+
+        private void QueueStreamStatus(string message, int version)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (!hasClosed && version == subscriptionVersion)
+                {
+                    ShowStreamStatus(message);
+                }
+            });
         }
 
         protected override void OnClosed(EventArgs eventArgs)
@@ -98,9 +123,10 @@ namespace RiskGame.Views
             countdownTimer.Tick -= OnCountdownTick;
             GamepadService.ActionTriggered -= OnGamepadAction;
             matchViewModel.StopSubscription();
-            if (!hasOpenedResult)
+            bool requiresLeave = !hasOpenedResult && !hasLeftMatch;
+            if (requiresLeave && !isLeavingMatch)
             {
-                Task.Run(matchViewModel.LeaveLobby);
+                Task.Run(LeaveClosedMatch);
             }
             base.OnClosed(eventArgs);
         }
@@ -197,12 +223,15 @@ namespace RiskGame.Views
 
         private void StartSubscription()
         {
-            if (matchIdentifier >= MinimumValidMatchId)
+            bool canSubscribe = !hasClosed && !isLeavingMatch;
+            if (canSubscribe && matchIdentifier >= MinimumValidMatchId)
             {
                 hasLiveStream = false;
                 UpdateActionButtons();
                 MatchStatusTextBlock.Text = Strings.MatchConnecting;
-                matchViewModel.Subscribe(matchIdentifier, this);
+                subscriptionVersion++;
+                MatchStreamCallback callback = new MatchStreamCallback(this, subscriptionVersion);
+                matchViewModel.Subscribe(matchIdentifier, callback);
             }
         }
 
@@ -220,7 +249,7 @@ namespace RiskGame.Views
                 RenderTurn(boardState);
                 RenderDice(boardState);
                 MatchStatusTextBlock.Text = Strings.MatchSynchronized;
-                if (boardState.IsFinished)
+                if (boardState.IsFinished && !isLeavingMatch)
                 {
                     OpenResultWindow(boardState);
                 }
@@ -377,14 +406,15 @@ namespace RiskGame.Views
 
         private bool CanInteractWithBoard(BoardState boardState)
         {
-            bool isWindowActive = !hasClosed && !isActionPending;
+            bool isWindowActive = !hasClosed && !isActionPending && !isLeavingMatch;
             bool hasReadyStream = hasLiveStream && isWindowActive;
             bool hasActiveTurn = !boardState.IsFinished && matchViewModel.Countdown.HasTimeRemaining;
+            bool canInteract = false;
             if (hasReadyStream && hasActiveTurn)
             {
-                return boardState.CurrentTurnUserId == SessionService.GetOrCreateCurrentUser().IdUser;
+                canInteract = boardState.CurrentTurnUserId == SessionService.GetOrCreateCurrentUser().IdUser;
             }
-            return false;
+            return canInteract;
         }
 
         private static bool IsPairOptionEnabled(BoardState boardState, int pairIndex)
@@ -678,6 +708,15 @@ namespace RiskGame.Views
                 {
                     connectionStatus = Strings.MatchParticipantConnected;
                 }
+                else if (player.HasAbandoned)
+                {
+                    connectionStatus = Strings.MatchParticipantAbandoned;
+                }
+                else if (!boardState.IsFinished)
+                {
+                    connectionStatus = string.Format(Strings.MatchParticipantReconnectingFormat,
+                        player.ReconnectionSecondsRemaining);
+                }
                 playerDetails.Children.Add(new TextBlock
                 {
                     Text = connectionStatus, Foreground = Brushes.White, FontSize = StatusFontSize
@@ -737,18 +776,96 @@ namespace RiskGame.Views
                 hasLiveStream = false;
                 UpdateActionButtons();
                 MatchStatusTextBlock.Text = statusMessage;
+                bool canReconnect = currentBoardState != null && statusMessage == Strings.MatchConnectionError;
+                if (canReconnect && currentBoardState != null && !currentBoardState.IsFinished)
+                {
+                    MatchStatusTextBlock.Text = string.Format(Strings.MatchReconnectGraceFormat,
+                        statusMessage, currentBoardState.ReconnectionGraceSeconds);
+                }
             }
         }
 
         private void LeaveMatchClick(object? sender, RoutedEventArgs routedEventArgs)
         {
-            if (Application.Current != null
+            if (!hasClosed && !isLeavingMatch)
+            {
+                isLeavingMatch = true;
+                UpdateActionButtons();
+                MatchStatusTextBlock.Text = Strings.MatchLeaving;
+                Task.Run(SubmitLeaveMatch);
+            }
+        }
+
+        private void SubmitLeaveMatch()
+        {
+            try
+            {
+                matchViewModel.LeaveMatch(matchIdentifier);
+                Dispatcher.UIThread.Post(CompleteLeaveMatch);
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                JsonLogger.Error(dataOperationException, "Could not abandon the active match.");
+                Dispatcher.UIThread.Post(() => ShowLeaveError(dataOperationException.Message));
+            }
+        }
+
+        private void ShowLeaveError(string message)
+        {
+            isLeavingMatch = false;
+            ShowActionError(message);
+        }
+
+        private void CompleteLeaveMatch()
+        {
+            hasLeftMatch = true;
+            OpenMenu();
+        }
+
+        private void LeaveClosedMatch()
+        {
+            try
+            {
+                matchViewModel.LeaveMatch(matchIdentifier);
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                JsonLogger.Error(dataOperationException, "Could not notify the server when closing the match.");
+                matchViewModel.LeaveLobby();
+            }
+        }
+
+        private void OpenMenu()
+        {
+            if (!hasClosed && Application.Current != null
                 && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
                 MainWindow mainWindow = new MainWindow();
                 desktopLifetime.MainWindow = mainWindow;
                 mainWindow.Show();
                 Close();
+            }
+        }
+
+        private sealed class MatchStreamCallback : IMatchCallback
+        {
+            private readonly MatchWindow window;
+            private readonly int version;
+
+            public MatchStreamCallback(MatchWindow window, int version)
+            {
+                this.window = window;
+                this.version = version;
+            }
+
+            public void MatchUpdated(BoardState boardState)
+            {
+                window.QueueBoardState(boardState, version);
+            }
+
+            public void MatchStreamStopped(string statusMessage)
+            {
+                window.QueueStreamStatus(statusMessage, version);
             }
         }
     }

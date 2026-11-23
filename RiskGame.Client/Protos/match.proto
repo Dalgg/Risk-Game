@@ -9,6 +9,14 @@ service Match {
   rpc RollDice (RollDiceRequest) returns (BoardState);
   rpc ChooseDicePair (PairChoice) returns (BoardState);
   rpc StopTurn (StopTurnRequest) returns (BoardState);
+  rpc LeaveMatch (MatchSubscription) returns (BoardState);
+}
+
+enum MatchEndReason {
+  MATCH_END_REASON_UNSPECIFIED = 0;
+  MATCH_END_REASON_VICTORY = 1;
+  MATCH_END_REASON_ABANDONMENT = 2;
+  MATCH_END_REASON_CANCELLED = 3;
 }
 
 message MatchSubscription {
@@ -41,6 +49,8 @@ message BoardState {
   int32 columns_to_win = 21;
   int64 turn_remaining_milliseconds = 22;
   bool last_turn_timed_out = 23;
+  MatchEndReason end_reason = 24;
+  int32 reconnection_grace_seconds = 25;
 }
 
 message StopTurnRequest {
@@ -84,6 +94,8 @@ message BoardPlayer {
   riskgame.common.PlayerColor color = 3;
   bool is_connected = 4;
   int32 claimed_columns = 5;
+  bool has_abandoned = 6;
+  int32 reconnection_seconds_remaining = 7;
 }
 
 message BoardColumn {

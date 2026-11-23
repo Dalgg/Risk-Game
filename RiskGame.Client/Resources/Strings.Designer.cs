@@ -438,5 +438,23 @@ namespace RiskGame.Resources
 
         public static string ProfileLogout => ResourceManager.GetString("ProfileLogout", _resourceCulture);
 
+        public static string MatchLeaveError => ResourceManager.GetString("MatchLeaveError", _resourceCulture);
+
+        public static string MatchLeaving => ResourceManager.GetString("MatchLeaving", _resourceCulture);
+
+        public static string MatchCancelledNoWinner => ResourceManager.GetString("MatchCancelledNoWinner", _resourceCulture);
+
+        public static string MatchParticipantReconnectingFormat => ResourceManager.GetString("MatchParticipantReconnectingFormat", _resourceCulture);
+
+        public static string MatchReconnectGraceFormat => ResourceManager.GetString("MatchReconnectGraceFormat", _resourceCulture);
+
+        public static string MatchResultMenuButton => ResourceManager.GetString("MatchResultMenuButton", _resourceCulture);
+
+        public static string MatchReconnectUnavailable => ResourceManager.GetString("MatchReconnectUnavailable", _resourceCulture);
+
+        public static string MatchWinnerByAbandonmentFormat => ResourceManager.GetString("MatchWinnerByAbandonmentFormat", _resourceCulture);
+
+        public static string MatchParticipantAbandoned => ResourceManager.GetString("MatchParticipantAbandoned", _resourceCulture);
+
     }
 }

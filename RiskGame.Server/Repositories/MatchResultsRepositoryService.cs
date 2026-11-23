@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using RiskGame.Contracts.Match;
 using RiskGame.Exceptions;
 using RiskGame.Models;
 
@@ -12,6 +13,8 @@ namespace RiskGame.Server.Services
     public sealed class MatchResultsRepositoryService : ICompletedMatchRepository
     {
         private const string VictoryEndReason = "Victory";
+        private const string AbandonmentEndReason = "Abandonment";
+        private const string CancelledEndReason = "Cancelled";
         private readonly Func<RiskGameContext> createContext;
         private readonly MatchResultBuilder resultBuilder = new MatchResultBuilder();
 
@@ -60,13 +63,28 @@ namespace RiskGame.Server.Services
             if (!storedMatch.EndDate.HasValue)
             {
                 storedMatch.EndDate = DateTime.UtcNow;
-                storedMatch.EndReason = VictoryEndReason;
+                storedMatch.EndReason = GetEndReason(match);
                 databaseContext.MatchResults.AddRange(resultBuilder.Build(match));
                 if (storedMatch.MatchState != null)
                 {
                     databaseContext.MatchStates.Remove(storedMatch.MatchState);
                 }
                 databaseContext.SaveChanges();
+            }
+        }
+
+        private static string GetEndReason(ActiveMatch match)
+        {
+            switch (match.EndReason)
+            {
+                case MatchEndReason.Victory:
+                    return VictoryEndReason;
+                case MatchEndReason.Abandonment:
+                    return AbandonmentEndReason;
+                case MatchEndReason.Cancelled:
+                    return CancelledEndReason;
+                default:
+                    throw new MatchActionException("The completed match has no supported end reason.");
             }
         }
     }

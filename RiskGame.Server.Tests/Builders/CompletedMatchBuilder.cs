@@ -88,6 +88,8 @@ namespace RiskGame.Server.Tests.Builders
             lobby.Players.Add(CreatePlayer(winnerId, guestWinner));
             lobby.Players.Add(CreatePlayer(opponentId, guestOpponent));
             ActiveMatch match = CreateMatch(lobby);
+            match.UpdateConnection(winnerId, true);
+            match.UpdateConnection(opponentId, true);
             SeedWinningProgress(match, winnerId);
             return match;
         }
