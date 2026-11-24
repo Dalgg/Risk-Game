@@ -260,7 +260,9 @@ namespace RiskGame.Server.Services
         {
             MatchParticipant participant = activeMatch.GetParticipant(userId);
             bool activeParticipant = participant.IsConnected && !participant.HasAbandoned;
-            if (!activeParticipant || activeMatch.CurrentTurnUserId != userId || activeMatch.TurnId != turnId)
+            bool isExpectedTurn = activeMatch.CurrentTurnUserId == userId && activeMatch.TurnId == turnId;
+            bool isValidTurn = activeParticipant && isExpectedTurn;
+            if (!isValidTurn)
             {
                 throw new MatchActionException("Only the current player can roll or choose a pair.");
             }

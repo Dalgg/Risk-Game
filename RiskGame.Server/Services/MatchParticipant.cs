@@ -48,7 +48,7 @@ namespace RiskGame.Server.Services
             get
             {
                 TimeSpan remaining = TimeSpan.Zero;
-                if (!IsConnected && !HasAbandoned)
+                if (IsAwaitingReconnection())
                 {
                     remaining = TimeSpan.FromSeconds(ReconnectionGraceSeconds)
                         - timeProvider.GetElapsedTime(disconnectedTimestamp);
@@ -77,12 +77,21 @@ namespace RiskGame.Server.Services
         public bool RefreshConnection()
         {
             bool changed = false;
-            if (!IsConnected && !HasAbandoned && ReconnectionSecondsRemaining == NoRemainingSeconds)
+            if (IsAwaitingReconnection() && ReconnectionSecondsRemaining == NoRemainingSeconds)
             {
                 Abandon();
                 changed = true;
             }
             return changed;
+        }
+
+        private bool IsAwaitingReconnection()
+        {
+            if (IsConnected || HasAbandoned)
+            {
+                return false;
+            }
+            return true;
         }
 
         public void Abandon()

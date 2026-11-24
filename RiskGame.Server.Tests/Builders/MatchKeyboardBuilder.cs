@@ -33,13 +33,16 @@ namespace RiskGame.Server.Tests.Builders
         private const int MaximumMarkers = 3;
         private const int FirstTemporaryColumn = 2;
         private const int SecondTemporaryColumn = 12;
+        private const string KeyboardUsername = "keyboard.user";
+        private const string KeyboardNickname = "Keyboard";
+        private const string ReconnectButtonName = "ReconnectButton";
         private const int InitialStep = 1;
+        private static readonly int[] SampleDiceValues = new[] { 1, 2, 4, 6 };
         private readonly SessionUser? previousSession = SessionService.CurrentUser;
 
         public MatchKeyboardBuilder()
         {
-            SessionService.Login(new SessionUser(UserId, "keyboard.user", "Keyboard"));
-            // An unassigned window exercises keyboard input without opening a network subscription.
+            SessionService.Login(new SessionUser(UserId, KeyboardUsername, KeyboardNickname));
             Window = new MatchWindow();
             Window.Show();
             Dispatcher.UIThread.RunJobs();
@@ -49,11 +52,11 @@ namespace RiskGame.Server.Tests.Builders
                 TurnId = InitialRevision, RollId = InitialRevision, AwaitingPairChoice = true,
                 TurnRemainingMilliseconds = RemainingMilliseconds, MaximumTemporaryMarkers = MaximumMarkers
             };
-            Snapshot.Players.Add(new BoardPlayer { UserId = UserId, Nickname = "Keyboard", IsConnected = true });
+            Snapshot.Players.Add(new BoardPlayer { UserId = UserId, Nickname = KeyboardNickname, IsConnected = true });
             Snapshot.PairOptions.Add(CreateOption(FirstPair, FirstSum, FirstOtherSum));
             Snapshot.PairOptions.Add(CreateOption(SecondPair, SecondSum, SecondOtherSum));
             Snapshot.PairOptions.Add(CreateOption(ThirdPair, ThirdSum, ThirdOtherSum));
-            Snapshot.Dice.AddRange(new[] { 1, 2, 4, 6 });
+            Snapshot.Dice.AddRange(SampleDiceValues);
             Snapshot.TemporaryStepsByColumn.Add(FirstTemporaryColumn, InitialStep);
             Snapshot.TemporaryStepsByColumn.Add(SecondTemporaryColumn, InitialStep);
             ApplySnapshot();
@@ -71,7 +74,7 @@ namespace RiskGame.Server.Tests.Builders
 
         public void PressKey(Key key, KeyModifiers modifiers = KeyModifiers.None)
         {
-            Button source = Window.FindControl<Button>("ReconnectButton")!;
+            Button source = Window.FindControl<Button>(ReconnectButtonName)!;
             source.RaiseEvent(new KeyEventArgs
             {
                 RoutedEvent = InputElement.KeyDownEvent, Key = key, KeyModifiers = modifiers

@@ -239,12 +239,19 @@ namespace RiskGame.Server.Services
             {
                 if (userToLobbyCode.ContainsKey(abandoned.UserId))
                 {
-                    string code = userToLobbyCode[abandoned.UserId];
-                    ActiveLobbyRoom room = roomsByCode[code];
-                    if (room.LobbyId == abandoned.LobbyId && room.ActiveMatchId == abandoned.MatchId)
-                    {
-                        LeaveLobby(abandoned.UserId);
-                    }
+                    TryRemoveAbandonedFromRoom(abandoned, userToLobbyCode[abandoned.UserId]);
+                }
+            }
+        }
+
+        private void TryRemoveAbandonedFromRoom(AbandonedMatchPlayer abandoned, string lobbyCode)
+        {
+            if (roomsByCode.ContainsKey(lobbyCode))
+            {
+                ActiveLobbyRoom room = roomsByCode[lobbyCode];
+                if (room.LobbyId == abandoned.LobbyId && room.ActiveMatchId == abandoned.MatchId)
+                {
+                    LeaveLobby(abandoned.UserId);
                 }
             }
         }

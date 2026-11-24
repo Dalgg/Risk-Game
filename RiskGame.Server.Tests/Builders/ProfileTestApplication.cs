@@ -23,7 +23,8 @@ namespace RiskGame.Server.Tests.Builders
         {
             lock (testSessionLock)
             {
-                using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(typeof(ProfileTestApplication));
+                using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(
+                    typeof(ProfileTestApplication));
                 session.Dispatch(action, CancellationToken.None).GetAwaiter().GetResult();
             }
         }

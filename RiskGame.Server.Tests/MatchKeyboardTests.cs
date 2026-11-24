@@ -14,6 +14,8 @@ namespace RiskGame.Server.Tests
         private const int SecondPair = 2;
         private const int ThirdPair = 3;
         private const int FirstOptionIndex = 0;
+        private const string FirstColumnChoiceButtonName = "FirstColumnChoiceButton";
+        private const string ColumnChoicePanelName = "ColumnChoicePanel";
 
         [Theory]
         [InlineData(Key.D1, FirstPair)]
@@ -29,7 +31,7 @@ namespace RiskGame.Server.Tests
                 using MatchKeyboardBuilder setup = new MatchKeyboardBuilder();
 
                 setup.PressKey(key);
-                PairChoice choice = (PairChoice)setup.Window.FindControl<Button>("FirstColumnChoiceButton")!.Tag!;
+                PairChoice choice = (PairChoice)setup.Window.FindControl<Button>(FirstColumnChoiceButtonName)!.Tag!;
 
                 Assert.Equal(expectedPair, choice.PairIndex);
             });
@@ -46,7 +48,7 @@ namespace RiskGame.Server.Tests
 
                 setup.PressKey(Key.D1);
 
-                Assert.False(setup.Window.FindControl<StackPanel>("ColumnChoicePanel")!.IsVisible);
+                Assert.False(setup.Window.FindControl<StackPanel>(ColumnChoicePanelName)!.IsVisible);
             });
         }
 
@@ -61,7 +63,7 @@ namespace RiskGame.Server.Tests
 
                 setup.PressKey(Key.D1);
 
-                Assert.False(setup.Window.FindControl<StackPanel>("ColumnChoicePanel")!.IsVisible);
+                Assert.False(setup.Window.FindControl<StackPanel>(ColumnChoicePanelName)!.IsVisible);
             });
         }
 
@@ -77,7 +79,7 @@ namespace RiskGame.Server.Tests
 
                 setup.PressKey(Key.D1, modifiers);
 
-                Assert.False(setup.Window.FindControl<StackPanel>("ColumnChoicePanel")!.IsVisible);
+                Assert.False(setup.Window.FindControl<StackPanel>(ColumnChoicePanelName)!.IsVisible);
             });
         }
     }

@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Interactivity;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Threading;
 using RiskGame.Callbacks;
 using RiskGame.Contracts.Common;
@@ -46,13 +47,13 @@ namespace RiskGame.Views
         private const int NoDice = 0;
         private const int NoKeyboardOption = 0;
         private const int CountdownIntervalMilliseconds = 200;
-        private static readonly IBrush CellBackground = new SolidColorBrush(Color.Parse("#25293A"));
-        private static readonly IBrush CellBorderBrush = new SolidColorBrush(Color.Parse("#42485B"));
-        private static readonly IBrush ActiveTurnBrush = new SolidColorBrush(Color.Parse("#D4A32D"));
-        private static readonly IBrush RedPlayerBrush = new SolidColorBrush(Color.Parse("#E5484D"));
-        private static readonly IBrush BluePlayerBrush = new SolidColorBrush(Color.Parse("#3E63DD"));
-        private static readonly IBrush GreenPlayerBrush = new SolidColorBrush(Color.Parse("#30A46C"));
-        private static readonly IBrush YellowPlayerBrush = new SolidColorBrush(Color.Parse("#F5D90A"));
+        private static readonly IBrush CellBackground = new ImmutableSolidColorBrush(Color.Parse("#25293A"));
+        private static readonly IBrush CellBorderBrush = new ImmutableSolidColorBrush(Color.Parse("#42485B"));
+        private static readonly IBrush ActiveTurnBrush = new ImmutableSolidColorBrush(Color.Parse("#D4A32D"));
+        private static readonly IBrush RedPlayerBrush = new ImmutableSolidColorBrush(Color.Parse("#E5484D"));
+        private static readonly IBrush BluePlayerBrush = new ImmutableSolidColorBrush(Color.Parse("#3E63DD"));
+        private static readonly IBrush GreenPlayerBrush = new ImmutableSolidColorBrush(Color.Parse("#30A46C"));
+        private static readonly IBrush YellowPlayerBrush = new ImmutableSolidColorBrush(Color.Parse("#F5D90A"));
         private readonly MatchViewModel matchViewModel = new MatchViewModel();
         private readonly DispatcherTimer countdownTimer = new DispatcherTimer();
         private int matchIdentifier;
@@ -125,8 +126,9 @@ namespace RiskGame.Views
             countdownTimer.Tick -= OnCountdownTick;
             GamepadService.ActionTriggered -= OnGamepadAction;
             matchViewModel.StopSubscription();
-            bool requiresLeave = !hasOpenedResult && !hasLeftMatch;
-            if (requiresLeave && !isLeavingMatch && matchIdentifier >= MinimumValidMatchId)
+            bool hasExitedCleanly = hasOpenedResult || hasLeftMatch;
+            bool shouldNotifyLeave = !hasExitedCleanly && !isLeavingMatch;
+            if (shouldNotifyLeave && matchIdentifier >= MinimumValidMatchId)
             {
                 Task.Run(LeaveClosedMatch);
             }
@@ -815,18 +817,25 @@ namespace RiskGame.Views
                 hasLiveStream = false;
                 UpdateActionButtons();
                 MatchStatusTextBlock.Text = statusMessage;
-                bool canReconnect = currentBoardState != null && statusMessage == Strings.MatchConnectionError;
-                if (canReconnect && currentBoardState != null && !currentBoardState.IsFinished)
+                BoardState? boardState = currentBoardState;
+                bool isConnectionError = statusMessage == Strings.MatchConnectionError;
+                if (boardState != null && CanShowReconnectGrace(boardState, isConnectionError))
                 {
                     MatchStatusTextBlock.Text = string.Format(Strings.MatchReconnectGraceFormat,
-                        statusMessage, currentBoardState.ReconnectionGraceSeconds);
+                        statusMessage, boardState.ReconnectionGraceSeconds);
                 }
             }
         }
 
+        private static bool CanShowReconnectGrace(BoardState boardState, bool isConnectionError)
+        {
+            return isConnectionError && !boardState.IsFinished;
+        }
+
         private void LeaveMatchClick(object? sender, RoutedEventArgs routedEventArgs)
         {
-            if (!hasClosed && !isLeavingMatch)
+            bool isWindowBusy = hasClosed || isLeavingMatch;
+            if (!isWindowBusy)
             {
                 isLeavingMatch = true;
                 UpdateActionButtons();
@@ -876,8 +885,8 @@ namespace RiskGame.Views
 
         private void OpenMenu()
         {
-            if (!hasClosed && Application.Current != null
-                && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            IClassicDesktopStyleApplicationLifetime? desktopLifetime = ResolveDesktopLifetime();
+            if (!hasClosed && desktopLifetime != null)
             {
                 MainWindow mainWindow = new MainWindow();
                 desktopLifetime.MainWindow = mainWindow;

@@ -65,7 +65,7 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public override Task<BoardState> LeaveMatch(MatchSubscription request, ServerCallContext callContext)
+        public override Task<BoardState> LeaveMatch(MatchSubscription request, ServerCallContext context)
         {
             try
             {

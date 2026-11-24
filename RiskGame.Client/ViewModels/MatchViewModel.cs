@@ -112,7 +112,7 @@ namespace RiskGame.ViewModels
             {
                 streamCancellation = cancellation;
             }
-            Task.Run(() => ReadMatchStream(subscription, matchCallback, cancellation));
+            Task.Run(() => ReadMatchStream(subscription, matchCallback, cancellation), cancellation.Token);
         }
 
         public void StopSubscription()
@@ -137,7 +137,10 @@ namespace RiskGame.ViewModels
             {
                 GrpcChannel channel = GrpcChannelProvider.GetChannel();
                 Match.MatchClient client = new Match.MatchClient(channel);
-                client.LeaveMatch(request, deadline: DateTime.UtcNow.AddSeconds(LeaveTimeoutSeconds));
+                client.LeaveMatch(
+                    request,
+                    deadline: DateTime.UtcNow.AddSeconds(LeaveTimeoutSeconds),
+                    cancellationToken: CancellationToken.None);
                 StopSubscription();
                 LeaveLobby();
             }
@@ -186,7 +189,8 @@ namespace RiskGame.ViewModels
                         matchCallback.MatchUpdated(state);
                     }
                 }
-                if (!cancellationToken.IsCancellationRequested && !matchFinished)
+                bool isExpectedTermination = cancellationToken.IsCancellationRequested || matchFinished;
+                if (!isExpectedTermination)
                 {
                     matchCallback.MatchStreamStopped(Strings.MatchConnectionError);
                 }

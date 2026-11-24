@@ -224,11 +224,13 @@ namespace RiskGame.Server.Services
             LastTurnUserId = CurrentTurnUserId;
             LastTurnBusted = busted;
             LastTurnTimedOut = false;
+            int checkedParticipants = NoParticipants;
             do
             {
                 currentParticipantIndex = (currentParticipantIndex + NextParticipantStep) % Participants.Count;
+                checkedParticipants++;
             }
-            while (Participants[currentParticipantIndex].HasAbandoned);
+            while (Participants[currentParticipantIndex].HasAbandoned && checkedParticipants < Participants.Count);
             CurrentTurnUserId = Participants[currentParticipantIndex].UserId;
             turnStartedTimestamp = timeProvider.GetTimestamp();
             TurnProgress = new MatchTurnProgress(CurrentTurnUserId, Columns);
