@@ -5,7 +5,8 @@
         x:Class="RiskGame.Views.MatchWindow" Title="{x:Static res:Strings.MatchTitleLabel}"
         Width="{StaticResource MatchWidth}" Height="{StaticResource MatchHeight}"
         MinWidth="{StaticResource MatchWidth}" MinHeight="{StaticResource MinimumMatchHeight}"
-        Background="{StaticResource WindowBackground}" Loaded="OnWindowLoaded">
+        Background="{StaticResource WindowBackground}" Loaded="OnWindowLoaded"
+        KeyDown="OnCombinationKeyDown">
     <Window.Resources>
         <x:Double x:Key="MatchWidth">1000</x:Double>
         <x:Double x:Key="MatchHeight">800</x:Double>
@@ -91,11 +92,11 @@
                     Background="{StaticResource PanelBorderBrush}"/>
             <Grid ColumnDefinitions="*,*,*">
                 <Button x:Name="FirstPairButton" Tag="{StaticResource FirstPairIndex}"
-                        Click="ChoosePairClick" HotKey="1" IsVisible="False" HorizontalAlignment="Stretch"/>
+                        Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"/>
                 <Button Grid.Column="1" x:Name="SecondPairButton" Tag="{StaticResource SecondPairIndex}"
-                        Click="ChoosePairClick" HotKey="2" IsVisible="False" HorizontalAlignment="Stretch"/>
+                        Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"/>
                 <Button Grid.Column="2" x:Name="ThirdPairButton" Tag="{StaticResource ThirdPairIndex}"
-                        Click="ChoosePairClick" HotKey="3" IsVisible="False" HorizontalAlignment="Stretch"/>
+                        Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"/>
             </Grid>
             <StackPanel x:Name="ColumnChoicePanel" IsVisible="False" Spacing="{StaticResource HeaderSpacing}">
                 <TextBlock Text="{x:Static res:Strings.MatchChooseColumnPrompt}" TextWrapping="Wrap"/>

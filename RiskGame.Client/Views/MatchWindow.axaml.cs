@@ -7,6 +7,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -43,6 +44,7 @@ namespace RiskGame.Views
         private const int SecondPairIndex = 2;
         private const int ThirdPairIndex = 3;
         private const int NoDice = 0;
+        private const int NoKeyboardOption = 0;
         private const int CountdownIntervalMilliseconds = 200;
         private static readonly IBrush CellBackground = new SolidColorBrush(Color.Parse("#25293A"));
         private static readonly IBrush CellBorderBrush = new SolidColorBrush(Color.Parse("#42485B"));
@@ -124,7 +126,7 @@ namespace RiskGame.Views
             GamepadService.ActionTriggered -= OnGamepadAction;
             matchViewModel.StopSubscription();
             bool requiresLeave = !hasOpenedResult && !hasLeftMatch;
-            if (requiresLeave && !isLeavingMatch)
+            if (requiresLeave && !isLeavingMatch && matchIdentifier >= MinimumValidMatchId)
             {
                 Task.Run(LeaveClosedMatch);
             }
@@ -143,6 +145,43 @@ namespace RiskGame.Views
         {
             matchViewModel.Countdown.Refresh();
             UpdateActionButtons();
+        }
+
+        private void OnCombinationKeyDown(object? sender, KeyEventArgs keyEventArgs)
+        {
+            bool canUseShortcut = !keyEventArgs.Handled && keyEventArgs.KeyModifiers == KeyModifiers.None;
+            if (canUseShortcut)
+            {
+                int optionIndex = GetKeyboardOptionIndex(keyEventArgs.Key);
+                if (optionIndex != NoKeyboardOption)
+                {
+                    TriggerOptionSlot(optionIndex);
+                    keyEventArgs.Handled = true;
+                }
+            }
+        }
+
+        private static int GetKeyboardOptionIndex(Key key)
+        {
+            int optionIndex = NoKeyboardOption;
+            switch (key)
+            {
+                case Key.D1:
+                case Key.NumPad1:
+                    optionIndex = FirstPairIndex;
+                    break;
+                case Key.D2:
+                case Key.NumPad2:
+                    optionIndex = SecondPairIndex;
+                    break;
+                case Key.D3:
+                case Key.NumPad3:
+                    optionIndex = ThirdPairIndex;
+                    break;
+                default:
+                    break;
+            }
+            return optionIndex;
         }
 
         private void OnGamepadAction(object? sender, GamepadActionEventArgs eventArgs)
