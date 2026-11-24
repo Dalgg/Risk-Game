@@ -238,4 +238,16 @@
   <data name="MatchReconnectUnavailable" xml:space="preserve"><value>This connection cannot be restored: the grace period expired or the player already left.</value></data>
   <data name="MatchWinnerByAbandonmentFormat" xml:space="preserve"><value>{0} won because the other participants left the match.</value></data>
   <data name="MatchParticipantAbandoned" xml:space="preserve"><value>Left the match</value></data>
+  <data name="ProfileHistoryVictory" xml:space="preserve"><value>Victory</value></data>
+  <data name="ProfileHistoryEmpty" xml:space="preserve"><value>You do not have any completed match results yet.</value></data>
+  <data name="ProfileHistoryCancelled" xml:space="preserve"><value>Match cancelled</value></data>
+  <data name="ProfileHistoryResultUnavailable" xml:space="preserve"><value>Result unavailable</value></data>
+  <data name="ProfileHistoryAbandonment" xml:space="preserve"><value>Ended because participants left</value></data>
+  <data name="ProfileHistoryDefeat" xml:space="preserve"><value>Defeat</value></data>
+  <data name="ProfileHistoryColumnVictory" xml:space="preserve"><value>Ended by claiming columns</value></data>
+  <data name="ProfileHistoryCompleted" xml:space="preserve"><value>Match completed</value></data>
+  <data name="ProfileHistoryTitle" xml:space="preserve"><value>HISTORY · LAST 5 MATCHES</value></data>
+  <data name="ProfileHistoryMatchFormat" xml:space="preserve"><value>Match #{0}</value></data>
+  <data name="ProfileHistoryDateFormat" xml:space="preserve"><value>Date: {0}</value></data>
+  <data name="ProfileHistoryColumnsFormat" xml:space="preserve"><value>Columns claimed: {0}</value></data>
 </root>

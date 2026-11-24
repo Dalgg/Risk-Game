@@ -8,6 +8,7 @@ namespace RiskGame.Services
     {
         private const string LogDirectory = "logs";
         private const string LogFile = "app_logs.jsonl";
+        private static readonly object logLock = new object();
 
         public static void Error(Exception exception, string messageTemplate, params object[] args)
         {
@@ -29,7 +30,10 @@ namespace RiskGame.Services
             });
 
             string path = Path.Combine(LogDirectory, LogFile);
-            File.AppendAllText(path, logEntry + Environment.NewLine);
+            lock (logLock)
+            {
+                File.AppendAllText(path, logEntry + Environment.NewLine);
+            }
         }
     }
 }

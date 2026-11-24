@@ -11,6 +11,9 @@
         <x:Double x:Key="ProfileCatalogItemWidth">100</x:Double>
         <x:Double x:Key="ProfileCatalogImageSize">64</x:Double>
         <Thickness x:Key="ProfileAvatarMargin">0,0,24,0</Thickness>
+        <x:Double x:Key="ProfileHistoryMaximumHeight">260</x:Double>
+        <x:Double x:Key="ProfileHistoryItemSpacing">4</x:Double>
+        <Thickness x:Key="ProfileHistoryItemMargin">0,0,0,8</Thickness>
         <SolidColorBrush x:Key="ScoreboardBackgroundBrush">#181A25</SolidColorBrush>
         <SolidColorBrush x:Key="ScoreboardPanelBrush">#25293A</SolidColorBrush>
         <SolidColorBrush x:Key="ScoreboardBorderBrush">#353A5A</SolidColorBrush>

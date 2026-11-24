@@ -456,5 +456,29 @@ namespace RiskGame.Resources
 
         public static string MatchParticipantAbandoned => ResourceManager.GetString("MatchParticipantAbandoned", _resourceCulture);
 
+        public static string ProfileHistoryVictory => ResourceManager.GetString("ProfileHistoryVictory", _resourceCulture);
+
+        public static string ProfileHistoryEmpty => ResourceManager.GetString("ProfileHistoryEmpty", _resourceCulture);
+
+        public static string ProfileHistoryCancelled => ResourceManager.GetString("ProfileHistoryCancelled", _resourceCulture);
+
+        public static string ProfileHistoryResultUnavailable => ResourceManager.GetString("ProfileHistoryResultUnavailable", _resourceCulture);
+
+        public static string ProfileHistoryAbandonment => ResourceManager.GetString("ProfileHistoryAbandonment", _resourceCulture);
+
+        public static string ProfileHistoryDefeat => ResourceManager.GetString("ProfileHistoryDefeat", _resourceCulture);
+
+        public static string ProfileHistoryColumnVictory => ResourceManager.GetString("ProfileHistoryColumnVictory", _resourceCulture);
+
+        public static string ProfileHistoryCompleted => ResourceManager.GetString("ProfileHistoryCompleted", _resourceCulture);
+
+        public static string ProfileHistoryTitle => ResourceManager.GetString("ProfileHistoryTitle", _resourceCulture);
+
+        public static string ProfileHistoryMatchFormat => ResourceManager.GetString("ProfileHistoryMatchFormat", _resourceCulture);
+
+        public static string ProfileHistoryDateFormat => ResourceManager.GetString("ProfileHistoryDateFormat", _resourceCulture);
+
+        public static string ProfileHistoryColumnsFormat => ResourceManager.GetString("ProfileHistoryColumnsFormat", _resourceCulture);
+
     }
 }

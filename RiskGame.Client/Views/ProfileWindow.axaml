@@ -100,6 +100,38 @@
                     <TextBlock Grid.Row="2" Text="{x:Static res:Strings.ProfileMatchesWon}" Classes="ScoreboardText" />
                     <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding MatchesWon}" Classes="ScoreboardText" />
                 </Grid>
+                <Border Classes="ProfilePanel">
+                    <StackPanel Spacing="{StaticResource ScoreboardSpacing}">
+                        <TextBlock Text="{x:Static res:Strings.ProfileHistoryTitle}" FontWeight="Bold" />
+                        <TextBlock Text="{x:Static res:Strings.ProfileHistoryEmpty}"
+                                   IsVisible="{Binding ShowEmptyHistory}" TextWrapping="Wrap" />
+                        <ScrollViewer MaxHeight="{StaticResource ProfileHistoryMaximumHeight}"
+                                      VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding RecentMatches}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ProfileMatchHistoryItem">
+                                        <Border BorderBrush="{StaticResource ScoreboardBorderBrush}"
+                                                BorderThickness="{StaticResource ScoreboardBorderThickness}"
+                                                CornerRadius="{StaticResource ScoreboardRadius}"
+                                                Padding="{StaticResource ScoreboardRowPadding}"
+                                                Margin="{StaticResource ProfileHistoryItemMargin}">
+                                            <StackPanel Spacing="{StaticResource ProfileHistoryItemSpacing}">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <TextBlock Text="{Binding MatchText}" FontWeight="Bold" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding OutcomeText}"
+                                                               Foreground="{StaticResource ScoreboardAccentBrush}" />
+                                                </Grid>
+                                                <TextBlock Text="{Binding DateText}" />
+                                                <TextBlock Text="{Binding ColumnsText}" />
+                                                <TextBlock Text="{Binding CompletionText}" TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </StackPanel>
+                </Border>
                 <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap"
                            Foreground="{StaticResource ScoreboardAccentBrush}" />
                 <Button x:Name="RefreshButton" Content="{x:Static res:Strings.ProfileRefresh}"

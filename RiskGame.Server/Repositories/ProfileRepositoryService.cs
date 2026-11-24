@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ namespace RiskGame.Server.Services
     public sealed class ProfileRepositoryService : IProfileRepository
     {
         private const int WinningPosition = 1;
+        private const int RecentMatchesLimit = 5;
         private readonly Func<RiskGameContext> createContext;
 
         public ProfileRepositoryService() : this(CreateDatabaseContext)
@@ -97,11 +99,52 @@ namespace RiskGame.Server.Services
             }
             IQueryable<MatchResult> results = databaseContext.MatchResults.AsNoTracking()
                 .Where(result => result.IdUser == user.IdUser);
-            return new UserProfile
+            UserProfile profile = new UserProfile
             {
                 UserId = user.IdUser, Username = user.Username, Nickname = user.Nickname,
                 AvatarReference = avatarReference, MatchesPlayed = results.Count(),
                 MatchesWon = results.Count(result => result.FinalPosition == WinningPosition)
+            };
+            profile.RecentMatches.AddRange(GetRecentMatches(databaseContext, user.IdUser));
+            return profile;
+        }
+
+        private static List<RecentMatchResult> GetRecentMatches(RiskGameContext databaseContext, int userId)
+        {
+            List<MatchResult> results = databaseContext.MatchResults.AsNoTracking()
+                .Include(result => result.IdMatchNavigation)
+                .Where(result => result.IdUser == userId && result.IdMatchNavigation.EndDate.HasValue)
+                .OrderByDescending(result => result.IdMatchNavigation.EndDate)
+                .ThenByDescending(result => result.IdMatch)
+                .ThenByDescending(result => result.IdMatchResult)
+                .Take(RecentMatchesLimit)
+                .ToList();
+            List<RecentMatchResult> history = new List<RecentMatchResult>();
+            foreach (MatchResult result in results)
+            {
+                history.Add(BuildRecentMatch(result));
+            }
+            return history;
+        }
+
+        private static RecentMatchResult BuildRecentMatch(MatchResult result)
+        {
+            DateTime endDate = DateTime.SpecifyKind(result.IdMatchNavigation.EndDate.GetValueOrDefault(),
+                DateTimeKind.Utc);
+            string endReason = string.Empty;
+            if (result.IdMatchNavigation.EndReason != null)
+            {
+                endReason = result.IdMatchNavigation.EndReason;
+            }
+            return new RecentMatchResult
+            {
+                MatchId = result.IdMatch,
+                EndTimeUnixSeconds = new DateTimeOffset(endDate).ToUnixTimeSeconds(),
+                IsWinner = result.FinalPosition.GetValueOrDefault() == WinningPosition,
+                ClaimedColumns = result.FinalScore.GetValueOrDefault(),
+                HasClaimedColumns = result.FinalScore.HasValue,
+                EndReason = endReason,
+                HasResult = result.FinalPosition.HasValue
             };
         }
 

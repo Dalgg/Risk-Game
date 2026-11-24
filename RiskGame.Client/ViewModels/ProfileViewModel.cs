@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
@@ -22,6 +23,7 @@ namespace RiskGame.ViewModels
         private const int FirstAvatarIndex = 0;
         private const int MinimumNicknameLength = 1;
         private const int MaximumNicknameLength = 50;
+        private const int NoRecentMatches = 0;
         private readonly SessionUser currentSessionUser;
 
         [ObservableProperty]
@@ -45,6 +47,9 @@ namespace RiskGame.ViewModels
 
         [ObservableProperty]
         private string statusMessage = string.Empty;
+
+        [ObservableProperty]
+        private bool showEmptyHistory;
 
         [ObservableProperty]
         public partial bool IsEditingNickname { get; set; }
@@ -88,6 +93,9 @@ namespace RiskGame.ViewModels
         public IImage AvatarImage => ProfileAvatarCatalog.GetImage(AvatarReference);
 
         public IReadOnlyList<ProfileAvatarOption> Avatars { get; }
+
+        public ObservableCollection<ProfileMatchHistoryItem> RecentMatches { get; } =
+            new ObservableCollection<ProfileMatchHistoryItem>();
 
         private bool CanRetry()
         {
@@ -261,6 +269,7 @@ namespace RiskGame.ViewModels
                 AvatarReference = profile.AvatarReference;
                 MatchesPlayed = profile.MatchesPlayed.ToString(CultureInfo.CurrentCulture);
                 MatchesWon = profile.MatchesWon.ToString(CultureInfo.CurrentCulture);
+                ApplyRecentMatches(profile);
                 StatusMessage = string.Empty;
             }
             else
@@ -269,6 +278,16 @@ namespace RiskGame.ViewModels
             }
             IsLoading = false;
             return updated;
+        }
+
+        private void ApplyRecentMatches(UserProfile profile)
+        {
+            RecentMatches.Clear();
+            foreach (RecentMatchResult result in profile.RecentMatches)
+            {
+                RecentMatches.Add(new ProfileMatchHistoryItem(result));
+            }
+            ShowEmptyHistory = RecentMatches.Count == NoRecentMatches;
         }
 
         private void ShowError(string message)

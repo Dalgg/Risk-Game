@@ -131,4 +131,16 @@
   <data name="MatchReconnectUnavailable" xml:space="preserve"><value>No se puede recuperar esta conexión: el periodo de gracia terminó o el jugador ya abandonó.</value></data>
   <data name="MatchWinnerByAbandonmentFormat" xml:space="preserve"><value>{0} ganó porque los demás participantes abandonaron la partida.</value></data>
   <data name="MatchParticipantAbandoned" xml:space="preserve"><value>Abandonó la partida</value></data>
+  <data name="ProfileHistoryVictory" xml:space="preserve"><value>Victoria</value></data>
+  <data name="ProfileHistoryEmpty" xml:space="preserve"><value>Todavía no tienes resultados de partidas finalizadas.</value></data>
+  <data name="ProfileHistoryCancelled" xml:space="preserve"><value>Partida cancelada</value></data>
+  <data name="ProfileHistoryResultUnavailable" xml:space="preserve"><value>Resultado no disponible</value></data>
+  <data name="ProfileHistoryAbandonment" xml:space="preserve"><value>Cierre por abandono de participantes</value></data>
+  <data name="ProfileHistoryDefeat" xml:space="preserve"><value>Derrota</value></data>
+  <data name="ProfileHistoryColumnVictory" xml:space="preserve"><value>Cierre por conquista de columnas</value></data>
+  <data name="ProfileHistoryCompleted" xml:space="preserve"><value>Partida finalizada</value></data>
+  <data name="ProfileHistoryTitle" xml:space="preserve"><value>HISTORIAL · ÚLTIMAS 5 PARTIDAS</value></data>
+  <data name="ProfileHistoryMatchFormat" xml:space="preserve"><value>Partida #{0}</value></data>
+  <data name="ProfileHistoryDateFormat" xml:space="preserve"><value>Fecha: {0}</value></data>
+  <data name="ProfileHistoryColumnsFormat" xml:space="preserve"><value>Columnas conquistadas: {0}</value></data>
 </root>
