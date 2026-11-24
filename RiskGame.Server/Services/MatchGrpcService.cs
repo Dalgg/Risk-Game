@@ -20,7 +20,9 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                return matchSessionManager.SubscribeMatchEvents(subscription, responseStream,
+                MatchParticipantSession participant = new MatchParticipantSession(
+                    subscription.MatchId, subscription.UserId, subscription.SessionToken);
+                return matchSessionManager.SubscribeMatchEvents(participant, responseStream,
                     callContext.CancellationToken);
             }
             catch (DataOperationException dataOperationException)
@@ -33,7 +35,10 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                return Task.FromResult(matchSessionManager.RollDice(request));
+                MatchParticipantSession participant = new MatchParticipantSession(
+                    request.MatchId, request.UserId, request.SessionToken);
+                return Task.FromResult(
+                    matchSessionManager.RollDice(participant, request.TurnId, request.ExpectedRollId));
             }
             catch (DataOperationException dataOperationException)
             {
@@ -45,7 +50,11 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                return Task.FromResult(matchSessionManager.ChooseDicePair(request));
+                MatchParticipantSession participant = new MatchParticipantSession(
+                    request.MatchId, request.UserId, request.SessionToken);
+                DicePairSelection selection = new DicePairSelection(
+                    request.RollId, request.PairIndex, request.PreferredColumn);
+                return Task.FromResult(matchSessionManager.ChooseDicePair(participant, request.TurnId, selection));
             }
             catch (DataOperationException dataOperationException)
             {
@@ -57,7 +66,9 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                return Task.FromResult(matchSessionManager.StopTurn(request));
+                MatchParticipantSession participant = new MatchParticipantSession(
+                    request.MatchId, request.UserId, request.SessionToken);
+                return Task.FromResult(matchSessionManager.StopTurn(participant, request.TurnId));
             }
             catch (DataOperationException dataOperationException)
             {
@@ -69,7 +80,9 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                return Task.FromResult(matchSessionManager.LeaveMatch(request));
+                MatchParticipantSession participant = new MatchParticipantSession(
+                    request.MatchId, request.UserId, request.SessionToken);
+                return Task.FromResult(matchSessionManager.LeaveMatch(participant));
             }
             catch (DataOperationException dataOperationException)
             {

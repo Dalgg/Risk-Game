@@ -21,7 +21,8 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                return Task.FromResult(sessionManager.UpdateRules(request));
+                return Task.FromResult(
+                    sessionManager.UpdateRules(request.UserId, request.SessionToken, request.Rules));
             }
             catch (ArgumentException argumentException)
             {

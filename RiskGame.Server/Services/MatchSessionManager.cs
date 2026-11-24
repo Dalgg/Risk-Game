@@ -68,67 +68,61 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public Task SubscribeMatchEvents(MatchSubscription subscription,
+        public Task SubscribeMatchEvents(MatchParticipantSession participant,
             IServerStreamWriter<BoardState> responseStream, CancellationToken cancellationToken)
         {
             try
             {
-                RegisterSubscriber(subscription, responseStream);
-                BroadcastBoardState(subscription.MatchId);
+                RegisterSubscriber(participant, responseStream);
+                BroadcastBoardState(participant.MatchId);
                 bool subscribed = true;
                 TimeSpan checkInterval = TimeSpan.FromSeconds(StreamCheckSeconds);
                 while (subscribed && !cancellationToken.WaitHandle.WaitOne(checkInterval))
                 {
-                    subscribed = IsSubscriptionActive(subscription, responseStream);
+                    subscribed = IsSubscriptionActive(participant, responseStream);
                 }
                 return Task.CompletedTask;
             }
             finally
             {
-                UnregisterSubscriber(subscription, responseStream);
+                DisconnectSubscriber(participant.MatchId, participant.UserId, responseStream);
             }
         }
 
-        private bool IsSubscriptionActive(MatchSubscription subscription,
+        private bool IsSubscriptionActive(MatchParticipantSession participant,
             IServerStreamWriter<BoardState> responseStream)
         {
             lock (matchLock)
             {
                 Dictionary<int, IServerStreamWriter<BoardState>> subscribers =
-                    subscribersByMatchId[subscription.MatchId];
-                bool registered = subscribers.ContainsKey(subscription.UserId);
-                bool activeParticipant = !matchesById[subscription.MatchId]
-                    .GetParticipant(subscription.UserId).HasAbandoned;
+                    subscribersByMatchId[participant.MatchId];
+                bool registered = subscribers.ContainsKey(participant.UserId);
+                bool activeParticipant = !matchesById[participant.MatchId]
+                    .GetParticipant(participant.UserId).HasAbandoned;
                 bool isSubscriptionActive = false;
                 if (registered && activeParticipant)
                 {
                     isSubscriptionActive =
-                        ReferenceEquals(subscribers[subscription.UserId], responseStream);
+                        ReferenceEquals(subscribers[participant.UserId], responseStream);
                 }
                 return isSubscriptionActive;
             }
         }
 
-        private void RegisterSubscriber(MatchSubscription subscription, IServerStreamWriter<BoardState> responseStream)
+        private void RegisterSubscriber(MatchParticipantSession participant,
+            IServerStreamWriter<BoardState> responseStream)
         {
             lock (matchLock)
             {
-                ActiveMatch activeMatch = GetAuthorizedMatch(subscription.MatchId, subscription.UserId,
-                    subscription.SessionToken);
-                if (activeMatch.GetParticipant(subscription.UserId).HasAbandoned)
+                ActiveMatch activeMatch = GetAuthorizedMatch(participant);
+                if (activeMatch.GetParticipant(participant.UserId).HasAbandoned)
                 {
                     throw new MatchActionException("The participant has already abandoned this match.");
                 }
-                subscribersByMatchId[subscription.MatchId][subscription.UserId] = responseStream;
-                activeMatch.UpdateConnection(subscription.UserId, true);
+                subscribersByMatchId[participant.MatchId][participant.UserId] = responseStream;
+                activeMatch.UpdateConnection(participant.UserId, true);
                 StoreCompletion(activeMatch);
             }
-        }
-
-        private void UnregisterSubscriber(MatchSubscription subscription,
-            IServerStreamWriter<BoardState> responseStream)
-        {
-            DisconnectSubscriber(subscription.MatchId, subscription.UserId, responseStream);
         }
 
         private bool DisconnectSubscriber(int matchId, int userId, IServerStreamWriter<BoardState> responseStream)
@@ -163,18 +157,18 @@ namespace RiskGame.Server.Services
             throw new MatchNotFoundException("The active match is not available on this server.");
         }
 
-        private ActiveMatch GetAuthorizedMatch(int matchId, int userId, string sessionToken)
+        private ActiveMatch GetAuthorizedMatch(MatchParticipantSession participantSession)
         {
-            ActiveMatch activeMatch = GetActiveMatch(matchId);
+            ActiveMatch activeMatch = GetActiveMatch(participantSession.MatchId);
             MatchParticipant? participant = activeMatch.Participants
-                .FirstOrDefault(player => player.UserId == userId);
+                .FirstOrDefault(player => player.UserId == participantSession.UserId);
             if (participant == null)
             {
                 throw new InvalidSessionException("The player does not belong to the requested match.");
             }
             if (participant.UserId >= MinimumValidIdentifier)
             {
-                if (sessionRegistry.GetUserId(sessionToken) != participant.UserId)
+                if (sessionRegistry.GetUserId(participantSession.SessionToken) != participant.UserId)
                 {
                     throw new InvalidSessionException("The session does not belong to the requested participant.");
                 }
@@ -186,17 +180,17 @@ namespace RiskGame.Server.Services
             if (RefreshMatch(activeMatch))
             {
                 StoreCompletion(activeMatch);
-                BroadcastBoardState(matchId);
+                BroadcastBoardState(participantSession.MatchId);
             }
             return activeMatch;
         }
 
-        public int GetFinishedLobbyId(ReturnToLobbyRequest request)
+        public int GetFinishedLobbyId(MatchParticipantSession participant)
         {
             lock (matchLock)
             {
-                ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
-                if (activeMatch.GetParticipant(request.UserId).HasAbandoned)
+                ActiveMatch activeMatch = GetAuthorizedMatch(participant);
+                if (activeMatch.GetParticipant(participant.UserId).HasAbandoned)
                 {
                     throw new MatchActionException("An abandoned participant cannot return to the original lobby.");
                 }
@@ -209,50 +203,50 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public BoardState RollDice(RollDiceRequest request)
+        public BoardState RollDice(MatchParticipantSession participant, long turnId, long expectedRollId)
         {
             BoardState boardState;
             lock (matchLock)
             {
-                ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
-                ValidateTurn(activeMatch, request.UserId, request.TurnId);
-                activeMatch.ApplyRoll(DiceRoller.RollFourDice(), request.ExpectedRollId);
+                ActiveMatch activeMatch = GetAuthorizedMatch(participant);
+                ValidateTurn(activeMatch, participant.UserId, turnId);
+                activeMatch.ApplyRoll(DiceRoller.RollFourDice(), expectedRollId);
                 boardState = BuildBoardState(activeMatch);
             }
-            BroadcastBoardState(request.MatchId);
+            BroadcastBoardState(participant.MatchId);
             return boardState;
         }
 
-        public BoardState ChooseDicePair(PairChoice request)
+        public BoardState ChooseDicePair(MatchParticipantSession participant, long turnId, DicePairSelection selection)
         {
             BoardState boardState;
             lock (matchLock)
             {
-                ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
-                ValidateTurn(activeMatch, request.UserId, request.TurnId);
-                activeMatch.ChoosePair(request.RollId, request.PairIndex, request.PreferredColumn);
+                ActiveMatch activeMatch = GetAuthorizedMatch(participant);
+                ValidateTurn(activeMatch, participant.UserId, turnId);
+                activeMatch.ChoosePair(selection.RollId, selection.PairIndex, selection.PreferredColumn);
                 boardState = BuildBoardState(activeMatch);
             }
-            BroadcastBoardState(request.MatchId);
+            BroadcastBoardState(participant.MatchId);
             return boardState;
         }
 
-        public BoardState StopTurn(StopTurnRequest request)
+        public BoardState StopTurn(MatchParticipantSession participant, long turnId)
         {
             BoardState boardState;
             lock (matchLock)
             {
-                ActiveMatch activeMatch = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
-                bool canRetryCompletion = CanRetryCompletion(activeMatch, request.TurnId, request.UserId);
+                ActiveMatch activeMatch = GetAuthorizedMatch(participant);
+                bool canRetryCompletion = CanRetryCompletion(activeMatch, turnId, participant.UserId);
                 if (!canRetryCompletion)
                 {
-                    ValidateTurn(activeMatch, request.UserId, request.TurnId);
-                    activeMatch.StopTurn(request.TurnId);
+                    ValidateTurn(activeMatch, participant.UserId, turnId);
+                    activeMatch.StopTurn(turnId);
                 }
                 StoreCompletion(activeMatch);
                 boardState = BuildBoardState(activeMatch);
             }
-            BroadcastBoardState(request.MatchId);
+            BroadcastBoardState(participant.MatchId);
             return boardState;
         }
 
@@ -354,18 +348,18 @@ namespace RiskGame.Server.Services
             return abandoned;
         }
 
-        public BoardState LeaveMatch(MatchSubscription request)
+        public BoardState LeaveMatch(MatchParticipantSession participant)
         {
             BoardState snapshot;
             lock (matchLock)
             {
-                ActiveMatch match = GetAuthorizedMatch(request.MatchId, request.UserId, request.SessionToken);
-                match.AbandonParticipant(request.UserId);
+                ActiveMatch match = GetAuthorizedMatch(participant);
+                match.AbandonParticipant(participant.UserId);
                 RefreshMatch(match);
                 StoreCompletion(match);
                 snapshot = BuildBoardState(match);
             }
-            BroadcastBoardState(request.MatchId);
+            BroadcastBoardState(participant.MatchId);
             return snapshot;
         }
 

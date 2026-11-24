@@ -61,9 +61,9 @@ namespace RiskGame.Server.Tests.Builders
             Match.ChoosePair(Match.RollId, FirstPair);
         }
 
-        public MatchSubscription Request(int userId)
+        public MatchParticipantSession Participant(int userId)
         {
-            return new MatchSubscription { MatchId = MatchId, UserId = userId, SessionToken = tokens[userId] };
+            return new MatchParticipantSession(MatchId, userId, tokens[userId]);
         }
 
         public void ExpireFirstPlayer()
@@ -75,25 +75,20 @@ namespace RiskGame.Server.Tests.Builders
 
         public void BroadcastRoll()
         {
-            MatchSubscription identity = Request(FirstUserId);
-            Manager.RollDice(new RollDiceRequest
-            {
-                MatchId = MatchId, UserId = FirstUserId, SessionToken = identity.SessionToken,
-                ExpectedRollId = Match.RollId, TurnId = Match.TurnId
-            });
+            Manager.RollDice(Participant(FirstUserId), Match.TurnId, Match.RollId);
         }
 
         public void AttemptSubscribe(int userId)
         {
             using CancellationTokenSource cancelled = new CancellationTokenSource();
             cancelled.Cancel();
-            Manager.SubscribeMatchEvents(Request(userId), new SnapshotStream(), cancelled.Token)
+            Manager.SubscribeMatchEvents(Participant(userId), new SnapshotStream(), cancelled.Token)
                 .GetAwaiter().GetResult();
         }
 
         public SubscriptionProbe Subscribe(int userId)
         {
-            return new SubscriptionProbe(Manager, Request(userId));
+            return new SubscriptionProbe(Manager, Participant(userId));
         }
 
         public sealed class SubscriptionProbe : IDisposable
@@ -103,9 +98,9 @@ namespace RiskGame.Server.Tests.Builders
             private readonly SnapshotStream stream = new SnapshotStream();
             private readonly Task subscription;
 
-            public SubscriptionProbe(MatchSessionManager manager, MatchSubscription request)
+            public SubscriptionProbe(MatchSessionManager manager, MatchParticipantSession participant)
             {
-                subscription = Task.Run(() => manager.SubscribeMatchEvents(request, stream, cancellation.Token));
+                subscription = Task.Run(() => manager.SubscribeMatchEvents(participant, stream, cancellation.Token));
                 InitialSnapshot = stream.Read();
             }
 

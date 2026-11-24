@@ -37,27 +37,25 @@ namespace RiskGame.Server.Tests
         [Fact]
         public void GetFinishedLobbyId_UnfinishedMatch_RejectsReturn()
         {
-            ReturnToLobbyRequest request = CreateRequest();
+            MatchParticipantSession participant = CreateParticipant();
 
-            Assert.Throws<MatchActionException>(() => manager.GetFinishedLobbyId(request));
+            Assert.Throws<MatchActionException>(() => manager.GetFinishedLobbyId(participant));
         }
 
         [Fact]
         public void GetFinishedLobbyId_UnknownMatch_RejectsReturn()
         {
-            ReturnToLobbyRequest request = CreateRequest();
-            request.MatchId = UnknownMatchId;
+            MatchParticipantSession participant = new MatchParticipantSession(UnknownMatchId, UserId, token);
 
-            Assert.Throws<MatchNotFoundException>(() => manager.GetFinishedLobbyId(request));
+            Assert.Throws<MatchNotFoundException>(() => manager.GetFinishedLobbyId(participant));
         }
 
         [Fact]
         public void GetFinishedLobbyId_TokenOfAnotherParticipant_RejectsReturn()
         {
-            ReturnToLobbyRequest request = CreateRequest();
-            request.UserId = OtherUserId;
+            MatchParticipantSession participant = new MatchParticipantSession(MatchId, OtherUserId, token);
 
-            Assert.Throws<InvalidSessionException>(() => manager.GetFinishedLobbyId(request));
+            Assert.Throws<InvalidSessionException>(() => manager.GetFinishedLobbyId(participant));
         }
 
         [Fact]
@@ -65,7 +63,7 @@ namespace RiskGame.Server.Tests
         {
             FinishMatch();
 
-            int originalLobbyId = manager.GetFinishedLobbyId(CreateRequest());
+            int originalLobbyId = manager.GetFinishedLobbyId(CreateParticipant());
 
             Assert.Equal(LobbyId, originalLobbyId);
         }
@@ -90,9 +88,9 @@ namespace RiskGame.Server.Tests
             match.StopTurn(match.TurnId);
         }
 
-        private ReturnToLobbyRequest CreateRequest()
+        private MatchParticipantSession CreateParticipant()
         {
-            return new ReturnToLobbyRequest { MatchId = MatchId, UserId = UserId, SessionToken = token };
+            return new MatchParticipantSession(MatchId, UserId, token);
         }
     }
 }

@@ -68,11 +68,11 @@ namespace RiskGame.Server.Tests.Builders
         public void FinishByAbandonment()
         {
             TimedMatchBuilder.SnapshotStream stream = new TimedMatchBuilder.SnapshotStream();
-            MatchSubscription survivor = Request(RemainingId, RemainingToken);
+            MatchParticipantSession survivor = Participant(RemainingId, RemainingToken);
             subscription = Task.Run(() => Matches.SubscribeMatchEvents(survivor, stream, cancellation.Token));
             stream.Read();
-            Matches.LeaveMatch(Request(HostId, HostToken));
-            Matches.LeaveMatch(Request(ThirdId, ThirdToken));
+            Matches.LeaveMatch(Participant(HostId, HostToken));
+            Matches.LeaveMatch(Participant(ThirdId, ThirdToken));
         }
 
         public void DrainCleanup()
@@ -85,16 +85,13 @@ namespace RiskGame.Server.Tests.Builders
 
         public LobbyDetails ReturnSurvivorAndJoinNewPlayer()
         {
-            Lobbies.ReturnToLobby(new ReturnToLobbyRequest
-            {
-                MatchId = MatchId, UserId = RemainingId, SessionToken = RemainingToken
-            });
+            Lobbies.ReturnToLobby(Participant(RemainingId, RemainingToken));
             return Lobbies.JoinLobby(OriginalCode, Player(NewPlayerId));
         }
 
-        private static MatchSubscription Request(int userId, string token)
+        private static MatchParticipantSession Participant(int userId, string token)
         {
-            return new MatchSubscription { MatchId = MatchId, UserId = userId, SessionToken = token };
+            return new MatchParticipantSession(MatchId, userId, token);
         }
 
         private static LobbyRules Rules()

@@ -270,7 +270,7 @@ namespace RiskGame.Server.Tests
         {
             DisconnectedMatchBuilder setup = new DisconnectedMatchBuilder();
 
-            setup.Manager.LeaveMatch(setup.Request(FirstUser));
+            setup.Manager.LeaveMatch(setup.Participant(FirstUser));
 
             Assert.True(setup.Match.GetParticipant(FirstUser).HasAbandoned);
         }
@@ -279,10 +279,10 @@ namespace RiskGame.Server.Tests
         public void LeaveMatch_TokenForAnotherPlayer_Rejects()
         {
             DisconnectedMatchBuilder setup = new DisconnectedMatchBuilder();
-            MatchSubscription request = setup.Request(FirstUser);
-            request.UserId = SecondUser;
+            MatchParticipantSession firstParticipant = setup.Participant(FirstUser);
+            MatchParticipantSession forgedParticipant = firstParticipant with { UserId = SecondUser };
 
-            Assert.Throws<InvalidSessionException>(() => setup.Manager.LeaveMatch(request));
+            Assert.Throws<InvalidSessionException>(() => setup.Manager.LeaveMatch(forgedParticipant));
         }
 
         [Fact]
@@ -317,7 +317,7 @@ namespace RiskGame.Server.Tests
             DisconnectedMatchBuilder setup = new DisconnectedMatchBuilder();
             using DisconnectedMatchBuilder.SubscriptionProbe stream = setup.Subscribe(FirstUser);
 
-            setup.Manager.LeaveMatch(setup.Request(FirstUser));
+            setup.Manager.LeaveMatch(setup.Participant(FirstUser));
 
             Assert.True(stream.WaitForCompletion());
         }

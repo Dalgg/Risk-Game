@@ -174,10 +174,10 @@ namespace RiskGame.Server.Tests
         {
             using TimedMatchBuilder setup = new TimedMatchBuilder();
             setup.PrepareTemporaryProgress();
-            StopTurnRequest request = setup.StopRequest();
+            long turnId = setup.Match.TurnId;
             setup.Time.Advance(TimeSpan.FromSeconds(ShortSeconds));
 
-            Assert.Throws<MatchActionException>(() => setup.Manager.StopTurn(request));
+            Assert.Throws<MatchActionException>(() => setup.Manager.StopTurn(setup.FirstParticipant(), turnId));
         }
 
         [Fact]
@@ -185,10 +185,10 @@ namespace RiskGame.Server.Tests
         {
             using TimedMatchBuilder setup = new TimedMatchBuilder();
             setup.PrepareTemporaryProgress();
-            StopTurnRequest request = setup.StopRequest();
+            long turnId = setup.Match.TurnId;
             setup.Time.Advance(TimeSpan.FromSeconds(ShortSeconds));
 
-            Record.Exception(() => setup.Manager.StopTurn(request));
+            Record.Exception(() => setup.Manager.StopTurn(setup.FirstParticipant(), turnId));
 
             Assert.Equal(TimedMatchBuilder.SecondUserId, setup.Match.CurrentTurnUserId);
         }
@@ -200,7 +200,7 @@ namespace RiskGame.Server.Tests
             setup.PrepareTemporaryProgress();
             setup.Time.Advance(TimeSpan.FromSeconds(ElapsedSeconds));
 
-            setup.Manager.StopTurn(setup.StopRequest());
+            setup.Manager.StopTurn(setup.FirstParticipant(), setup.Match.TurnId);
 
             Assert.Equal(TimeSpan.FromSeconds(ShortSeconds), setup.Match.GetRemainingTurnTime());
         }
@@ -211,7 +211,7 @@ namespace RiskGame.Server.Tests
             using TimedMatchBuilder setup = new TimedMatchBuilder();
             setup.PrepareTemporaryProgress();
             setup.Time.Advance(TimeSpan.FromSeconds(ElapsedSeconds));
-            setup.Manager.StopTurn(setup.StopRequest());
+            setup.Manager.StopTurn(setup.FirstParticipant(), setup.Match.TurnId);
             setup.Time.Advance(TimeSpan.FromSeconds(RemainingSeconds));
 
             setup.Manager.ExpireTurns();
@@ -223,10 +223,12 @@ namespace RiskGame.Server.Tests
         public void RollDice_AtDeadline_RejectsLateRequest()
         {
             using TimedMatchBuilder setup = new TimedMatchBuilder();
-            RollDiceRequest request = setup.RollRequest();
+            long turnId = setup.Match.TurnId;
+            long rollId = setup.Match.RollId;
             setup.Time.Advance(TimeSpan.FromSeconds(ShortSeconds));
 
-            Assert.Throws<MatchActionException>(() => setup.Manager.RollDice(request));
+            Assert.Throws<MatchActionException>(() =>
+                setup.Manager.RollDice(setup.FirstParticipant(), turnId, rollId));
         }
 
         [Fact]
@@ -234,23 +236,27 @@ namespace RiskGame.Server.Tests
         {
             using TimedMatchBuilder setup = new TimedMatchBuilder();
             setup.Match.ApplyRoll(PendingDice, setup.Match.RollId);
-            PairChoice request = setup.ChoiceRequest();
+            long turnId = setup.Match.TurnId;
+            DicePairSelection selection = setup.FirstPairSelection();
             setup.Time.Advance(TimeSpan.FromSeconds(ShortSeconds));
 
-            Assert.Throws<MatchActionException>(() => setup.Manager.ChooseDicePair(request));
+            Assert.Throws<MatchActionException>(() =>
+                setup.Manager.ChooseDicePair(setup.FirstParticipant(), turnId, selection));
         }
 
         [Fact]
         public void RollDice_AfterFullRotation_RejectsRequestFromOldTurn()
         {
             using TimedMatchBuilder setup = new TimedMatchBuilder();
-            RollDiceRequest request = setup.RollRequest();
+            long oldTurnId = setup.Match.TurnId;
+            long oldRollId = setup.Match.RollId;
             setup.Time.Advance(TimeSpan.FromSeconds(ShortSeconds));
             setup.Manager.ExpireTurns();
             setup.Time.Advance(TimeSpan.FromSeconds(ShortSeconds));
             setup.Manager.ExpireTurns();
 
-            Assert.Throws<MatchActionException>(() => setup.Manager.RollDice(request));
+            Assert.Throws<MatchActionException>(() =>
+                setup.Manager.RollDice(setup.FirstParticipant(), oldTurnId, oldRollId));
         }
 
         [Fact]
@@ -330,10 +336,10 @@ namespace RiskGame.Server.Tests
         {
             using TimedMatchBuilder setup = new TimedMatchBuilder();
             setup.PrepareTemporaryProgress();
-            StopTurnRequest request = setup.StopRequest();
+            long turnId = setup.Match.TurnId;
             setup.Time.Advance(TimeSpan.FromSeconds(ShortSeconds));
 
-            setup.RaceExpirationAndStop(request);
+            setup.RaceExpirationAndStop(turnId);
 
             Assert.Equal(NextTurnId, setup.Match.TurnId);
         }

@@ -1,7 +1,6 @@
 using System;
 using RiskGame.Contracts.Common;
 using RiskGame.Contracts.Lobby;
-using RiskGame.Contracts.LobbySettings;
 using RiskGame.Exceptions;
 using RiskGame.Server.Services;
 using RiskGame.Server.Tests.Builders;
@@ -57,7 +56,7 @@ namespace RiskGame.Server.Tests
         {
             LobbySettingsBuilder setup = new LobbySettingsBuilder();
 
-            LobbyDetails details = setup.Manager.UpdateRules(setup.Request());
+            LobbyDetails details = setup.UpdateHostRules();
 
             Assert.Equal(RulesVariant.Fast, details.Rules.RulesVariant);
         }
@@ -67,7 +66,7 @@ namespace RiskGame.Server.Tests
         {
             LobbySettingsBuilder setup = new LobbySettingsBuilder();
 
-            setup.Manager.UpdateRules(setup.Request());
+            setup.UpdateHostRules();
 
             Assert.Equal(LongSeconds, setup.Repository.SavedDuration);
         }
@@ -77,7 +76,7 @@ namespace RiskGame.Server.Tests
         {
             LobbySettingsBuilder setup = new LobbySettingsBuilder();
 
-            setup.Manager.UpdateRules(setup.Request());
+            setup.UpdateHostRules();
 
             Assert.Equal("Fast", setup.Repository.SavedVariant);
         }
@@ -89,7 +88,7 @@ namespace RiskGame.Server.Tests
             LobbySettingsBuilder.SettingsStream stream = new LobbySettingsBuilder.SettingsStream();
             setup.Manager.RegisterSubscriber(LobbySettingsBuilder.OtherId, stream);
 
-            setup.Manager.UpdateRules(setup.Request());
+            setup.UpdateHostRules();
 
             Assert.Equal(LongSeconds, stream.Read().Lobby.Rules.TurnDurationSeconds);
         }
@@ -98,10 +97,9 @@ namespace RiskGame.Server.Tests
         public void UpdateRules_NonHost_Rejects()
         {
             LobbySettingsBuilder setup = new LobbySettingsBuilder();
-            UpdateLobbyRulesRequest request = setup.Request();
-            request.UserId = LobbySettingsBuilder.OtherId;
 
-            Assert.Throws<InvalidOperationException>(() => setup.Manager.UpdateRules(request));
+            Assert.Throws<InvalidOperationException>(() =>
+                setup.Manager.UpdateRules(LobbySettingsBuilder.OtherId, setup.Token, setup.UpdatedRules()));
         }
 
         [Fact]
@@ -110,7 +108,7 @@ namespace RiskGame.Server.Tests
             LobbySettingsBuilder setup = new LobbySettingsBuilder();
             setup.ExpireSession();
 
-            Assert.Throws<InvalidSessionException>(() => setup.Manager.UpdateRules(setup.Request()));
+            Assert.Throws<InvalidSessionException>(() => setup.UpdateHostRules());
         }
 
         [Fact]
@@ -119,7 +117,7 @@ namespace RiskGame.Server.Tests
             LobbySettingsBuilder setup = new LobbySettingsBuilder();
             setup.Manager.StartMatch(LobbySettingsBuilder.HostId);
 
-            Assert.Throws<InvalidOperationException>(() => setup.Manager.UpdateRules(setup.Request()));
+            Assert.Throws<InvalidOperationException>(() => setup.UpdateHostRules());
         }
 
         [Fact]
@@ -128,7 +126,7 @@ namespace RiskGame.Server.Tests
             LobbySettingsBuilder setup = new LobbySettingsBuilder();
             setup.Repository.FailSave = true;
 
-            Record.Exception(() => setup.Manager.UpdateRules(setup.Request()));
+            Record.Exception(() => setup.UpdateHostRules());
 
             Assert.Equal(DefaultSeconds, setup.Snapshot().Rules.TurnDurationSeconds);
         }
@@ -139,17 +137,18 @@ namespace RiskGame.Server.Tests
             LobbySettingsBuilder setup = new LobbySettingsBuilder();
             setup.Repository.FailSave = true;
 
-            Assert.Throws<DataOperationException>(() => setup.Manager.UpdateRules(setup.Request()));
+            Assert.Throws<DataOperationException>(() => setup.UpdateHostRules());
         }
 
         [Fact]
         public void UpdateRules_UnsupportedDuration_DoesNotPersist()
         {
             LobbySettingsBuilder setup = new LobbySettingsBuilder();
-            UpdateLobbyRulesRequest request = setup.Request();
-            request.Rules.TurnDurationSeconds = InvalidSeconds;
+            LobbyRules rules = setup.UpdatedRules();
+            rules.TurnDurationSeconds = InvalidSeconds;
 
-            Assert.Throws<ArgumentException>(() => setup.Manager.UpdateRules(request));
+            Assert.Throws<ArgumentException>(() =>
+                setup.Manager.UpdateRules(LobbySettingsBuilder.HostId, setup.Token, rules));
         }
 
         [Fact]
@@ -158,7 +157,7 @@ namespace RiskGame.Server.Tests
             LobbySettingsBuilder setup = new LobbySettingsBuilder();
             ActiveMatch match = new ActiveMatch(LobbySettingsBuilder.HostId, setup.Snapshot());
 
-            setup.Manager.UpdateRules(setup.Request());
+            setup.UpdateHostRules();
 
             Assert.Equal(RulesVariant.Standard, match.RulesVariant);
         }
@@ -169,7 +168,7 @@ namespace RiskGame.Server.Tests
             LobbySettingsBuilder setup = new LobbySettingsBuilder();
             ActiveMatch match = new ActiveMatch(LobbySettingsBuilder.HostId, setup.Snapshot());
 
-            setup.Manager.UpdateRules(setup.Request());
+            setup.UpdateHostRules();
 
             Assert.Equal(DefaultSeconds, match.TurnDurationSeconds);
         }

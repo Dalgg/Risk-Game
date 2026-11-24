@@ -7,7 +7,6 @@ using Grpc.Core;
 using RiskGame.Contracts.Chat;
 using RiskGame.Contracts.Common;
 using RiskGame.Contracts.Lobby;
-using RiskGame.Contracts.LobbySettings;
 using RiskGame.Exceptions;
 using RiskGame.Services;
 using Lobby = RiskGame.Models.Lobby;
@@ -61,40 +60,40 @@ namespace RiskGame.Server.Services
             return JoinLobby(createdDatabaseLobby.LobbyCode, hostPlayer);
         }
 
-        public LobbyDetails UpdateRules(UpdateLobbyRulesRequest updateRequest)
+        public LobbyDetails UpdateRules(int userId, string sessionToken, LobbyRules rules)
         {
-            LobbyRulesValidator.Validate(updateRequest.Rules);
+            LobbyRulesValidator.Validate(rules);
             LobbyDetails snapshot;
             lock (syncLock)
             {
-                ActiveLobbyRoom room = GetEditableRoom(updateRequest);
+                ActiveLobbyRoom room = GetEditableRoom(userId, sessionToken);
                 string variantName = StandardRulesVariantName;
-                if (updateRequest.Rules.RulesVariant == RulesVariant.Fast)
+                if (rules.RulesVariant == RulesVariant.Fast)
                 {
                     variantName = FastRulesVariantName;
                 }
-                lobbyRepository.UpdateRules(room.LobbyId, variantName, updateRequest.Rules.TurnDurationSeconds);
-                room.Rules.RulesVariant = updateRequest.Rules.RulesVariant;
-                room.Rules.TurnDurationSeconds = updateRequest.Rules.TurnDurationSeconds;
+                lobbyRepository.UpdateRules(room.LobbyId, variantName, rules.TurnDurationSeconds);
+                room.Rules.RulesVariant = rules.RulesVariant;
+                room.Rules.TurnDurationSeconds = rules.TurnDurationSeconds;
                 snapshot = BuildLobbyDetails(room);
                 BroadcastLobbySnapshot(room.Subscribers.Values.ToList(), snapshot);
             }
             return snapshot;
         }
 
-        private ActiveLobbyRoom GetEditableRoom(UpdateLobbyRulesRequest updateRequest)
+        private ActiveLobbyRoom GetEditableRoom(int userId, string sessionToken)
         {
-            if (!userToLobbyCode.ContainsKey(updateRequest.UserId))
+            if (!userToLobbyCode.ContainsKey(userId))
             {
                 throw new InvalidOperationException("The player does not belong to an active lobby.");
             }
-            ActiveLobbyRoom room = roomsByCode[userToLobbyCode[updateRequest.UserId]];
-            if (room.HostUserId != updateRequest.UserId || room.Status != LobbyStatus.Waiting)
+            ActiveLobbyRoom room = roomsByCode[userToLobbyCode[userId]];
+            if (room.HostUserId != userId || room.Status != LobbyStatus.Waiting)
             {
                 throw new InvalidOperationException("Only the host can change rules before the match starts.");
             }
-            if (updateRequest.UserId >= MinimumValidIdentifier
-                && sessionRegistry.GetUserId(updateRequest.SessionToken) != updateRequest.UserId)
+            if (userId >= MinimumValidIdentifier
+                && sessionRegistry.GetUserId(sessionToken) != userId)
             {
                 throw new InvalidSessionException("The session does not belong to the lobby host.");
             }
@@ -298,25 +297,25 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public LobbyDetails ReturnToLobby(ReturnToLobbyRequest request)
+        public LobbyDetails ReturnToLobby(MatchParticipantSession participant)
         {
-            int lobbyId = matchSessionManager.GetFinishedLobbyId(request);
+            int lobbyId = matchSessionManager.GetFinishedLobbyId(participant);
             LobbyDetails snapshot;
             List<IServerStreamWriter<LobbyEvent>> subscribers;
             lock (syncLock)
             {
                 ActiveLobbyRoom? room = roomsByCode.Values.FirstOrDefault(candidate => candidate.LobbyId == lobbyId);
                 bool isParticipantInRoom = false;
-                if (room != null && room.ActiveMatchId == request.MatchId)
+                if (room != null && room.ActiveMatchId == participant.MatchId)
                 {
-                    isParticipantInRoom = userToLobbyCode.ContainsKey(request.UserId)
-                        && userToLobbyCode[request.UserId] == room.LobbyCode;
+                    isParticipantInRoom = userToLobbyCode.ContainsKey(participant.UserId)
+                        && userToLobbyCode[participant.UserId] == room.LobbyCode;
                 }
                 if (!isParticipantInRoom || room == null)
                 {
                     throw new MatchActionException("The original lobby is no longer available for this participant.");
                 }
-                room.PendingReturns.Remove(request.UserId);
+                room.PendingReturns.Remove(participant.UserId);
                 room.Status = LobbyStatus.Waiting;
                 snapshot = BuildLobbyDetails(room);
                 subscribers = room.Subscribers.Values.ToList();

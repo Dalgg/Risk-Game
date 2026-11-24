@@ -65,7 +65,9 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                return Task.FromResult(sessionManager.ReturnToLobby(request));
+                MatchParticipantSession participant = new MatchParticipantSession(
+                    request.MatchId, request.UserId, request.SessionToken);
+                return Task.FromResult(sessionManager.ReturnToLobby(participant));
             }
             catch (MatchNotFoundException matchNotFoundException)
             {

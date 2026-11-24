@@ -1,4 +1,3 @@
-using RiskGame.Contracts.Match;
 using RiskGame.Exceptions;
 using RiskGame.Server.Services;
 using RiskGame.Server.Tests.Builders;
@@ -13,7 +12,8 @@ namespace RiskGame.Server.Tests
         private const int TwoAttempts = 2;
         private readonly RecordingMatchRepository repository = new RecordingMatchRepository();
         private readonly MatchSessionManager manager;
-        private readonly StopTurnRequest request;
+        private readonly MatchParticipantSession winnerSession;
+        private readonly long winningTurnId;
 
         public MatchCompletionTests()
         {
@@ -21,19 +21,14 @@ namespace RiskGame.Server.Tests
             string token = sessions.Register(WinnerId);
             manager = new MatchSessionManager(sessions, repository);
             ActiveMatch match = new CompletedMatchBuilder().WithManager(manager).CreateReadyMatch();
-            request = new StopTurnRequest
-            {
-                MatchId = match.MatchId,
-                UserId = WinnerId,
-                SessionToken = token,
-                TurnId = match.TurnId
-            };
+            winnerSession = new MatchParticipantSession(match.MatchId, WinnerId, token);
+            winningTurnId = match.TurnId;
         }
 
         [Fact]
         public void StopTurn_WinningMove_SavesMatchOnce()
         {
-            manager.StopTurn(request);
+            manager.StopTurn(winnerSession, winningTurnId);
 
             int saves = repository.SavedMatches;
 
@@ -43,9 +38,9 @@ namespace RiskGame.Server.Tests
         [Fact]
         public void StopTurn_RepeatedCompletion_DoesNotSaveTwice()
         {
-            manager.StopTurn(request);
+            manager.StopTurn(winnerSession, winningTurnId);
 
-            Record.Exception(() => manager.StopTurn(request));
+            Record.Exception(() => manager.StopTurn(winnerSession, winningTurnId));
 
             Assert.Equal(OneSavedMatch, repository.SavedMatches);
         }
@@ -55,7 +50,8 @@ namespace RiskGame.Server.Tests
         {
             repository.FailNextSave();
 
-            System.Exception? rejectedException = Record.Exception(() => manager.StopTurn(request));
+            System.Exception? rejectedException = Record.Exception(() =>
+                manager.StopTurn(winnerSession, winningTurnId));
 
             Assert.IsType<DataOperationException>(rejectedException);
         }
@@ -64,9 +60,9 @@ namespace RiskGame.Server.Tests
         public void StopTurn_RetryAfterFailure_SavesMatch()
         {
             repository.FailNextSave();
-            Record.Exception(() => manager.StopTurn(request));
+            Record.Exception(() => manager.StopTurn(winnerSession, winningTurnId));
 
-            manager.StopTurn(request);
+            manager.StopTurn(winnerSession, winningTurnId);
 
             Assert.Equal(OneSavedMatch, repository.SavedMatches);
         }
@@ -75,9 +71,9 @@ namespace RiskGame.Server.Tests
         public void StopTurn_RetryAfterFailure_RetriesRepository()
         {
             repository.FailNextSave();
-            Record.Exception(() => manager.StopTurn(request));
+            Record.Exception(() => manager.StopTurn(winnerSession, winningTurnId));
 
-            manager.StopTurn(request);
+            manager.StopTurn(winnerSession, winningTurnId);
 
             Assert.Equal(TwoAttempts, repository.SaveAttempts);
         }

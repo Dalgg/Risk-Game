@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Grpc.Core;
 using RiskGame.Contracts.Common;
 using RiskGame.Contracts.Lobby;
-using RiskGame.Contracts.LobbySettings;
 using RiskGame.Exceptions;
 using Lobby = RiskGame.Models.Lobby;
 using RiskGame.Server.Services;
@@ -38,14 +37,14 @@ namespace RiskGame.Server.Tests.Builders
 
         public string Token { get; }
 
-        public UpdateLobbyRulesRequest Request()
+        public LobbyRules UpdatedRules()
         {
-            return new UpdateLobbyRulesRequest
-            {
-                UserId = HostId,
-                SessionToken = Token,
-                Rules = new LobbyRules { RulesVariant = RulesVariant.Fast, TurnDurationSeconds = LongDuration }
-            };
+            return new LobbyRules { RulesVariant = RulesVariant.Fast, TurnDurationSeconds = LongDuration };
+        }
+
+        public LobbyDetails UpdateHostRules()
+        {
+            return Manager.UpdateRules(HostId, Token, UpdatedRules());
         }
 
         public LobbyDetails Snapshot()

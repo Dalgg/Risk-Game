@@ -64,30 +64,14 @@ namespace RiskGame.Server.Tests.Builders
 
         public SnapshotStream Stream { get; } = new SnapshotStream();
 
-        public StopTurnRequest StopRequest()
+        public MatchParticipantSession FirstParticipant()
         {
-            return new StopTurnRequest
-            {
-                MatchId = MatchId, UserId = FirstUserId, SessionToken = token, TurnId = Match.TurnId
-            };
+            return new MatchParticipantSession(MatchId, FirstUserId, token);
         }
 
-        public RollDiceRequest RollRequest()
+        public DicePairSelection FirstPairSelection()
         {
-            return new RollDiceRequest
-            {
-                MatchId = MatchId, UserId = FirstUserId, SessionToken = token,
-                ExpectedRollId = Match.RollId, TurnId = Match.TurnId
-            };
-        }
-
-        public PairChoice ChoiceRequest()
-        {
-            return new PairChoice
-            {
-                MatchId = MatchId, UserId = FirstUserId, SessionToken = token,
-                RollId = Match.RollId, TurnId = Match.TurnId, PairIndex = FirstPairIndex
-            };
+            return new DicePairSelection(Match.RollId, FirstPairIndex);
         }
 
         public void PrepareTemporaryProgress()
@@ -111,7 +95,7 @@ namespace RiskGame.Server.Tests.Builders
             first.SaveProgress(FirstUserId, first.MaximumSteps);
             second.SaveProgress(FirstUserId, second.MaximumSteps);
             PrepareSummit();
-            Manager.StopTurn(StopRequest());
+            Manager.StopTurn(FirstParticipant(), Match.TurnId);
         }
 
         public void BustTurn()
@@ -128,11 +112,8 @@ namespace RiskGame.Server.Tests.Builders
 
         public BoardState Subscribe()
         {
-            MatchSubscription request = new MatchSubscription
-            {
-                MatchId = MatchId, UserId = FirstUserId, SessionToken = token
-            };
-            subscription = Task.Run(() => Manager.SubscribeMatchEvents(request, Stream, cancellation.Token));
+            MatchParticipantSession participant = FirstParticipant();
+            subscription = Task.Run(() => Manager.SubscribeMatchEvents(participant, Stream, cancellation.Token));
             return Stream.Read();
         }
 
@@ -143,10 +124,11 @@ namespace RiskGame.Server.Tests.Builders
             return service;
         }
 
-        public void RaceExpirationAndStop(StopTurnRequest request)
+        public void RaceExpirationAndStop(long turnId)
         {
+            MatchParticipantSession participant = FirstParticipant();
             Task.WaitAll(Task.Run(Manager.ExpireTurns),
-                Task.Run(() => Xunit.Record.Exception(() => Manager.StopTurn(request))));
+                Task.Run(() => Xunit.Record.Exception(() => Manager.StopTurn(participant, turnId))));
         }
 
         public void Dispose()

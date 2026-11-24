@@ -18,7 +18,8 @@ namespace RiskGame
         public override void OnFrameworkInitializationCompleted()
         {
             RiskGame.Resources.Strings.Culture = new CultureInfo("en-US");
-            GamepadService.Initialize();
+            IGamepadInputBackend gamepadBackend = GamepadBackendFactory.CreateDefault();
+            GamepadService.Initialize(gamepadBackend);
             GamepadFocusNavigator.Initialize();
 
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
