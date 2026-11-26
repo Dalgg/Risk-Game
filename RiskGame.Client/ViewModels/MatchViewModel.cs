@@ -68,7 +68,7 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                throw new DataOperationException(GetActionError(rpcException), rpcException);
+                throw CreateActionException(rpcException);
             }
         }
 
@@ -91,7 +91,7 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                throw new DataOperationException(GetActionError(rpcException), rpcException);
+                throw CreateActionException(rpcException);
             }
         }
 
@@ -112,7 +112,7 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                throw new DataOperationException(GetActionError(rpcException), rpcException);
+                throw CreateActionException(rpcException);
             }
         }
 
@@ -123,6 +123,20 @@ namespace RiskGame.ViewModels
                 return Strings.MatchActionRejected;
             }
             return GetStreamError(rpcException);
+        }
+
+        private DataOperationException CreateActionException(RpcException rpcException)
+        {
+            DataOperationException actionException =
+                new DataOperationException(GetActionError(rpcException), rpcException);
+            bool isCommunicationFailure = rpcException.StatusCode == StatusCode.Unavailable
+                || rpcException.StatusCode == StatusCode.DeadlineExceeded;
+            if (isCommunicationFailure)
+            {
+                StopSubscription();
+                actionException = new MatchConnectionException(Strings.MatchConnectionError, rpcException);
+            }
+            return actionException;
         }
 
         public bool Subscribe(int matchId, IMatchCallback matchCallback)

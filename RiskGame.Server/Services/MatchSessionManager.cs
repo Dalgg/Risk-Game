@@ -304,7 +304,8 @@ namespace RiskGame.Server.Services
             bool pendingCompletion = match.IsFinished && !storedCompletions.Contains(match.MatchId);
             if (pendingCompletion)
             {
-                changed = RetryCompletion(match);
+                bool completionSaved = RetryCompletion(match);
+                changed = changed || completionSaved;
             }
             return changed;
         }

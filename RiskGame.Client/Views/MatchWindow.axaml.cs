@@ -515,7 +515,7 @@ namespace RiskGame.Views
             catch (DataOperationException dataOperationException)
             {
                 JsonLogger.Error(dataOperationException, "Could not submit the stop turn action.");
-                Dispatcher.UIThread.Post(() => ShowActionError(dataOperationException.Message));
+                Dispatcher.UIThread.Post(() => ShowActionError(dataOperationException));
             }
         }
 
@@ -591,7 +591,7 @@ namespace RiskGame.Views
             catch (DataOperationException dataOperationException)
             {
                 JsonLogger.Error(dataOperationException, "Could not submit the dice roll.");
-                Dispatcher.UIThread.Post(() => ShowActionError(dataOperationException.Message));
+                Dispatcher.UIThread.Post(() => ShowActionError(dataOperationException));
             }
         }
 
@@ -605,7 +605,7 @@ namespace RiskGame.Views
             catch (DataOperationException dataOperationException)
             {
                 JsonLogger.Error(dataOperationException, "Could not submit the dice pair choice.");
-                Dispatcher.UIThread.Post(() => ShowActionError(dataOperationException.Message));
+                Dispatcher.UIThread.Post(() => ShowActionError(dataOperationException));
             }
         }
 
@@ -615,12 +615,18 @@ namespace RiskGame.Views
             ApplyBoardState(boardState);
         }
 
-        private void ShowActionError(string errorMessage)
+        private void ShowActionError(DataOperationException dataOperationException)
         {
             isActionPending = false;
             if (!hasClosed)
             {
-                MatchStatusTextBlock.Text = errorMessage;
+                if (dataOperationException is MatchConnectionException)
+                {
+                    subscriptionVersion++;
+                    isConnecting = false;
+                    hasLiveStream = false;
+                }
+                MatchStatusTextBlock.Text = dataOperationException.Message;
                 UpdateActionButtons();
             }
         }
@@ -880,14 +886,14 @@ namespace RiskGame.Views
             catch (DataOperationException dataOperationException)
             {
                 JsonLogger.Error(dataOperationException, "Could not abandon the active match.");
-                Dispatcher.UIThread.Post(() => ShowLeaveError(dataOperationException.Message));
+                Dispatcher.UIThread.Post(() => ShowLeaveError(dataOperationException));
             }
         }
 
-        private void ShowLeaveError(string message)
+        private void ShowLeaveError(DataOperationException dataOperationException)
         {
             isLeavingMatch = false;
-            ShowActionError(message);
+            ShowActionError(dataOperationException);
         }
 
         private void CompleteLeaveMatch()

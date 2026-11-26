@@ -14,6 +14,7 @@ using Avalonia.Threading;
 using Grpc.Core;
 using BoardState = Client::RiskGame.Contracts.Match.BoardState;
 using BoardPlayer = Client::RiskGame.Contracts.Match.BoardPlayer;
+using DataOperationException = Client::RiskGame.Exceptions.DataOperationException;
 using IMatchCallback = Client::RiskGame.Callbacks.IMatchCallback;
 using MatchSubscription = Client::RiskGame.Contracts.Match.MatchSubscription;
 using MatchViewModel = Client::RiskGame.ViewModels.MatchViewModel;
@@ -44,6 +45,9 @@ namespace RiskGame.Server.Tests.Builders
         private const string ButtonName = "ReconnectButton";
         private const string StatusTextBlockName = "MatchStatusTextBlock";
         private const string LeaveFieldName = "hasLeftMatch";
+        private const string ActionExceptionMethodName = "CreateActionException";
+        private const string ActionErrorMethodName = "ShowActionError";
+        private const string SimulatedActionFailure = "Simulated match action failure.";
         private readonly object streamsLock = new object();
         private readonly List<FakeMatchStream> streams = new List<FakeMatchStream>();
         private readonly SessionUser? previousSession = SessionService.CurrentUser;
@@ -127,6 +131,23 @@ namespace RiskGame.Server.Tests.Builders
         public void WaitForSynchronized()
         {
             WaitUntil(() => Window.FindControl<TextBlock>(StatusTextBlockName)!.Text == Strings.MatchSynchronized);
+        }
+
+        public DataOperationException CreateActionError(StatusCode statusCode)
+        {
+            MethodInfo classifyError = typeof(MatchViewModel).GetMethod(ActionExceptionMethodName,
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            RpcException rpcException = new RpcException(new Status(statusCode, SimulatedActionFailure));
+            return (DataOperationException)classifyError.Invoke(ViewModel, new object[] { rpcException })!;
+        }
+
+        public void FailAction(StatusCode statusCode)
+        {
+            DataOperationException exception = CreateActionError(statusCode);
+            MethodInfo showError = typeof(MatchWindow).GetMethod(ActionErrorMethodName,
+                BindingFlags.Instance | BindingFlags.NonPublic)!;
+            showError.Invoke(Window, new object[] { exception });
+            Dispatcher.UIThread.RunJobs();
         }
 
         public static BoardState CreateSnapshot(int revision)

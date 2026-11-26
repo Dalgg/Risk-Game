@@ -9,8 +9,11 @@ namespace RiskGame.Server.Services
     {
         private const int GracePeriodSeconds = 30;
         private const int NoRemainingSeconds = 0;
+        private const int MaximumConsecutiveMissedTurns = 2;
+        private const int NoMissedTurns = 0;
         private readonly TimeProvider timeProvider;
         private long disconnectedTimestamp;
+        private int consecutiveMissedTurns = NoMissedTurns;
 
         public MatchParticipant(LobbyPlayer lobbyPlayer) : this(lobbyPlayer, TimeProvider.System)
         {
@@ -98,6 +101,17 @@ namespace RiskGame.Server.Services
         {
             HasAbandoned = true;
             IsConnected = false;
+        }
+
+        public void RecordTurnActivity()
+        {
+            consecutiveMissedTurns = NoMissedTurns;
+        }
+
+        public bool RecordMissedTurn()
+        {
+            consecutiveMissedTurns++;
+            return consecutiveMissedTurns >= MaximumConsecutiveMissedTurns;
         }
     }
 }

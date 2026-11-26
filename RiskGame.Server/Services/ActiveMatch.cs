@@ -30,6 +30,7 @@ namespace RiskGame.Server.Services
         private readonly TimeProvider timeProvider;
         private long turnStartedTimestamp;
         private int currentParticipantIndex = FirstParticipantIndex;
+        private bool hasRolledThisTurn;
 
         public ActiveMatch(int matchId, LobbyDetails lobbyDetails) : this(matchId, lobbyDetails, TimeProvider.System)
         {
@@ -132,6 +133,8 @@ namespace RiskGame.Server.Services
             RollId++;
             SelectedPairIndex = NoSelectedPair;
             AwaitingPairChoice = true;
+            hasRolledThisTurn = true;
+            GetParticipant(CurrentTurnUserId).RecordTurnActivity();
             Revision++;
             if (!PairOptions.Any(combination => TurnProgress.IsPlayable(combination)))
             {
@@ -196,8 +199,17 @@ namespace RiskGame.Server.Services
             bool expired = !IsFinished && GetRemainingTurnTime() == TimeSpan.Zero;
             if (expired)
             {
-                AdvanceTurn(true);
-                LastTurnTimedOut = true;
+                MatchParticipant participant = GetParticipant(CurrentTurnUserId);
+                bool shouldCountMissedTurn = participant.IsConnected && !hasRolledThisTurn;
+                if (shouldCountMissedTurn && participant.RecordMissedTurn())
+                {
+                    AbandonParticipant(participant.UserId);
+                }
+                else
+                {
+                    AdvanceTurn(true);
+                }
+                LastTurnTimedOut = !IsFinished;
             }
             return expired;
         }
@@ -232,6 +244,7 @@ namespace RiskGame.Server.Services
             }
             while (Participants[currentParticipantIndex].HasAbandoned && checkedParticipants < Participants.Count);
             CurrentTurnUserId = Participants[currentParticipantIndex].UserId;
+            hasRolledThisTurn = false;
             turnStartedTimestamp = timeProvider.GetTimestamp();
             TurnProgress = new MatchTurnProgress(CurrentTurnUserId, Columns);
             TurnId++;

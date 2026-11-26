@@ -13,6 +13,8 @@ namespace RiskGame.Server.Tests.Builders
         private const string ProfileImagesResourcePath = "Assets/ProfileImages/ProfileImages.axaml";
         private const string AppThemeStylePath = "Styles/AppTheme.axaml";
         private static readonly object testSessionLock = new object();
+        private static readonly Lazy<HeadlessUnitTestSession> testSession =
+            new Lazy<HeadlessUnitTestSession>(CreateTestSession);
 
         public static AppBuilder BuildAvaloniaApp()
         {
@@ -23,10 +25,14 @@ namespace RiskGame.Server.Tests.Builders
         {
             lock (testSessionLock)
             {
-                using HeadlessUnitTestSession session = HeadlessUnitTestSession.StartNew(
-                    typeof(ProfileTestApplication));
-                session.Dispatch(action, CancellationToken.None).GetAwaiter().GetResult();
+                testSession.Value.Dispatch(action, CancellationToken.None).GetAwaiter().GetResult();
             }
+        }
+
+        private static HeadlessUnitTestSession CreateTestSession()
+        {
+            return HeadlessUnitTestSession.StartNew(typeof(ProfileTestApplication),
+                AvaloniaTestIsolationLevel.PerAssembly);
         }
 
         public override void Initialize()

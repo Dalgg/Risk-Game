@@ -1,4 +1,5 @@
 using System;
+using Grpc.Core;
 using RiskGame.Server.Tests.Builders;
 using Xunit;
 
@@ -164,6 +165,127 @@ namespace RiskGame.Server.Tests
                     setup.Callback.LatestRevision == MatchReconnectBuilder.UpdatedRevision);
 
                 Assert.Equal(MatchReconnectBuilder.UpdatedRevision, setup.Callback.LatestRevision);
+            });
+        }
+
+        [Theory]
+        [InlineData(StatusCode.Unavailable)]
+        [InlineData(StatusCode.DeadlineExceeded)]
+        public void Action_CommunicationFailure_EnablesReconnect(StatusCode statusCode)
+        {
+            ProfileTestApplication.Run(() =>
+            {
+                using MatchReconnectBuilder setup = new MatchReconnectBuilder();
+                setup.ShowWindow();
+                setup.LatestStream.SendSnapshot(MatchReconnectBuilder.InitialRevision);
+                setup.WaitForSynchronized();
+
+                setup.FailAction(statusCode);
+
+                Assert.True(setup.ReconnectButton.IsEnabled);
+            });
+        }
+
+        [Fact]
+        public void Action_CommunicationFailure_CancelsPreviousStream()
+        {
+            ProfileTestApplication.Run(() =>
+            {
+                using MatchReconnectBuilder setup = new MatchReconnectBuilder();
+                setup.ShowWindow();
+                MatchReconnectBuilder.FakeMatchStream previous = setup.LatestStream;
+                previous.SendSnapshot(MatchReconnectBuilder.InitialRevision);
+                setup.WaitForSynchronized();
+
+                setup.CreateActionError(StatusCode.Unavailable);
+                MatchReconnectBuilder.WaitUntil(() => previous.IsDisposed);
+
+                Assert.True(previous.IsDisposed);
+            });
+        }
+
+        [Fact]
+        public void Action_RuleRejection_PreservesModelSubscription()
+        {
+            ProfileTestApplication.Run(() =>
+            {
+                using MatchReconnectBuilder setup = new MatchReconnectBuilder();
+                setup.ShowWindow();
+                setup.LatestStream.SendSnapshot(MatchReconnectBuilder.InitialRevision);
+                setup.WaitForSynchronized();
+                setup.FailAction(StatusCode.FailedPrecondition);
+
+                bool accepted = setup.Subscribe();
+
+                Assert.False(accepted);
+            });
+        }
+
+        [Fact]
+        public void Action_RuleRejection_KeepsReconnectDisabled()
+        {
+            ProfileTestApplication.Run(() =>
+            {
+                using MatchReconnectBuilder setup = new MatchReconnectBuilder();
+                setup.ShowWindow();
+                setup.LatestStream.SendSnapshot(MatchReconnectBuilder.InitialRevision);
+                setup.WaitForSynchronized();
+
+                setup.FailAction(StatusCode.FailedPrecondition);
+
+                Assert.False(setup.ReconnectButton.IsEnabled);
+            });
+        }
+
+        [Fact]
+        public void Action_QueuedOldSnapshot_DoesNotRestoreConnectionAfterFailure()
+        {
+            ProfileTestApplication.Run(() =>
+            {
+                using MatchReconnectBuilder setup = new MatchReconnectBuilder();
+                setup.ShowWindow();
+                setup.LatestStream.SendSnapshot(MatchReconnectBuilder.InitialRevision);
+                setup.WaitForSynchronized();
+                setup.Window.MatchUpdated(MatchReconnectBuilder.CreateSnapshot(MatchReconnectBuilder.UpdatedRevision));
+
+                setup.FailAction(StatusCode.Unavailable);
+
+                Assert.True(setup.ReconnectButton.IsEnabled);
+            });
+        }
+
+        [Fact]
+        public void Action_CommunicationFailure_DoesNotReconnectAutomatically()
+        {
+            ProfileTestApplication.Run(() =>
+            {
+                using MatchReconnectBuilder setup = new MatchReconnectBuilder();
+                setup.ShowWindow();
+                setup.LatestStream.SendSnapshot(MatchReconnectBuilder.InitialRevision);
+                setup.WaitForSynchronized();
+
+                setup.FailAction(StatusCode.Unavailable);
+                MatchReconnectBuilder.WaitUntil(() => setup.LatestStream.IsDisposed);
+
+                Assert.Equal(MatchReconnectBuilder.SingleAttempt, setup.AttemptCount);
+            });
+        }
+
+        [Fact]
+        public void Action_CommunicationFailure_RequiresExplicitReconnectClick()
+        {
+            ProfileTestApplication.Run(() =>
+            {
+                using MatchReconnectBuilder setup = new MatchReconnectBuilder();
+                setup.ShowWindow();
+                setup.LatestStream.SendSnapshot(MatchReconnectBuilder.InitialRevision);
+                setup.WaitForSynchronized();
+                setup.FailAction(StatusCode.Unavailable);
+
+                setup.ClickReconnect();
+                setup.WaitForAttempts(MatchReconnectBuilder.TwoAttempts);
+
+                Assert.Equal(MatchReconnectBuilder.TwoAttempts, setup.AttemptCount);
             });
         }
     }
