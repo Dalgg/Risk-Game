@@ -25,6 +25,7 @@ namespace RiskGame.Views
     public partial class MatchWindow : Window, IMatchCallback
     {
         private const int MinimumValidMatchId = 1;
+        private const int UnassignedMatchId = 0;
         private const int InitialStep = 0;
         private const int FirstBoardStep = 1;
         private const int CellWidth = 48;
@@ -54,13 +55,14 @@ namespace RiskGame.Views
         private static readonly IBrush BluePlayerBrush = new ImmutableSolidColorBrush(Color.Parse("#3E63DD"));
         private static readonly IBrush GreenPlayerBrush = new ImmutableSolidColorBrush(Color.Parse("#30A46C"));
         private static readonly IBrush YellowPlayerBrush = new ImmutableSolidColorBrush(Color.Parse("#F5D90A"));
-        private readonly MatchViewModel matchViewModel = new MatchViewModel();
+        private readonly MatchViewModel matchViewModel;
         private readonly DispatcherTimer countdownTimer = new DispatcherTimer();
         private int matchIdentifier;
         private long latestRevision;
         private bool hasClosed;
         private bool hasOpenedResult;
         private bool hasLiveStream;
+        private bool isConnecting;
         private bool isActionPending;
         private bool isLeavingMatch;
         private bool hasLeftMatch;
@@ -68,17 +70,22 @@ namespace RiskGame.Views
         private PairChoice? pendingColumnChoice;
         private int subscriptionVersion;
 
-        public MatchWindow()
+        public MatchWindow() : this(UnassignedMatchId, new MatchViewModel())
         {
+        }
+
+        public MatchWindow(int matchId) : this(matchId, new MatchViewModel())
+        {
+        }
+
+        public MatchWindow(int matchId, MatchViewModel matchViewModel)
+        {
+            this.matchViewModel = matchViewModel;
+            matchIdentifier = matchId;
             InitializeComponent();
             DataContext = matchViewModel;
             countdownTimer.Interval = TimeSpan.FromMilliseconds(CountdownIntervalMilliseconds);
             countdownTimer.Tick += OnCountdownTick;
-        }
-
-        public MatchWindow(int matchId) : this()
-        {
-            matchIdentifier = matchId;
         }
 
         public void MatchUpdated(BoardState boardState)
@@ -99,6 +106,7 @@ namespace RiskGame.Views
 
         private void ReceiveStreamState(BoardState boardState)
         {
+            isConnecting = false;
             hasLiveStream = true;
             ApplyBoardState(boardState);
         }
@@ -264,16 +272,32 @@ namespace RiskGame.Views
 
         private void StartSubscription()
         {
-            bool canSubscribe = !hasClosed && !isLeavingMatch;
+            bool canSubscribe = CanReconnect();
             if (canSubscribe && matchIdentifier >= MinimumValidMatchId)
             {
-                hasLiveStream = false;
-                UpdateActionButtons();
-                MatchStatusTextBlock.Text = Strings.MatchConnecting;
-                subscriptionVersion++;
-                MatchStreamCallback callback = new MatchStreamCallback(this, subscriptionVersion);
-                matchViewModel.Subscribe(matchIdentifier, callback);
+                int nextVersion = subscriptionVersion;
+                nextVersion++;
+                MatchStreamCallback callback = new MatchStreamCallback(this, nextVersion);
+                if (matchViewModel.Subscribe(matchIdentifier, callback))
+                {
+                    subscriptionVersion = nextVersion;
+                    isConnecting = true;
+                    hasLiveStream = false;
+                    MatchStatusTextBlock.Text = Strings.MatchConnecting;
+                    UpdateActionButtons();
+                }
             }
+        }
+
+        private bool CanReconnect()
+        {
+            bool canReconnect = !hasClosed && !isLeavingMatch && !hasOpenedResult && !isActionPending
+                && !isConnecting && !matchViewModel.IsConnecting && !hasLiveStream;
+            if (currentBoardState != null && currentBoardState.IsFinished)
+            {
+                canReconnect = false;
+            }
+            return canReconnect;
         }
 
         private void ApplyBoardState(BoardState boardState)
@@ -437,6 +461,7 @@ namespace RiskGame.Views
             }
 
             StopTurnButton.IsEnabled = canStopTurn;
+            ReconnectButton.IsEnabled = CanReconnect();
             RollDiceButton.IsEnabled = canRollDice;
             FirstPairButton.IsEnabled = canChooseFirstPair;
             SecondPairButton.IsEnabled = canChooseSecondPair;
@@ -814,6 +839,7 @@ namespace RiskGame.Views
         {
             if (!hasClosed)
             {
+                isConnecting = false;
                 hasLiveStream = false;
                 UpdateActionButtons();
                 MatchStatusTextBlock.Text = statusMessage;

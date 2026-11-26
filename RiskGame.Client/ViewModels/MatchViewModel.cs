@@ -16,9 +16,37 @@ namespace RiskGame.ViewModels
     {
         private const int ActionTimeoutSeconds = 10;
         private const int LeaveTimeoutSeconds = 3;
+        private const int ConnectionTimeoutSeconds = 10;
         private readonly object subscriptionLock = new object();
         private readonly SessionUser activeSession = SessionService.GetOrCreateCurrentUser();
+        private readonly Func<MatchSubscription, CancellationToken, AsyncServerStreamingCall<BoardState>>
+            openMatchStream;
+        private readonly TimeSpan connectionTimeout;
         private CancellationTokenSource? streamCancellation;
+        private bool isConnecting;
+
+        public MatchViewModel() : this(OpenMatchStream, TimeSpan.FromSeconds(ConnectionTimeoutSeconds))
+        {
+        }
+
+        public MatchViewModel(
+            Func<MatchSubscription, CancellationToken, AsyncServerStreamingCall<BoardState>> openMatchStream,
+            TimeSpan connectionTimeout)
+        {
+            this.openMatchStream = openMatchStream;
+            this.connectionTimeout = connectionTimeout;
+        }
+
+        public bool IsConnecting
+        {
+            get
+            {
+                lock (subscriptionLock)
+                {
+                    return isConnecting;
+                }
+            }
+        }
 
         public MatchCountdownViewModel Countdown { get; } = new MatchCountdownViewModel();
 
@@ -97,22 +125,28 @@ namespace RiskGame.ViewModels
             return GetStreamError(rpcException);
         }
 
-        public void Subscribe(int matchId, IMatchCallback matchCallback)
+        public bool Subscribe(int matchId, IMatchCallback matchCallback)
         {
-            StopSubscription();
-            SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
-            MatchSubscription subscription = new MatchSubscription
-            {
-                MatchId = matchId,
-                UserId = currentSessionUser.IdUser,
-                SessionToken = currentSessionUser.SessionToken
-            };
-            CancellationTokenSource cancellation = new CancellationTokenSource();
+            bool started = false;
             lock (subscriptionLock)
             {
-                streamCancellation = cancellation;
+                if (!isConnecting && streamCancellation == null)
+                {
+                    SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
+                    MatchSubscription subscription = new MatchSubscription
+                    {
+                        MatchId = matchId,
+                        UserId = currentSessionUser.IdUser,
+                        SessionToken = currentSessionUser.SessionToken
+                    };
+                    CancellationTokenSource cancellation = new CancellationTokenSource();
+                    streamCancellation = cancellation;
+                    isConnecting = true;
+                    Task.Run(() => ReadMatchStream(subscription, matchCallback, cancellation));
+                    started = true;
+                }
             }
-            Task.Run(() => ReadMatchStream(subscription, matchCallback, cancellation), cancellation.Token);
+            return started;
         }
 
         public void StopSubscription()
@@ -124,6 +158,7 @@ namespace RiskGame.ViewModels
                     streamCancellation.Cancel();
                     streamCancellation = null;
                 }
+                isConnecting = false;
             }
         }
 
@@ -173,56 +208,111 @@ namespace RiskGame.ViewModels
         {
             CancellationToken cancellationToken = cancellation.Token;
             bool matchFinished = false;
+            string errorMessage = string.Empty;
             try
             {
-                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
-                Match.MatchClient matchClient = new Match.MatchClient(grpcChannel);
-                using AsyncServerStreamingCall<BoardState> streamingCall = matchClient.SubscribeMatchEvents(
-                    subscription, cancellationToken: cancellationToken);
-                while (!matchFinished
-                    && streamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult())
+                using AsyncServerStreamingCall<BoardState> streamingCall =
+                    openMatchStream(subscription, cancellationToken);
+                bool hasNext = streamingCall.ResponseStream.MoveNext(cancellationToken)
+                    .WaitAsync(connectionTimeout, cancellationToken).GetAwaiter().GetResult();
+                while (!matchFinished && hasNext)
                 {
-                    if (!cancellationToken.IsCancellationRequested)
+                    if (ConfirmSubscription(cancellation))
                     {
                         BoardState state = streamingCall.ResponseStream.Current;
                         matchFinished = state.IsFinished;
                         matchCallback.MatchUpdated(state);
                     }
+                    if (!matchFinished)
+                    {
+                        hasNext = streamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult();
+                    }
                 }
                 bool isExpectedTermination = cancellationToken.IsCancellationRequested || matchFinished;
                 if (!isExpectedTermination)
                 {
-                    matchCallback.MatchStreamStopped(Strings.MatchConnectionError);
+                    errorMessage = Strings.MatchConnectionError;
                 }
             }
             catch (RpcException rpcException)
             {
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    JsonLogger.Error(rpcException, "The match stream stopped with a gRPC error.");
-                    matchCallback.MatchStreamStopped(GetStreamError(rpcException));
+                    errorMessage = GetStreamError(rpcException);
+                    JsonLogger.Error(rpcException, "The match stream disconnected for match {0}, player {1}.",
+                        subscription.MatchId, subscription.UserId);
                 }
             }
             catch (OperationCanceledException canceledException)
             {
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    JsonLogger.Error(canceledException, "The match subscription was cancelled unexpectedly.");
-                    matchCallback.MatchStreamStopped(Strings.MatchConnectionError);
+                    errorMessage = Strings.MatchConnectionError;
+                    JsonLogger.Error(canceledException,
+                        "The match subscription was cancelled unexpectedly for match {0}, player {1}.",
+                        subscription.MatchId, subscription.UserId);
+                }
+            }
+            catch (TimeoutException timeoutException)
+            {
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    errorMessage = Strings.MatchConnectionError;
+                    JsonLogger.Error(timeoutException,
+                        "Connection timeout for match {0}, player {1}.",
+                        subscription.MatchId, subscription.UserId);
+                }
+            }
+            catch (Exception exception)
+            {
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    errorMessage = Strings.MatchConnectionError;
+                    JsonLogger.Error(exception, "Could not read the stream for match {0}, player {1}.",
+                        subscription.MatchId, subscription.UserId);
                 }
             }
             finally
             {
-                cancellation.Cancel();
+                bool notifyFailure = false;
                 lock (subscriptionLock)
                 {
                     if (ReferenceEquals(streamCancellation, cancellation))
                     {
+                        notifyFailure = !cancellation.IsCancellationRequested && !string.IsNullOrEmpty(errorMessage);
                         streamCancellation = null;
+                        isConnecting = false;
                     }
+                    cancellation.Cancel();
                     cancellation.Dispose();
                 }
+                if (notifyFailure)
+                {
+                    matchCallback.MatchStreamStopped(errorMessage);
+                }
             }
+        }
+
+        private bool ConfirmSubscription(CancellationTokenSource cancellation)
+        {
+            lock (subscriptionLock)
+            {
+                bool isCurrent = ReferenceEquals(streamCancellation, cancellation)
+                    && !cancellation.IsCancellationRequested;
+                if (isCurrent)
+                {
+                    isConnecting = false;
+                }
+                return isCurrent;
+            }
+        }
+
+        private static AsyncServerStreamingCall<BoardState> OpenMatchStream(
+            MatchSubscription subscription, CancellationToken cancellationToken)
+        {
+            GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+            Match.MatchClient matchClient = new Match.MatchClient(grpcChannel);
+            return matchClient.SubscribeMatchEvents(subscription, cancellationToken: cancellationToken);
         }
 
         private string GetStreamError(RpcException rpcException)
