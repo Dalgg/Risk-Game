@@ -104,8 +104,16 @@ namespace RiskGame.Server.Services
 
         public int ColumnsToWin { get; }
 
-        public bool CanStop => !IsFinished && !AwaitingPairChoice && SelectedPairIndex != NoSelectedPair
-            && TurnProgress.StepsByColumn.Count > NoSelectedPair;
+        public bool CanStop
+        {
+            get
+            {
+                bool isTurnReady = !IsFinished && !AwaitingPairChoice;
+                bool hasProgress = SelectedPairIndex != NoSelectedPair
+                    && TurnProgress.StepsByColumn.Count > NoSelectedPair;
+                return isTurnReady && hasProgress;
+            }
+        }
 
         public long Revision { get; private set; } = InitialRevision;
 

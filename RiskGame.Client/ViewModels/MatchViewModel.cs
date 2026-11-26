@@ -125,7 +125,7 @@ namespace RiskGame.ViewModels
             return GetStreamError(rpcException);
         }
 
-        private DataOperationException CreateActionException(RpcException rpcException)
+        internal DataOperationException CreateActionException(RpcException rpcException)
         {
             DataOperationException actionException =
                 new DataOperationException(GetActionError(rpcException), rpcException);
@@ -221,89 +221,104 @@ namespace RiskGame.ViewModels
             CancellationTokenSource cancellation)
         {
             CancellationToken cancellationToken = cancellation.Token;
-            bool matchFinished = false;
             string errorMessage = string.Empty;
             try
             {
                 using AsyncServerStreamingCall<BoardState> streamingCall =
                     openMatchStream(subscription, cancellationToken);
-                bool hasNext = streamingCall.ResponseStream.MoveNext(cancellationToken)
-                    .WaitAsync(connectionTimeout, cancellationToken).GetAwaiter().GetResult();
-                while (!matchFinished && hasNext)
-                {
-                    if (ConfirmSubscription(cancellation))
-                    {
-                        BoardState state = streamingCall.ResponseStream.Current;
-                        matchFinished = state.IsFinished;
-                        matchCallback.MatchUpdated(state);
-                    }
-                    if (!matchFinished)
-                    {
-                        hasNext = streamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult();
-                    }
-                }
-                bool isExpectedTermination = cancellationToken.IsCancellationRequested || matchFinished;
-                if (!isExpectedTermination)
-                {
-                    errorMessage = Strings.MatchConnectionError;
-                }
+                errorMessage = PumpStreamUpdates(streamingCall, matchCallback, cancellation);
             }
             catch (RpcException rpcException)
             {
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    errorMessage = GetStreamError(rpcException);
-                    JsonLogger.Error(rpcException, "The match stream disconnected for match {0}, player {1}.",
-                        subscription.MatchId, subscription.UserId);
-                }
+                errorMessage = HandleStreamException(
+                    rpcException, GetStreamError(rpcException),
+                    "The match stream disconnected for match {0}, player {1}.",
+                    subscription, cancellationToken);
             }
             catch (OperationCanceledException canceledException)
             {
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    errorMessage = Strings.MatchConnectionError;
-                    JsonLogger.Error(canceledException,
-                        "The match subscription was cancelled unexpectedly for match {0}, player {1}.",
-                        subscription.MatchId, subscription.UserId);
-                }
+                errorMessage = HandleStreamException(
+                    canceledException, Strings.MatchConnectionError,
+                    "The match subscription was cancelled unexpectedly for match {0}, player {1}.",
+                    subscription, cancellationToken);
             }
             catch (TimeoutException timeoutException)
             {
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    errorMessage = Strings.MatchConnectionError;
-                    JsonLogger.Error(timeoutException,
-                        "Connection timeout for match {0}, player {1}.",
-                        subscription.MatchId, subscription.UserId);
-                }
+                errorMessage = HandleStreamException(
+                    timeoutException, Strings.MatchConnectionError,
+                    "Connection timeout for match {0}, player {1}.",
+                    subscription, cancellationToken);
             }
             catch (Exception exception)
             {
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    errorMessage = Strings.MatchConnectionError;
-                    JsonLogger.Error(exception, "Could not read the stream for match {0}, player {1}.",
-                        subscription.MatchId, subscription.UserId);
-                }
+                errorMessage = HandleStreamException(
+                    exception, Strings.MatchConnectionError,
+                    "Could not read the stream for match {0}, player {1}.",
+                    subscription, cancellationToken);
             }
             finally
             {
-                bool notifyFailure = false;
-                lock (subscriptionLock)
+                CompleteStreamShutdown(cancellation, errorMessage, matchCallback);
+            }
+        }
+
+        private string PumpStreamUpdates(AsyncServerStreamingCall<BoardState> streamingCall,
+            IMatchCallback matchCallback, CancellationTokenSource cancellation)
+        {
+            CancellationToken cancellationToken = cancellation.Token;
+            bool matchFinished = false;
+            bool hasNext = streamingCall.ResponseStream.MoveNext(cancellationToken)
+                .WaitAsync(connectionTimeout, cancellationToken).GetAwaiter().GetResult();
+            while (!matchFinished && hasNext)
+            {
+                if (ConfirmSubscription(cancellation))
                 {
-                    if (ReferenceEquals(streamCancellation, cancellation))
-                    {
-                        notifyFailure = !cancellation.IsCancellationRequested && !string.IsNullOrEmpty(errorMessage);
-                        streamCancellation = null;
-                        isConnecting = false;
-                    }
-                    cancellation.Cancel();
-                    cancellation.Dispose();
+                    BoardState state = streamingCall.ResponseStream.Current;
+                    matchFinished = state.IsFinished;
+                    matchCallback.MatchUpdated(state);
                 }
-                if (notifyFailure)
+                if (!matchFinished)
                 {
-                    matchCallback.MatchStreamStopped(errorMessage);
+                    hasNext = streamingCall.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult();
                 }
+            }
+            bool isExpectedTermination = cancellationToken.IsCancellationRequested || matchFinished;
+            if (!isExpectedTermination)
+            {
+                return Strings.MatchConnectionError;
+            }
+            return string.Empty;
+        }
+
+        private static string HandleStreamException(Exception exception, string userMessage,
+            string logTemplate, MatchSubscription subscription, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return string.Empty;
+            }
+            JsonLogger.Error(exception, logTemplate, subscription.MatchId, subscription.UserId);
+            return userMessage;
+        }
+
+        private void CompleteStreamShutdown(CancellationTokenSource cancellation, string errorMessage,
+            IMatchCallback matchCallback)
+        {
+            bool notifyFailure = false;
+            lock (subscriptionLock)
+            {
+                if (ReferenceEquals(streamCancellation, cancellation))
+                {
+                    notifyFailure = !cancellation.IsCancellationRequested && !string.IsNullOrEmpty(errorMessage);
+                    streamCancellation = null;
+                    isConnecting = false;
+                }
+                cancellation.Cancel();
+                cancellation.Dispose();
+            }
+            if (notifyFailure)
+            {
+                matchCallback.MatchStreamStopped(errorMessage);
             }
         }
 

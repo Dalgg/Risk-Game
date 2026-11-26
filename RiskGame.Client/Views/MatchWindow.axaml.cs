@@ -291,11 +291,15 @@ namespace RiskGame.Views
 
         private bool CanReconnect()
         {
-            bool canReconnect = !hasClosed && !isLeavingMatch && !hasOpenedResult && !isActionPending
-                && !isConnecting && !matchViewModel.IsConnecting && !hasLiveStream;
-            if (currentBoardState != null && currentBoardState.IsFinished)
+            bool isWindowOpen = !hasClosed && !isLeavingMatch;
+            bool isWindowAvailable = isWindowOpen && !hasOpenedResult && !isActionPending;
+            bool isNotConnecting = !isConnecting && !matchViewModel.IsConnecting;
+            bool isDisconnected = isNotConnecting && !hasLiveStream;
+            bool isMatchActive = currentBoardState == null || !currentBoardState.IsFinished;
+            bool canReconnect = false;
+            if (isWindowAvailable && isDisconnected)
             {
-                canReconnect = false;
+                canReconnect = isMatchActive;
             }
             return canReconnect;
         }
@@ -615,7 +619,12 @@ namespace RiskGame.Views
             ApplyBoardState(boardState);
         }
 
-        private void ShowActionError(DataOperationException dataOperationException)
+        internal void MarkLeftForShutdown()
+        {
+            hasLeftMatch = true;
+        }
+
+        internal void ShowActionError(DataOperationException dataOperationException)
         {
             isActionPending = false;
             if (!hasClosed)
