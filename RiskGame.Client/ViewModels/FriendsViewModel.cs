@@ -46,7 +46,10 @@ namespace RiskGame.ViewModels
         public static List<FriendSummary> GetFriends()
         {
             SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
-            UserLobbyRequest friendsRequest = new UserLobbyRequest { UserId = currentSessionUser.IdUser };
+            UserLobbyRequest friendsRequest = new UserLobbyRequest
+            {
+                UserId = currentSessionUser.IdUser, SessionToken = currentSessionUser.SessionToken
+            };
             try
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();

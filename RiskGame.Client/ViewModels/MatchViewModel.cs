@@ -205,7 +205,10 @@ namespace RiskGame.ViewModels
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                 Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
-                UserLobbyRequest leaveRequest = new UserLobbyRequest { UserId = activeSession.IdUser };
+                UserLobbyRequest leaveRequest = new UserLobbyRequest
+                {
+                    UserId = activeSession.IdUser, SessionToken = activeSession.SessionToken
+                };
                 lobbyClient.LeaveLobby(
                     leaveRequest,
                     deadline: DateTime.UtcNow.AddSeconds(ActionTimeoutSeconds),

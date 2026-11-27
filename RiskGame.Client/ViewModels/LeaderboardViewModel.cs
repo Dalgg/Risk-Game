@@ -17,8 +17,6 @@ namespace RiskGame.ViewModels
         private const int TopPlayersLimit = 20;
         private const int RequestTimeoutSeconds = 10;
         private const int EmptyPlayerCount = 0;
-        private const string AuthorizationHeader = "authorization";
-        private const string BearerPrefix = "Bearer ";
         private readonly SessionUser session;
         private readonly LeaderboardNavigationService navigation;
         private bool friendsOnly;
@@ -89,7 +87,9 @@ namespace RiskGame.ViewModels
             {
                 TopLimit = TopPlayersLimit,
                 FriendsOnly = friendsOnly,
-                Descending = descending
+                Descending = descending,
+                UserId = session.IdUser,
+                SessionToken = session.SessionToken
             };
             Task.Run(() => LoadScores(request));
         }
@@ -117,11 +117,9 @@ namespace RiskGame.ViewModels
 
         private ScoreList RequestScores(ScoreQuery request)
         {
-            Metadata headers = new Metadata();
-            headers.Add(AuthorizationHeader, BearerPrefix + session.SessionToken);
             GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
             Scoreboard.ScoreboardClient client = new Scoreboard.ScoreboardClient(grpcChannel);
-            return client.GetScores(request, headers: headers,
+            return client.GetScores(request,
                 deadline: DateTime.UtcNow.AddSeconds(RequestTimeoutSeconds));
         }
 

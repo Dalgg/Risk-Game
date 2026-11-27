@@ -10,6 +10,7 @@ service AuthGrpc {
   rpc Logout (LogoutRequest) returns (google.protobuf.Empty);
   rpc ConfirmRegistration (RegistrationConfirmation) returns (RegisterResponse);
   rpc ResendVerification (RegistrationReference) returns (google.protobuf.Empty);
+  rpc SubscribeSession (SessionRequest) returns (stream SessionState);
 }
 
 message RegisterRequest {
@@ -53,4 +54,13 @@ message LoginResponse {
 
 message LogoutRequest {
   string session_token = 1;
+}
+
+message SessionRequest {
+  int32 user_id = 1;
+  string session_token = 2;
+}
+
+message SessionState {
+  bool is_authenticated = 1;
 }

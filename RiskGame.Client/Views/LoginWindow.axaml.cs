@@ -25,6 +25,16 @@ namespace RiskGame.Views
             ShowMessage(successMessage, SuccessBrush);
         }
 
+        public LoginWindow(string message, bool isError) : this()
+        {
+            IBrush messageBrush = SuccessBrush;
+            if (isError)
+            {
+                messageBrush = ErrorBrush;
+            }
+            ShowMessage(message, messageBrush);
+        }
+
         private void RegisterClick(object? sender, RoutedEventArgs routedEventArgs)
         {
             RegisterWindow registerWindow = new RegisterWindow();
@@ -81,6 +91,7 @@ namespace RiskGame.Views
                 else
                 {
                     SessionService.Login(authenticatedUser);
+                    SessionService.StartSessionConnection();
                     OpenMainWindow();
                 }
             }

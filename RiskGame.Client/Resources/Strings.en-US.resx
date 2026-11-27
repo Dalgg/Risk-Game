@@ -250,4 +250,6 @@
   <data name="ProfileHistoryMatchFormat" xml:space="preserve"><value>Match #{0}</value></data>
   <data name="ProfileHistoryDateFormat" xml:space="preserve"><value>Date: {0}</value></data>
   <data name="ProfileHistoryColumnsFormat" xml:space="preserve"><value>Columns claimed: {0}</value></data>
+  <data name="LoginErrorSessionAlreadyActive" xml:space="preserve"><value>This account already has an active session. Sign out on the other session or wait for its reconnection period to end.</value></data>
+  <data name="SessionExpiredMessage" xml:space="preserve"><value>Your session ended or the connection could not be recovered. Sign in again to continue.</value></data>
 </root>

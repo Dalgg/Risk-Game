@@ -37,7 +37,11 @@ namespace RiskGame.ViewModels
             {
                 GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
                 Lobby.LobbyClient client = new Lobby.LobbyClient(grpcChannel);
-                client.LeaveLobby(new UserLobbyRequest { UserId = session.IdUser },
+                UserLobbyRequest request = new UserLobbyRequest
+                {
+                    UserId = session.IdUser, SessionToken = session.SessionToken
+                };
+                client.LeaveLobby(request,
                     deadline: DateTime.UtcNow.AddSeconds(RequestTimeoutSeconds));
             }
             catch (RpcException rpcException)

@@ -7,12 +7,18 @@ import "google/protobuf/timestamp.proto";
 import "common.proto";
 
 service Chat {
-  rpc SendMessage (ChatMessage) returns (google.protobuf.Empty);
+  rpc SendMessage (SendChatRequest) returns (google.protobuf.Empty);
   rpc SubscribeChat (ChatChannel) returns (stream ChatMessage);
 }
 
 message ChatChannel {
   int32 user_id = 1;
+  string session_token = 2;
+}
+
+message SendChatRequest {
+  ChatMessage message = 1;
+  string session_token = 2;
 }
 
 message ChatMessage {

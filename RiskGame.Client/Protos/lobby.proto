@@ -56,20 +56,24 @@ message LobbyDetails {
 message CreateLobbyRequest {
   LobbyRules rules = 1;
   riskgame.common.PlayerSummary player = 2;
+  string session_token = 3;
 }
 
 message JoinLobbyRequest {
   string lobby_code = 1;
   riskgame.common.PlayerSummary player = 2;
+  string session_token = 3;
 }
 
 message UserLobbyRequest {
   int32 user_id = 1;
+  string session_token = 2;
 }
 
 message InviteFriendRequest {
   int32 sender_user_id = 1;
   int32 recipient_user_id = 2;
+  string session_token = 3;
 }
 
 message StartMatchResponse {

@@ -10,6 +10,8 @@ message ScoreQuery {
   int32 top_limit = 1;
   bool friends_only = 2;
   bool descending = 3;
+  int32 user_id = 4;
+  string session_token = 5;
 }
 
 message ScoreList {

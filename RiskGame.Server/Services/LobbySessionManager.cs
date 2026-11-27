@@ -23,6 +23,7 @@ namespace RiskGame.Server.Services
         private const string StandardRulesVariantName = "Standard";
         private const int MinimumValidIdentifier = 1;
         private const int NoPendingReturns = 0;
+        private const int InvalidUserIdentifier = 0;
         private readonly object syncLock = new object();
         private readonly Dictionary<string, ActiveLobbyRoom> roomsByCode = new Dictionary<string, ActiveLobbyRoom>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<int, string> userToLobbyCode = new Dictionary<int, string>();
@@ -58,6 +59,52 @@ namespace RiskGame.Server.Services
                 turnDurationSeconds);
 
             return JoinLobby(createdDatabaseLobby.LobbyCode, hostPlayer);
+        }
+
+        public void ValidateParticipant(int userId, string sessionToken)
+        {
+            if (userId >= MinimumValidIdentifier)
+            {
+                sessionRegistry.ValidateUser(userId, sessionToken);
+            }
+            else if (userId == InvalidUserIdentifier)
+            {
+                throw new InvalidSessionException("A valid player identifier is required.");
+            }
+        }
+
+        public bool IsLobbySubscriberCurrent(int userId, IServerStreamWriter<LobbyEvent> stream)
+        {
+            bool current = false;
+            lock (syncLock)
+            {
+                if (userToLobbyCode.ContainsKey(userId) && roomsByCode.ContainsKey(userToLobbyCode[userId]))
+                {
+                    ActiveLobbyRoom room = roomsByCode[userToLobbyCode[userId]];
+                    if (room.Subscribers.ContainsKey(userId))
+                    {
+                        current = ReferenceEquals(room.Subscribers[userId], stream);
+                    }
+                }
+            }
+            return current;
+        }
+
+        public bool IsChatSubscriberCurrent(int userId, IServerStreamWriter<ChatMessage> stream)
+        {
+            bool current = false;
+            lock (syncLock)
+            {
+                if (userToLobbyCode.ContainsKey(userId) && roomsByCode.ContainsKey(userToLobbyCode[userId]))
+                {
+                    ActiveLobbyRoom room = roomsByCode[userToLobbyCode[userId]];
+                    if (room.ChatSubscribers.ContainsKey(userId))
+                    {
+                        current = ReferenceEquals(room.ChatSubscribers[userId], stream);
+                    }
+                }
+            }
+            return current;
         }
 
         public LobbyDetails UpdateRules(int userId, string sessionToken, LobbyRules rules)
@@ -371,7 +418,6 @@ namespace RiskGame.Server.Services
                 }
                 activeLobbyRoom.Status = LobbyStatus.InMatch;
                 subscribersToNotify = activeLobbyRoom.Subscribers.Values.ToList();
-                activeLobbyRoom.Subscribers.Clear();
                 activeLobbyRoom.ChatSubscribers.Clear();
             }
 

@@ -7,5 +7,9 @@ namespace RiskGame.Server.Services
         public int UserId { get; init; }
 
         public DateTime ExpiresAt { get; init; }
+
+        public string ConnectionId { get; set; } = string.Empty;
+
+        public long DisconnectedTimestamp { get; set; }
     }
 }

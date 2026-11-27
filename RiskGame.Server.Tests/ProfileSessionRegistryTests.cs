@@ -53,13 +53,12 @@ namespace RiskGame.Server.Tests
         }
 
         [Fact]
-        public void Register_SameUserAgain_InvalidatesPreviousToken()
+        public void Register_SameUserAgain_RejectsSecondSession()
         {
             ProfileSessionRegistry sessionRegistry = new ProfileSessionRegistry();
-            string firstSessionToken = sessionRegistry.Register(SampleUserId);
             sessionRegistry.Register(SampleUserId);
 
-            Assert.Throws<InvalidSessionException>(() => sessionRegistry.GetUserId(firstSessionToken));
+            Assert.Throws<SessionAlreadyActiveException>(() => sessionRegistry.Register(SampleUserId));
         }
 
         [Fact]

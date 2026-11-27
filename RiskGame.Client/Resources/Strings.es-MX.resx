@@ -143,4 +143,6 @@
   <data name="ProfileHistoryMatchFormat" xml:space="preserve"><value>Partida #{0}</value></data>
   <data name="ProfileHistoryDateFormat" xml:space="preserve"><value>Fecha: {0}</value></data>
   <data name="ProfileHistoryColumnsFormat" xml:space="preserve"><value>Columnas conquistadas: {0}</value></data>
+  <data name="LoginErrorSessionAlreadyActive" xml:space="preserve"><value>Esta cuenta ya tiene una sesión activa. Cierra la sesión anterior o espera a que termine su periodo de reconexión.</value></data>
+  <data name="SessionExpiredMessage" xml:space="preserve"><value>Tu sesión terminó o no pudo recuperarse la conexión. Inicia sesión nuevamente para continuar.</value></data>
 </root>

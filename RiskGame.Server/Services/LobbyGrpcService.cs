@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -11,7 +12,8 @@ namespace RiskGame.Server.Services
 {
     public sealed class LobbyGrpcService : Lobby.LobbyBase
     {
-        private const string DefaultGuestNickname = "Guest";
+        private const int StreamSessionCheckSeconds = 1;
+        private const int InvalidUserIdentifier = 0;
         private readonly LobbySessionManager sessionManager;
 
         public LobbyGrpcService(LobbySessionManager sessionManager)
@@ -24,6 +26,7 @@ namespace RiskGame.Server.Services
             try
             {
                 PlayerSummary hostPlayer = EnsureValidPlayer(createRequest.Player);
+                ValidateParticipant(hostPlayer.UserId, createRequest.SessionToken);
                 LobbyDetails createdLobbyDetails = sessionManager.CreateLobby(createRequest.Rules, hostPlayer);
                 return Task.FromResult(createdLobbyDetails);
             }
@@ -43,6 +46,7 @@ namespace RiskGame.Server.Services
             try
             {
                 PlayerSummary joiningPlayer = EnsureValidPlayer(joinRequest.Player);
+                ValidateParticipant(joiningPlayer.UserId, joinRequest.SessionToken);
                 LobbyDetails lobbyDetails = sessionManager.JoinLobby(joinRequest.LobbyCode, joiningPlayer);
                 return Task.FromResult(lobbyDetails);
             }
@@ -90,14 +94,17 @@ namespace RiskGame.Server.Services
 
         public override Task<Empty> LeaveLobby(UserLobbyRequest leaveRequest, ServerCallContext callContext)
         {
+            ValidateParticipant(leaveRequest.UserId, leaveRequest.SessionToken);
             sessionManager.LeaveLobby(leaveRequest.UserId);
             return Task.FromResult(new Empty());
         }
 
-        public override Task<StartMatchResponse> StartMatch(UserLobbyRequest startRequest, ServerCallContext callContext)
+        public override Task<StartMatchResponse> StartMatch(UserLobbyRequest startRequest,
+            ServerCallContext callContext)
         {
             try
             {
+                ValidateParticipant(startRequest.UserId, startRequest.SessionToken);
                 int createdMatchId = sessionManager.StartMatch(startRequest.UserId);
                 StartMatchResponse startResponse = new StartMatchResponse
                 {
@@ -120,10 +127,12 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public override Task<FriendSummaryList> GetFriends(UserLobbyRequest friendsRequest, ServerCallContext callContext)
+        public override Task<FriendSummaryList> GetFriends(UserLobbyRequest friendsRequest,
+            ServerCallContext callContext)
         {
             try
             {
+                ValidateParticipant(friendsRequest.UserId, friendsRequest.SessionToken);
                 FriendSummaryList friends = sessionManager.GetFriends(friendsRequest.UserId);
                 return Task.FromResult(friends);
             }
@@ -138,6 +147,7 @@ namespace RiskGame.Server.Services
         {
             try
             {
+                ValidateParticipant(inviteRequest.SenderUserId, inviteRequest.SessionToken);
                 sessionManager.InviteFriend(inviteRequest.SenderUserId, inviteRequest.RecipientUserId);
                 return Task.FromResult(new Empty());
             }
@@ -163,21 +173,7 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                LobbyDetails initialLobbySnapshot = sessionManager.RegisterSubscriber(subscribeRequest.UserId, responseStream);
-
-                LobbyEvent snapshotEvent = new LobbyEvent
-                {
-                    Lobby = initialLobbySnapshot
-                };
-
-                lock (responseStream)
-                {
-                    responseStream.WriteAsync(snapshotEvent, callContext.CancellationToken).GetAwaiter().GetResult();
-                }
-
-                callContext.CancellationToken.WaitHandle.WaitOne();
-                sessionManager.UnregisterSubscriber(subscribeRequest.UserId, responseStream);
-                return Task.CompletedTask;
+                return ReadLobbySession(subscribeRequest, responseStream, callContext.CancellationToken);
             }
             catch (LobbyNotFoundException lobbyNotFoundException)
             {
@@ -187,18 +183,66 @@ namespace RiskGame.Server.Services
 
         private static PlayerSummary EnsureValidPlayer(PlayerSummary? requestedPlayer)
         {
-            if (requestedPlayer != null && !string.IsNullOrWhiteSpace(requestedPlayer.Nickname))
+            if (requestedPlayer == null || requestedPlayer.UserId == InvalidUserIdentifier
+                || string.IsNullOrWhiteSpace(requestedPlayer.Nickname))
             {
-                return requestedPlayer;
+                throw new ArgumentException("A valid player is required.");
             }
+            PlayerSummary player = requestedPlayer.Clone();
+            player.IsGuest = player.UserId < InvalidUserIdentifier;
+            return player;
+        }
 
-            return new PlayerSummary
+        private void ValidateParticipant(int userId, string sessionToken)
+        {
+            try
             {
-                UserId = 0,
-                Nickname = DefaultGuestNickname,
-                AvatarReference = string.Empty,
-                IsGuest = true
-            };
+                sessionManager.ValidateParticipant(userId, sessionToken);
+            }
+            catch (InvalidSessionException invalidSessionException)
+            {
+                JsonLogger.Error(invalidSessionException, "The lobby operation requires a valid player session.");
+                throw new RpcException(new Status(StatusCode.Unauthenticated, invalidSessionException.Message));
+            }
+        }
+
+        private Task ReadLobbySession(UserLobbyRequest request, IServerStreamWriter<LobbyEvent> stream,
+            CancellationToken cancellationToken)
+        {
+            ValidateParticipant(request.UserId, request.SessionToken);
+            try
+            {
+                SendInitialLobby(request.UserId, stream, cancellationToken);
+                WaitForLobbySession(request, stream, cancellationToken);
+                return Task.CompletedTask;
+            }
+            finally
+            {
+                sessionManager.UnregisterSubscriber(request.UserId, stream);
+            }
+        }
+
+        private void SendInitialLobby(int userId, IServerStreamWriter<LobbyEvent> stream,
+            CancellationToken cancellationToken)
+        {
+            LobbyDetails details = sessionManager.RegisterSubscriber(userId, stream);
+            LobbyEvent initial = new LobbyEvent { Lobby = details };
+            lock (stream)
+            {
+                stream.WriteAsync(initial, cancellationToken).GetAwaiter().GetResult();
+            }
+        }
+
+        private void WaitForLobbySession(UserLobbyRequest request, IServerStreamWriter<LobbyEvent> stream,
+            CancellationToken cancellationToken)
+        {
+            TimeSpan interval = TimeSpan.FromSeconds(StreamSessionCheckSeconds);
+            bool current = true;
+            while (current && !cancellationToken.WaitHandle.WaitOne(interval))
+            {
+                ValidateParticipant(request.UserId, request.SessionToken);
+                current = sessionManager.IsLobbySubscriberCurrent(request.UserId, stream);
+            }
         }
     }
 }

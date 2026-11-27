@@ -48,6 +48,11 @@ namespace RiskGame.Resources
         public static string LoginErrorInvalidAuth => ResourceManager.GetString("LoginErrorInvalidAuth", _resourceCulture);
 
         public static string LoginErrorEmptyFields => ResourceManager.GetString("LoginErrorEmptyFields", _resourceCulture);
+
+        public static string LoginErrorSessionAlreadyActive =>
+            ResourceManager.GetString("LoginErrorSessionAlreadyActive", _resourceCulture);
+
+        public static string SessionExpiredMessage => ResourceManager.GetString("SessionExpiredMessage", _resourceCulture);
         
         public static string RegisterTitleLabel => ResourceManager.GetString("RegisterTitleLabel", _resourceCulture);
 

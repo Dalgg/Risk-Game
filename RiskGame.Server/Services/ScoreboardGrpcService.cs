@@ -21,7 +21,8 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                ScoreboardFilter filter = new ScoreboardFilter(request, authenticator.GetRegisteredUserId(callContext));
+                int userId = authenticator.GetRegisteredUserId(request.UserId, request.SessionToken);
+                ScoreboardFilter filter = new ScoreboardFilter(request, userId);
                 return Task.FromResult(BuildScores(filter));
             }
             catch (DataOperationException dataOperationException)

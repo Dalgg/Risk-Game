@@ -48,7 +48,12 @@ namespace RiskGame.ViewModels
             }
             catch (RpcException rpcException)
             {
-                throw new DataOperationException(Strings.LoginErrorDatabase, rpcException);
+                string message = Strings.LoginErrorDatabase;
+                if (rpcException.StatusCode == StatusCode.FailedPrecondition)
+                {
+                    message = Strings.LoginErrorSessionAlreadyActive;
+                }
+                throw new DataOperationException(message, rpcException);
             }
         }
     }

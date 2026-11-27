@@ -30,6 +30,7 @@ namespace RiskGame.ViewModels
                 CreateLobbyRequest createRequest = new CreateLobbyRequest
                 {
                     Player = BuildCurrentPlayerSummary(),
+                    SessionToken = SessionService.GetOrCreateCurrentUser().SessionToken,
                     Rules = new LobbyRules
                     {
                         RulesVariant = rulesVariant,
@@ -56,7 +57,8 @@ namespace RiskGame.ViewModels
                 JoinLobbyRequest joinRequest = new JoinLobbyRequest
                 {
                     LobbyCode = roomCode,
-                    Player = BuildCurrentPlayerSummary()
+                    Player = BuildCurrentPlayerSummary(),
+                    SessionToken = SessionService.GetOrCreateCurrentUser().SessionToken
                 };
 
                 return lobbyClient.JoinLobby(joinRequest, cancellationToken: CancellationToken.None);
@@ -128,7 +130,8 @@ namespace RiskGame.ViewModels
                 InviteFriendRequest inviteRequest = new InviteFriendRequest
                 {
                     SenderUserId = currentSessionUser.IdUser,
-                    RecipientUserId = friendUserId
+                    RecipientUserId = friendUserId,
+                    SessionToken = currentSessionUser.SessionToken
                 };
 
                 lobbyClient.InviteFriend(inviteRequest, cancellationToken: CancellationToken.None);
@@ -153,7 +156,12 @@ namespace RiskGame.ViewModels
                         Sender = BuildCurrentPlayerSummary()
                     };
 
-                    chatClient.SendMessage(outgoingMessage, cancellationToken: CancellationToken.None);
+                    SendChatRequest request = new SendChatRequest
+                    {
+                        Message = outgoingMessage,
+                        SessionToken = SessionService.GetOrCreateCurrentUser().SessionToken
+                    };
+                    chatClient.SendMessage(request, cancellationToken: CancellationToken.None);
                 }
                 catch (RpcException rpcException)
                 {
@@ -221,7 +229,8 @@ namespace RiskGame.ViewModels
                 Chat.ChatClient chatClient = new Chat.ChatClient(grpcChannel);
                 ChatChannel channelRequest = new ChatChannel
                 {
-                    UserId = currentSessionUser.IdUser
+                    UserId = currentSessionUser.IdUser,
+                    SessionToken = currentSessionUser.SessionToken
                 };
 
                 using AsyncServerStreamingCall<ChatMessage> chatStreamingCall = chatClient.SubscribeChat(
@@ -287,7 +296,8 @@ namespace RiskGame.ViewModels
             SessionUser currentSessionUser = SessionService.GetOrCreateCurrentUser();
             return new UserLobbyRequest
             {
-                UserId = currentSessionUser.IdUser
+                UserId = currentSessionUser.IdUser,
+                SessionToken = currentSessionUser.SessionToken
             };
         }
 

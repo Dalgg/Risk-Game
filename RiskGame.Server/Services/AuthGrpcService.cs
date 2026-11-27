@@ -41,39 +41,58 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                User user = authSessionManager.AuthenticateUser(loginRequest.Username, loginRequest.Password);
-
-                string avatarReference = string.Empty;
-                if (user.AvatarReference != null)
-                {
-                    avatarReference = user.AvatarReference;
-                }
-
-                LoginResponse successLoginResponse = new LoginResponse
-                {
-                    IsAuthenticated = true,
-                    SessionToken = profileSessions.Register(user.IdUser),
-                    Player = new PlayerDto
-                    {
-                        UserId = user.IdUser,
-                        Username = user.Username,
-                        Nickname = user.Nickname,
-                        AvatarReference = avatarReference
-                    }
-                };
-
-                lobbySessionManager.BroadcastPresenceUpdate();
-                return Task.FromResult(successLoginResponse);
+                return Task.FromResult(SignIn(loginRequest));
             }
             catch (DataOperationException dataOperationException)
             {
-                if (dataOperationException is InvalidCredentialsException)
-                {
-                    return Task.FromResult(new LoginResponse { IsAuthenticated = false });
-                }
-                JsonLogger.Error(dataOperationException, "Login failed during data access.");
-                throw new RpcException(new Status(StatusCode.Unavailable, dataOperationException.Message));
+                return HandleLoginFailure(dataOperationException);
             }
+        }
+
+        private LoginResponse SignIn(LoginRequest request)
+        {
+            User user = authSessionManager.AuthenticateUser(request.Username, request.Password);
+            LoginResponse response = new LoginResponse
+            {
+                IsAuthenticated = true,
+                SessionToken = profileSessions.Register(user.IdUser),
+                Player = CreatePlayer(user)
+            };
+            lobbySessionManager.BroadcastPresenceUpdate();
+            return response;
+        }
+
+        private static PlayerDto CreatePlayer(User user)
+        {
+            string avatar = string.Empty;
+            if (user.AvatarReference != null)
+            {
+                avatar = user.AvatarReference;
+            }
+            return new PlayerDto
+            {
+                UserId = user.IdUser, Username = user.Username, Nickname = user.Nickname, AvatarReference = avatar
+            };
+        }
+
+        private Task<LoginResponse> HandleLoginFailure(DataOperationException exception)
+        {
+            if (exception is InvalidCredentialsException)
+            {
+                return Task.FromResult(new LoginResponse { IsAuthenticated = false });
+            }
+            throw CreateLoginFailure(exception);
+        }
+
+        private static RpcException CreateLoginFailure(DataOperationException exception)
+        {
+            StatusCode statusCode = StatusCode.FailedPrecondition;
+            if (exception is not SessionAlreadyActiveException)
+            {
+                statusCode = StatusCode.Unavailable;
+                JsonLogger.Error(exception, "Login failed during data access.");
+            }
+            return new RpcException(new Status(statusCode, exception.Message));
         }
 
         public override Task<Empty> Logout(LogoutRequest logoutRequest, ServerCallContext callContext)
@@ -81,6 +100,20 @@ namespace RiskGame.Server.Services
             profileSessions.RemoveSession(logoutRequest.SessionToken);
             lobbySessionManager.BroadcastPresenceUpdate();
             return Task.FromResult(new Empty());
+        }
+
+        public override Task SubscribeSession(SessionRequest request,
+            IServerStreamWriter<SessionState> responseStream, ServerCallContext callContext)
+        {
+            try
+            {
+                SessionConnectionManager connections = new SessionConnectionManager(profileSessions);
+                return connections.Subscribe(request, responseStream, callContext.CancellationToken);
+            }
+            catch (InvalidSessionException invalidSessionException)
+            {
+                throw new RpcException(new Status(StatusCode.Unauthenticated, invalidSessionException.Message));
+            }
         }
 
         public override Task<RegisterResponse> ConfirmRegistration(
@@ -109,7 +142,8 @@ namespace RiskGame.Server.Services
             }
         }
 
-        private RpcException CreateRegistrationException(DataOperationException dataOperationException, string logMessage)
+        private RpcException CreateRegistrationException(DataOperationException dataOperationException,
+            string logMessage)
         {
             StatusCode statusCode = StatusCode.Unavailable;
             if (dataOperationException is RegistrationVerificationException)

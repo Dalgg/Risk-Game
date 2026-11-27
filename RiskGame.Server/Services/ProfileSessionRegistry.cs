@@ -9,39 +9,46 @@ namespace RiskGame.Server.Services
     {
         private const int TokenSizeBytes = 32;
         private const int SessionLifetimeHours = 12;
+        private const int ReconnectionGraceSeconds = 30;
+        private const int MinimumRegisteredIdentifier = 1;
+        private const int NoExpiredSessions = 0;
         private static readonly TimeSpan SessionLifetime = TimeSpan.FromHours(SessionLifetimeHours);
         private readonly object sessionLock = new object();
+        private readonly TimeProvider timeProvider;
         private readonly Dictionary<string, RegisteredSession> sessionsByToken =
             new Dictionary<string, RegisteredSession>();
 
+        public ProfileSessionRegistry() : this(TimeProvider.System)
+        {
+        }
+
+        public ProfileSessionRegistry(TimeProvider timeProvider)
+        {
+            this.timeProvider = timeProvider;
+        }
+
         public string Register(int userId)
         {
-            string token = Convert.ToHexString(RandomNumberGenerator.GetBytes(TokenSizeBytes));
             lock (sessionLock)
             {
-                List<string> expiredTokens = new List<string>();
+                ExpireSessions();
                 foreach (KeyValuePair<string, RegisteredSession> session in sessionsByToken)
                 {
-                    if (session.Value.ExpiresAt <= DateTime.UtcNow || session.Value.UserId == userId)
+                    if (session.Value.UserId == userId)
                     {
-                        expiredTokens.Add(session.Key);
+                        throw new SessionAlreadyActiveException("The account already has an active session.");
                     }
                 }
-
-                foreach (string expiredToken in expiredTokens)
-                {
-                    sessionsByToken.Remove(expiredToken);
-                }
-
+                string token = Convert.ToHexString(RandomNumberGenerator.GetBytes(TokenSizeBytes));
                 RegisteredSession registeredSession = new RegisteredSession
                 {
                     UserId = userId,
-                    ExpiresAt = DateTime.UtcNow.Add(SessionLifetime)
+                    ExpiresAt = timeProvider.GetUtcNow().UtcDateTime.Add(SessionLifetime),
+                    DisconnectedTimestamp = timeProvider.GetTimestamp()
                 };
                 sessionsByToken.Add(token, registeredSession);
+                return token;
             }
-
-            return token;
         }
 
         public int GetUserId(string token)
@@ -51,12 +58,10 @@ namespace RiskGame.Server.Services
                 if (sessionsByToken.ContainsKey(token))
                 {
                     RegisteredSession registeredSession = sessionsByToken[token];
-                    if (registeredSession.ExpiresAt > DateTime.UtcNow)
+                    if (IsActive(registeredSession))
                     {
                         return registeredSession.UserId;
                     }
-
-                    sessionsByToken.Remove(token);
                 }
             }
 
@@ -70,7 +75,7 @@ namespace RiskGame.Server.Services
             {
                 foreach (KeyValuePair<string, RegisteredSession> session in sessionsByToken)
                 {
-                    if (session.Value.UserId == userId && session.Value.ExpiresAt > DateTime.UtcNow)
+                    if (session.Value.UserId == userId && IsActive(session.Value))
                     {
                         isOnline = true;
                     }
@@ -89,6 +94,81 @@ namespace RiskGame.Server.Services
                     sessionsByToken.Remove(token);
                 }
             }
+        }
+
+        public void ValidateUser(int userId, string token)
+        {
+            if (userId < MinimumRegisteredIdentifier || GetUserId(token) != userId)
+            {
+                throw new InvalidSessionException("The session does not belong to the requested account.");
+            }
+        }
+
+        public bool IsSessionValid(int userId, string token)
+        {
+            lock (sessionLock)
+            {
+                return sessionsByToken.ContainsKey(token) && sessionsByToken[token].UserId == userId
+                    && IsActive(sessionsByToken[token]);
+            }
+        }
+
+        public void AttachSession(int userId, string token, string connectionId)
+        {
+            lock (sessionLock)
+            {
+                ValidateUser(userId, token);
+                sessionsByToken[token].ConnectionId = connectionId;
+            }
+        }
+
+        public void DetachSession(string token, string connectionId)
+        {
+            lock (sessionLock)
+            {
+                if (sessionsByToken.ContainsKey(token) && sessionsByToken[token].ConnectionId == connectionId)
+                {
+                    sessionsByToken[token].ConnectionId = string.Empty;
+                    sessionsByToken[token].DisconnectedTimestamp = timeProvider.GetTimestamp();
+                }
+            }
+        }
+
+        public bool IsConnectionCurrent(string token, string connectionId)
+        {
+            lock (sessionLock)
+            {
+                return sessionsByToken.ContainsKey(token) && IsActive(sessionsByToken[token])
+                    && sessionsByToken[token].ConnectionId == connectionId;
+            }
+        }
+
+        public bool ExpireSessions()
+        {
+            lock (sessionLock)
+            {
+                List<string> expiredTokens = new List<string>();
+                foreach (KeyValuePair<string, RegisteredSession> session in sessionsByToken)
+                {
+                    if (!IsActive(session.Value))
+                    {
+                        expiredTokens.Add(session.Key);
+                    }
+                }
+                foreach (string token in expiredTokens)
+                {
+                    sessionsByToken.Remove(token);
+                }
+                return expiredTokens.Count > NoExpiredSessions;
+            }
+        }
+
+        private bool IsActive(RegisteredSession session)
+        {
+            bool withinGrace = !string.IsNullOrEmpty(session.ConnectionId)
+                || timeProvider.GetElapsedTime(session.DisconnectedTimestamp)
+                    < TimeSpan.FromSeconds(ReconnectionGraceSeconds);
+            return session.ExpiresAt > timeProvider.GetUtcNow().UtcDateTime && withinGrace;
         }
     }
 }

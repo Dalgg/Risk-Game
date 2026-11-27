@@ -47,6 +47,7 @@ namespace RiskGame.Server
             builder.Services.AddSingleton<MatchSessionManager>();
             builder.Services.AddSingleton<System.TimeProvider>(System.TimeProvider.System);
             builder.Services.AddHostedService<MatchTurnTimerService>();
+            builder.Services.AddHostedService<SessionExpirationService>();
             builder.Services.AddSingleton<LobbySessionManager>();
 
             WebApplication app = builder.Build();

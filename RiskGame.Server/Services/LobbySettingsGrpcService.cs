@@ -21,6 +21,7 @@ namespace RiskGame.Server.Services
         {
             try
             {
+                sessionManager.ValidateParticipant(request.UserId, request.SessionToken);
                 return Task.FromResult(
                     sessionManager.UpdateRules(request.UserId, request.SessionToken, request.Rules));
             }

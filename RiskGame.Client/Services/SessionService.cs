@@ -1,3 +1,4 @@
+using System;
 using System.Security.Cryptography;
 using Grpc.Core;
 using Grpc.Net.Client;
@@ -12,27 +13,57 @@ namespace RiskGame.Services
         private const int TopUserIdRange = 9999;
         private const string GuestPrefix = "Invitado_";
         private const int LogoutTimeoutSeconds = 3;
+        private static readonly object sessionLock = new object();
+        private static SessionUser? currentUser;
+        private static AccountSessionConnection? accountConnection;
 
-        public static SessionUser? CurrentUser { get; private set; }
+        public static event EventHandler? SessionExpired;
+
+        public static SessionUser? CurrentUser
+        {
+            get
+            {
+                lock (sessionLock)
+                {
+                    return currentUser;
+                }
+            }
+        }
 
         public static bool IsLoggedIn => CurrentUser != null;
 
         public static void Login(SessionUser user)
         {
-            CurrentUser = user;
+            lock (sessionLock)
+            {
+                StopConnection();
+                currentUser = user;
+            }
+        }
+
+        public static void StartSessionConnection()
+        {
+            lock (sessionLock)
+            {
+                SessionUser? user = currentUser;
+                if (accountConnection == null && user != null && !user.IsGuest
+                    && !string.IsNullOrWhiteSpace(user.SessionToken))
+                {
+                    accountConnection = new AccountSessionConnection(user, ExpireSession);
+                    accountConnection.Start();
+                }
+            }
         }
 
         public static bool UpdateProfile(SessionUser expectedSession, UserProfile profile)
         {
             bool updated = false;
-            SessionUser? session = CurrentUser;
-            if (session != null && session.IdUser == profile.UserId)
+            lock (sessionLock)
             {
-                bool sameSession = session.IdUser == expectedSession.IdUser
-                    && session.SessionToken == expectedSession.SessionToken;
-                if (sameSession)
+                SessionUser? session = currentUser;
+                if (session != null && session.IdUser == profile.UserId && IsCurrentSession(expectedSession))
                 {
-                    CurrentUser = new SessionUser(session.IdUser, session.Username, profile.Nickname)
+                    currentUser = new SessionUser(session.IdUser, session.Username, profile.Nickname)
                     {
                         SessionToken = session.SessionToken,
                         AvatarReference = profile.AvatarReference
@@ -45,20 +76,27 @@ namespace RiskGame.Services
 
         public static SessionUser GetOrCreateCurrentUser()
         {
-            if (CurrentUser == null)
+            lock (sessionLock)
             {
-                int guestNumber = RandomNumberGenerator.GetInt32(BottomUserIdRange, TopUserIdRange);
-                string guestAlias = $"{GuestPrefix}{guestNumber}";
-                CurrentUser = new SessionUser(-guestNumber, guestAlias, guestAlias);
+                if (currentUser == null)
+                {
+                    int guestNumber = RandomNumberGenerator.GetInt32(BottomUserIdRange, TopUserIdRange);
+                    string guestAlias = $"{GuestPrefix}{guestNumber}";
+                    currentUser = new SessionUser(-guestNumber, guestAlias, guestAlias);
+                }
+                return currentUser;
             }
-
-            return CurrentUser;
         }
 
         public static void Logout()
         {
-            SessionUser? currentSessionUser = CurrentUser;
-            CurrentUser = null;
+            SessionUser? currentSessionUser;
+            lock (sessionLock)
+            {
+                currentSessionUser = currentUser;
+                currentUser = null;
+                StopConnection();
+            }
             if (currentSessionUser != null && !string.IsNullOrWhiteSpace(currentSessionUser.SessionToken))
             {
                 try
@@ -76,6 +114,46 @@ namespace RiskGame.Services
                 {
                     JsonLogger.Error(rpcException, "Could not notify the server during logout.");
                 }
+            }
+        }
+
+        private static void StopConnection()
+        {
+            if (accountConnection != null)
+            {
+                accountConnection.Stop();
+                accountConnection = null;
+            }
+        }
+
+        private static bool IsCurrentSession(SessionUser expectedSession)
+        {
+            bool sameSession = false;
+            if (currentUser != null)
+            {
+                sameSession = currentUser.IdUser == expectedSession.IdUser
+                    && currentUser.SessionToken == expectedSession.SessionToken;
+            }
+            return sameSession;
+        }
+
+        private static void ExpireSession(AccountSessionConnection expectedConnection)
+        {
+            bool expired = false;
+            lock (sessionLock)
+            {
+                if (ReferenceEquals(accountConnection, expectedConnection)
+                    && IsCurrentSession(expectedConnection.Session))
+                {
+                    currentUser = null;
+                    StopConnection();
+                    expired = true;
+                }
+            }
+            EventHandler? handler = SessionExpired;
+            if (expired && handler != null)
+            {
+                handler(null, EventArgs.Empty);
             }
         }
     }

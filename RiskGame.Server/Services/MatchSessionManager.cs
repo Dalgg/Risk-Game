@@ -99,8 +99,10 @@ namespace RiskGame.Server.Services
                 bool registered = subscribers.ContainsKey(participant.UserId);
                 bool activeParticipant = !matchesById[participant.MatchId]
                     .GetParticipant(participant.UserId).HasAbandoned;
+                bool sessionValid = participant.UserId < MinimumValidIdentifier
+                    || sessionRegistry.IsSessionValid(participant.UserId, participant.SessionToken);
                 bool isSubscriptionActive = false;
-                if (registered && activeParticipant)
+                if (registered && activeParticipant && sessionValid)
                 {
                     isSubscriptionActive =
                         ReferenceEquals(subscribers[participant.UserId], responseStream);
