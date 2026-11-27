@@ -14,15 +14,21 @@ namespace RiskGame.Server.Services
         private readonly AuthSessionManager authSessionManager;
         private readonly ProfileSessionRegistry profileSessions;
         private readonly LobbySessionManager lobbySessionManager;
+        private readonly SessionConnectionManager sessionConnectionManager;
+        private readonly PasswordResetManager passwordResetManager;
 
         public AuthGrpcService(
             AuthSessionManager authSessionManager,
             ProfileSessionRegistry sessions,
-            LobbySessionManager lobbySessionManager)
+            LobbySessionManager lobbySessionManager,
+            SessionConnectionManager sessionConnectionManager,
+            PasswordResetManager passwordResetManager)
         {
             this.authSessionManager = authSessionManager;
             profileSessions = sessions;
             this.lobbySessionManager = lobbySessionManager;
+            this.sessionConnectionManager = sessionConnectionManager;
+            this.passwordResetManager = passwordResetManager;
         }
 
         public override Task<RegisterResponse> Register(RegisterRequest registerRequest, ServerCallContext callContext)
@@ -107,8 +113,8 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                SessionConnectionManager connections = new SessionConnectionManager(profileSessions);
-                return connections.Subscribe(request, responseStream, callContext.CancellationToken);
+                return sessionConnectionManager.Subscribe(request.UserId, request.SessionToken, responseStream,
+                    callContext.CancellationToken);
             }
             catch (InvalidSessionException invalidSessionException)
             {
@@ -140,6 +146,79 @@ namespace RiskGame.Server.Services
             {
                 throw CreateRegistrationException(dataOperationException, "Could not resend the verification email.");
             }
+        }
+
+        public override Task<PasswordResetResponse> RequestPasswordReset(
+            PasswordResetRequest request, ServerCallContext callContext)
+        {
+            try
+            {
+                string resetId = passwordResetManager.BeginReset(request.Email);
+                return Task.FromResult(new PasswordResetResponse { ResetId = resetId });
+            }
+            catch (ArgumentException argumentException)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, argumentException.Message));
+            }
+            catch (ProfileNotFoundException profileNotFoundException)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, profileNotFoundException.Message));
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                throw CreatePasswordResetException(dataOperationException, "Could not start the password reset.");
+            }
+        }
+
+        public override Task<Empty> ConfirmPasswordReset(
+            PasswordResetConfirmation confirmation, ServerCallContext callContext)
+        {
+            try
+            {
+                passwordResetManager.ConfirmReset(confirmation.ResetId, confirmation.Code, confirmation.NewPassword);
+                return Task.FromResult(new Empty());
+            }
+            catch (ArgumentException argumentException)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, argumentException.Message));
+            }
+            catch (ProfileNotFoundException profileNotFoundException)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, profileNotFoundException.Message));
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                throw CreatePasswordResetException(dataOperationException, "Could not confirm the password reset.");
+            }
+        }
+
+        public override Task<Empty> ResendPasswordReset(
+            PasswordResetReference reference, ServerCallContext callContext)
+        {
+            try
+            {
+                passwordResetManager.ResendReset(reference.ResetId);
+                return Task.FromResult(new Empty());
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                throw CreatePasswordResetException(dataOperationException, "Could not resend the password reset email.");
+            }
+        }
+
+        private static RpcException CreatePasswordResetException(
+            DataOperationException dataOperationException, string logMessage)
+        {
+            StatusCode statusCode = StatusCode.Unavailable;
+            if (dataOperationException is RegistrationVerificationException)
+            {
+                statusCode = StatusCode.FailedPrecondition;
+            }
+            else
+            {
+                JsonLogger.Error(dataOperationException, logMessage);
+            }
+            return new RpcException(new Status(statusCode, "Password reset could not be completed."));
         }
 
         private RpcException CreateRegistrationException(DataOperationException dataOperationException,

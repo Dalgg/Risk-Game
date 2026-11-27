@@ -35,8 +35,7 @@ namespace RiskGame.Server.Tests.Builders
 
         public ConnectionProbe StartForUser(int userId)
         {
-            SessionRequest request = new SessionRequest { UserId = userId, SessionToken = Session.Token };
-            ConnectionProbe connection = new ConnectionProbe(Manager, request);
+            ConnectionProbe connection = new ConnectionProbe(Manager, userId, Session.Token);
             connections.Add(connection);
             return connection;
         }
@@ -61,10 +60,10 @@ namespace RiskGame.Server.Tests.Builders
             private readonly RecordingStream stream = new RecordingStream();
             private readonly Task<Exception?> subscription;
 
-            public ConnectionProbe(SessionConnectionManager manager, SessionRequest request)
+            public ConnectionProbe(SessionConnectionManager manager, int userId, string sessionToken)
             {
                 subscription = Task.Run<Exception?>(() => Record.Exception(() =>
-                    manager.Subscribe(request, stream, cancellation.Token).GetAwaiter().GetResult()));
+                    manager.Subscribe(userId, sessionToken, stream, cancellation.Token).GetAwaiter().GetResult()));
             }
 
             public SessionState InitialState { get; private set; } = new SessionState();

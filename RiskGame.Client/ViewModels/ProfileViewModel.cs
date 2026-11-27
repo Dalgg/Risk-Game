@@ -58,6 +58,18 @@ namespace RiskGame.ViewModels
         public partial bool IsChoosingAvatar { get; set; }
 
         [ObservableProperty]
+        public partial bool IsEditingPassword { get; set; }
+
+        [ObservableProperty]
+        public partial string CurrentPassword { get; set; } = string.Empty;
+
+        [ObservableProperty]
+        public partial string NewPassword { get; set; } = string.Empty;
+
+        [ObservableProperty]
+        public partial string ConfirmNewPassword { get; set; } = string.Empty;
+
+        [ObservableProperty]
         public partial ProfileAvatarOption? SelectedAvatar { get; set; }
 
         [ObservableProperty]
@@ -66,8 +78,10 @@ namespace RiskGame.ViewModels
         [NotifyCanExecuteChangedFor(nameof(LogoutCommand))]
         [NotifyCanExecuteChangedFor(nameof(EditNicknameCommand))]
         [NotifyCanExecuteChangedFor(nameof(ChooseAvatarCommand))]
+        [NotifyCanExecuteChangedFor(nameof(EditPasswordCommand))]
         [NotifyCanExecuteChangedFor(nameof(SaveNicknameCommand))]
         [NotifyCanExecuteChangedFor(nameof(SaveAvatarCommand))]
+        [NotifyCanExecuteChangedFor(nameof(SavePasswordCommand))]
         [NotifyCanExecuteChangedFor(nameof(CancelEditCommand))]
         private bool isLoading;
 
@@ -112,6 +126,7 @@ namespace RiskGame.ViewModels
         {
             EditedNickname = Nickname;
             IsChoosingAvatar = false;
+            IsEditingPassword = false;
             IsEditingNickname = true;
             StatusMessage = string.Empty;
         }
@@ -125,7 +140,18 @@ namespace RiskGame.ViewModels
                 SelectedAvatar = Avatars[FirstAvatarIndex];
             }
             IsEditingNickname = false;
+            IsEditingPassword = false;
             IsChoosingAvatar = true;
+            StatusMessage = string.Empty;
+        }
+
+        [RelayCommand(CanExecute = nameof(CanEdit))]
+        private void EditPassword()
+        {
+            ClearPasswordInputs();
+            IsEditingNickname = false;
+            IsChoosingAvatar = false;
+            IsEditingPassword = true;
             StatusMessage = string.Empty;
         }
 
@@ -134,7 +160,110 @@ namespace RiskGame.ViewModels
         {
             IsEditingNickname = false;
             IsChoosingAvatar = false;
+            IsEditingPassword = false;
+            ClearPasswordInputs();
             StatusMessage = string.Empty;
+        }
+
+        [RelayCommand(CanExecute = nameof(CanEdit))]
+        private void SavePassword()
+        {
+            string validationError = ValidatePasswordChange();
+            if (!string.IsNullOrEmpty(validationError))
+            {
+                StatusMessage = validationError;
+            }
+            else
+            {
+                string currentPasswordValue = CurrentPassword;
+                string newPasswordValue = NewPassword;
+                IsLoading = true;
+                Task.Run(() => SubmitPasswordChange(currentPasswordValue, newPasswordValue));
+            }
+        }
+
+        private string ValidatePasswordChange()
+        {
+            bool hasEmptyField = string.IsNullOrWhiteSpace(CurrentPassword)
+                || string.IsNullOrWhiteSpace(NewPassword);
+            if (hasEmptyField || string.IsNullOrWhiteSpace(ConfirmNewPassword))
+            {
+                return Strings.ProfilePasswordEmptyError;
+            }
+            if (NewPassword != ConfirmNewPassword)
+            {
+                return Strings.ProfilePasswordMismatchError;
+            }
+            if (!PasswordPolicy.PasswordIsValid(NewPassword))
+            {
+                return Strings.ProfilePasswordPolicyError;
+            }
+            if (CurrentPassword == NewPassword)
+            {
+                return Strings.ProfilePasswordSameError;
+            }
+            return string.Empty;
+        }
+
+        private void SubmitPasswordChange(string currentPasswordValue, string newPasswordValue)
+        {
+            try
+            {
+                RequestPasswordUpdate(currentPasswordValue, newPasswordValue);
+                Dispatcher.UIThread.Post(CompletePasswordChange);
+            }
+            catch (RpcException rpcException)
+            {
+                HandlePasswordRpcFailure(rpcException);
+            }
+        }
+
+        private void RequestPasswordUpdate(string currentPasswordValue, string newPasswordValue)
+        {
+            UpdatePasswordRequest request = new UpdatePasswordRequest
+            {
+                UserId = currentSessionUser.IdUser,
+                SessionToken = currentSessionUser.SessionToken,
+                CurrentPassword = currentPasswordValue,
+                NewPassword = newPasswordValue
+            };
+            GrpcChannel channel = GrpcChannelProvider.GetChannel();
+            Profile.ProfileClient client = new Profile.ProfileClient(channel);
+            client.UpdatePassword(
+                request,
+                deadline: DateTime.UtcNow.AddSeconds(RequestTimeoutSeconds),
+                cancellationToken: CancellationToken.None);
+        }
+
+        private void CompletePasswordChange()
+        {
+            ClearPasswordInputs();
+            IsEditingPassword = false;
+            IsLoading = false;
+            StatusMessage = Strings.ProfilePasswordSaved;
+        }
+
+        private void HandlePasswordRpcFailure(RpcException rpcException)
+        {
+            if (rpcException.StatusCode == StatusCode.FailedPrecondition)
+            {
+                Dispatcher.UIThread.Post(() => ShowError(Strings.ProfilePasswordCurrentWrongError));
+            }
+            else if (rpcException.StatusCode == StatusCode.InvalidArgument)
+            {
+                Dispatcher.UIThread.Post(() => ShowError(Strings.ProfilePasswordPolicyError));
+            }
+            else
+            {
+                HandleRpcFailure(rpcException, Strings.ProfileSaveError);
+            }
+        }
+
+        private void ClearPasswordInputs()
+        {
+            CurrentPassword = string.Empty;
+            NewPassword = string.Empty;
+            ConfirmNewPassword = string.Empty;
         }
 
         [RelayCommand(CanExecute = nameof(CanEdit))]

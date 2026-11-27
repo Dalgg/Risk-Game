@@ -254,4 +254,26 @@
   <data name="ProfileHistoryColumnsFormat" xml:space="preserve"><value>Columnas conquistadas: {0}</value></data>
   <data name="LoginErrorSessionAlreadyActive" xml:space="preserve"><value>Esta cuenta ya tiene una sesión activa. Cierra la sesión anterior o espera a que termine su periodo de reconexión.</value></data>
   <data name="SessionExpiredMessage" xml:space="preserve"><value>Tu sesión terminó o no pudo recuperarse la conexión. Inicia sesión nuevamente para continuar.</value></data>
+  <data name="ProfileCurrentPasswordPlaceholder" xml:space="preserve"><value>Contraseña actual</value></data>
+  <data name="ProfileNewPasswordPlaceholder" xml:space="preserve"><value>Nueva contraseña</value></data>
+  <data name="ProfileConfirmPasswordPlaceholder" xml:space="preserve"><value>Confirmar nueva contraseña</value></data>
+  <data name="ProfilePasswordHint" xml:space="preserve"><value>Mínimo 8 caracteres, incluyendo mayúscula, minúscula, número y símbolo.</value></data>
+  <data name="ProfilePasswordEmptyError" xml:space="preserve"><value>Completa todos los campos de contraseña.</value></data>
+  <data name="ProfilePasswordMismatchError" xml:space="preserve"><value>La confirmación no coincide con la nueva contraseña.</value></data>
+  <data name="ProfilePasswordPolicyError" xml:space="preserve"><value>La nueva contraseña debe tener mínimo 8 caracteres, mayúscula, minúscula, número y símbolo.</value></data>
+  <data name="ProfilePasswordCurrentWrongError" xml:space="preserve"><value>La contraseña actual es incorrecta.</value></data>
+  <data name="ProfilePasswordSameError" xml:space="preserve"><value>La nueva contraseña debe ser diferente a la actual.</value></data>
+  <data name="ProfilePasswordSaved" xml:space="preserve"><value>Contraseña actualizada correctamente.</value></data>
+  <data name="LoginForgotPasswordButton" xml:space="preserve"><value>¿Olvidaste tu contraseña?</value></data>
+  <data name="ForgotPasswordTitle" xml:space="preserve"><value>RECUPERAR CONTRASEÑA</value></data>
+  <data name="ForgotPasswordEmailInstructions" xml:space="preserve"><value>Ingresa el correo registrado en tu cuenta para recibir un código de verificación.</value></data>
+  <data name="ForgotPasswordEmailPlaceholder" xml:space="preserve"><value>correo@ejemplo.com</value></data>
+  <data name="ForgotPasswordSendCodeButton" xml:space="preserve"><value>ENVIAR CÓDIGO</value></data>
+  <data name="ForgotPasswordResetInstructions" xml:space="preserve"><value>Ingresa el código de 6 dígitos enviado a tu correo y elige una nueva contraseña.</value></data>
+  <data name="ForgotPasswordConfirmButton" xml:space="preserve"><value>RESTABLECER CONTRASEÑA</value></data>
+  <data name="ForgotPasswordCodeSent" xml:space="preserve"><value>Te enviamos un código de recuperación a tu correo. Vence en cinco minutos.</value></data>
+  <data name="ForgotPasswordEmailNotFound" xml:space="preserve"><value>No existe una cuenta registrada con ese correo electrónico.</value></data>
+  <data name="ForgotPasswordEmailInvalid" xml:space="preserve"><value>Ingresa un correo electrónico válido.</value></data>
+  <data name="ForgotPasswordResetError" xml:space="preserve"><value>No se pudo restablecer la contraseña. Revisa el código o inténtalo más tarde.</value></data>
+  <data name="ForgotPasswordSuccess" xml:space="preserve"><value>Contraseña restablecida con éxito. Ya puedes iniciar sesión.</value></data>
 </root>

@@ -46,10 +46,11 @@ namespace RiskGame.Services
             lock (sessionLock)
             {
                 SessionUser? user = currentUser;
-                if (accountConnection == null && user != null && !user.IsGuest
-                    && !string.IsNullOrWhiteSpace(user.SessionToken))
+                bool isRegisteredUser = user != null && !user.IsGuest;
+                bool hasSessionToken = isRegisteredUser && !string.IsNullOrWhiteSpace(user!.SessionToken);
+                if (accountConnection == null && hasSessionToken)
                 {
-                    accountConnection = new AccountSessionConnection(user, ExpireSession);
+                    accountConnection = new AccountSessionConnection(user!, ExpireSession);
                     accountConnection.Start();
                 }
             }

@@ -11,5 +11,9 @@ namespace RiskGame.Server.Resources
         public static string VerificationSubject => ResourceManager.GetString(nameof(VerificationSubject))!;
 
         public static string VerificationBody => ResourceManager.GetString(nameof(VerificationBody))!;
+
+        public static string PasswordResetSubject => ResourceManager.GetString(nameof(PasswordResetSubject))!;
+
+        public static string PasswordResetBody => ResourceManager.GetString(nameof(PasswordResetBody))!;
     }
 }

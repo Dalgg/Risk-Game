@@ -16,24 +16,24 @@ namespace RiskGame.Server.Services
             this.sessions = sessions;
         }
 
-        public Task Subscribe(SessionRequest request, IServerStreamWriter<SessionState> stream,
+        public Task Subscribe(int userId, string sessionToken, IServerStreamWriter<SessionState> stream,
             CancellationToken cancellationToken)
         {
             string connectionId = Guid.NewGuid().ToString();
             try
             {
-                sessions.AttachSession(request.UserId, request.SessionToken, connectionId);
+                sessions.AttachSession(userId, sessionToken, connectionId);
                 stream.WriteAsync(new SessionState { IsAuthenticated = true }).GetAwaiter().GetResult();
-                WaitForConnectionEnd(request.SessionToken, connectionId, cancellationToken);
+                WaitForConnectionEnd(sessionToken, connectionId, cancellationToken);
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    sessions.ValidateUser(request.UserId, request.SessionToken);
+                    sessions.ValidateUser(userId, sessionToken);
                 }
                 return Task.CompletedTask;
             }
             finally
             {
-                sessions.DetachSession(request.SessionToken, connectionId);
+                sessions.DetachSession(sessionToken, connectionId);
             }
         }
 

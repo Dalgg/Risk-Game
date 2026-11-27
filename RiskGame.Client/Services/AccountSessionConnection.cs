@@ -9,7 +9,7 @@ using RiskGame.Contracts.Auth;
 
 namespace RiskGame.Services
 {
-    public sealed class AccountSessionConnection
+    public sealed class AccountSessionConnection : IDisposable
     {
         private const int RecoverySeconds = 30;
         private const int RetryDelaySeconds = 2;
@@ -43,6 +43,11 @@ namespace RiskGame.Services
                     cancellation.Cancel();
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            Stop();
         }
 
         private void MonitorSession()
@@ -86,35 +91,41 @@ namespace RiskGame.Services
             }
             catch (RpcException rpcException)
             {
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    if (rpcException.StatusCode == StatusCode.Unauthenticated)
-                    {
-                        valid = false;
-                    }
-                    else
-                    {
-                        JsonLogger.Error(rpcException, "The account session stream failed for user {0}.",
-                            session.IdUser);
-                    }
-                }
+                valid = HandleRpcFailure(rpcException, cancellationToken);
             }
             catch (OperationCanceledException canceledException)
             {
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    JsonLogger.Error(canceledException, "The account session stream was interrupted for user {0}.",
-                        session.IdUser);
-                }
+                LogUnexpectedFailure(canceledException,
+                    "The account session stream was interrupted for user {0}.", cancellationToken);
             }
             catch (Exception exception)
             {
-                if (!cancellationToken.IsCancellationRequested)
-                {
-                    JsonLogger.Error(exception, "Could not monitor the account session for user {0}.", session.IdUser);
-                }
+                LogUnexpectedFailure(exception,
+                    "Could not monitor the account session for user {0}.", cancellationToken);
             }
             return valid;
+        }
+
+        private bool HandleRpcFailure(RpcException rpcException, CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return true;
+            }
+            if (rpcException.StatusCode == StatusCode.Unauthenticated)
+            {
+                return false;
+            }
+            JsonLogger.Error(rpcException, "The account session stream failed for user {0}.", session.IdUser);
+            return true;
+        }
+
+        private void LogUnexpectedFailure(Exception exception, string logTemplate, CancellationToken cancellationToken)
+        {
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                JsonLogger.Error(exception, logTemplate, session.IdUser);
+            }
         }
 
         private bool ReadSession(CancellationToken cancellationToken)

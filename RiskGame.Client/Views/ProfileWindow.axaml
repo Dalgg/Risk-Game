@@ -92,6 +92,24 @@
                         </StackPanel>
                     </StackPanel>
                 </Border>
+                <Border Classes="ProfilePanel" IsVisible="{Binding IsEditingPassword}">
+                    <StackPanel Spacing="{StaticResource ScoreboardSpacing}">
+                        <TextBlock Text="{x:Static res:Strings.ProfilePasswordHint}" TextWrapping="Wrap" />
+                        <TextBox Text="{Binding CurrentPassword}" PasswordChar="*"
+                                 IsEnabled="{Binding !IsLoading}"
+                                 PlaceholderText="{x:Static res:Strings.ProfileCurrentPasswordPlaceholder}" />
+                        <TextBox Text="{Binding NewPassword}" PasswordChar="*"
+                                 IsEnabled="{Binding !IsLoading}"
+                                 PlaceholderText="{x:Static res:Strings.ProfileNewPasswordPlaceholder}" />
+                        <TextBox Text="{Binding ConfirmNewPassword}" PasswordChar="*"
+                                 IsEnabled="{Binding !IsLoading}"
+                                 PlaceholderText="{x:Static res:Strings.ProfileConfirmPasswordPlaceholder}" />
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource ScoreboardSpacing}">
+                            <Button Content="{x:Static res:Strings.ProfileSave}" Command="{Binding SavePasswordCommand}" />
+                            <Button Content="{x:Static res:Strings.ProfileCancel}" Command="{Binding CancelEditCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
                 <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto">
                     <TextBlock Text="{x:Static res:Strings.ProfileIdentifier}" Classes="ScoreboardText" />
                     <TextBlock Grid.Column="1" Text="{Binding UserId}" Classes="ScoreboardText" />
@@ -140,7 +158,7 @@
                     <Button Content="{x:Static res:Strings.ProfileBack}" Command="{Binding BackCommand}"
                             Classes="ScoreboardAction" HotKey="Escape" HorizontalAlignment="Stretch" />
                     <Button Grid.Column="1" Content="{x:Static res:Strings.ProfileChangePassword}"
-                            IsEnabled="False" ToolTip.Tip="{x:Static res:Strings.ProfilePasswordPending}"
+                            Command="{Binding EditPasswordCommand}" Classes="ScoreboardAction"
                             HorizontalAlignment="Stretch" />
                 </Grid>
                 <Button Content="{x:Static res:Strings.ProfileLogout}" Command="{Binding LogoutCommand}"

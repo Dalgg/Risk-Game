@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using RiskGame.Contracts.Profile;
 using RiskGame.Exceptions;
@@ -68,6 +69,24 @@ namespace RiskGame.Server.Services
             }
         }
 
+        public override Task<Empty> UpdatePassword(UpdatePasswordRequest request, ServerCallContext context)
+        {
+            try
+            {
+                int userId = AuthenticateUser(request.UserId, request.SessionToken);
+                profileRepository.UpdatePassword(userId, request.CurrentPassword, request.NewPassword);
+                return Task.FromResult(new Empty());
+            }
+            catch (ArgumentException argumentException)
+            {
+                throw new RpcException(new Status(StatusCode.InvalidArgument, argumentException.Message));
+            }
+            catch (DataOperationException dataOperationException)
+            {
+                throw CreateUpdateFailure(dataOperationException);
+            }
+        }
+
         private int AuthenticateUser(int requestedUserId, string token)
         {
             int userId = profileSessions.GetUserId(token);
@@ -82,7 +101,9 @@ namespace RiskGame.Server.Services
         private static RpcException CreateUpdateFailure(DataOperationException exception)
         {
             bool expectedFailure = exception is InvalidSessionException || exception is ProfileNotFoundException;
-            if (!expectedFailure && exception is not GuestNotAllowedException)
+            bool isExpectedAuthFailure = exception is GuestNotAllowedException
+                || exception is InvalidCredentialsException;
+            if (!expectedFailure && !isExpectedAuthFailure)
             {
                 JsonLogger.Error(exception, "Could not update the player profile.");
             }
@@ -111,6 +132,10 @@ namespace RiskGame.Server.Services
             if (dataOperationException is GuestNotAllowedException)
             {
                 statusCode = StatusCode.PermissionDenied;
+            }
+            if (dataOperationException is InvalidCredentialsException)
+            {
+                statusCode = StatusCode.FailedPrecondition;
             }
             return new RpcException(new Status(statusCode, dataOperationException.Message));
         }

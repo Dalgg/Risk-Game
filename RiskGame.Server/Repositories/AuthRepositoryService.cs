@@ -21,12 +21,22 @@ namespace RiskGame.Server.Services
             @"^[A-Za-z0-9._\-]{3,50}$",
             RegexOptions.Compiled,
             TimeSpan.FromMilliseconds(RegexTimeoutMilliseconds));
+        private readonly Func<RiskGameContext> createContext;
+
+        public AuthRepositoryService() : this(CreateDatabaseContext)
+        {
+        }
+
+        public AuthRepositoryService(Func<RiskGameContext> createContext)
+        {
+            this.createContext = createContext;
+        }
 
         public User AuthenticateUser(string username, string password)
         {
             try
             {
-                using (RiskGameContext databaseContext = new RiskGameContext())
+                using (RiskGameContext databaseContext = createContext())
                 {
                     User? user = databaseContext.Users.FirstOrDefault(
                         candidateUser => candidateUser.Username == username);
@@ -60,6 +70,62 @@ namespace RiskGame.Server.Services
             }
         }
 
+        public bool IsValidEmail(string email)
+        {
+            string normalizedEmail = email.Trim();
+            bool isEmpty = normalizedEmail.Length == 0;
+            bool isTooLong = normalizedEmail.Length > MaxEmailLength;
+            if (isEmpty || isTooLong)
+            {
+                return false;
+            }
+            return EmailRegex.IsMatch(normalizedEmail);
+        }
+
+        public User FindUserByEmail(string email)
+        {
+            string normalizedEmail = email.Trim().ToLowerInvariant();
+            try
+            {
+                using RiskGameContext databaseContext = createContext();
+                User? user = databaseContext.Users.FirstOrDefault(
+                    candidateUser => candidateUser.Email.ToLower() == normalizedEmail);
+                if (user == null)
+                {
+                    throw new ProfileNotFoundException("No account is registered with that email.");
+                }
+                return user;
+            }
+            catch (DbException databaseException)
+            {
+                throw new DataOperationException("Database connection error occurred while looking up the email.", databaseException);
+            }
+        }
+
+        public void UpdatePasswordHash(int userId, string passwordHash)
+        {
+            try
+            {
+                using RiskGameContext databaseContext = createContext();
+                User? user = databaseContext.Users.FirstOrDefault(
+                    candidateUser => candidateUser.IdUser == userId);
+                if (user == null)
+                {
+                    throw new ProfileNotFoundException("The user account was not found.");
+                }
+                user.PasswordHash = passwordHash;
+                databaseContext.SaveChanges();
+            }
+            catch (DbUpdateException databaseUpdateException)
+            {
+                throw new DataOperationException("Database error occurred while saving the new password.", databaseUpdateException);
+            }
+            catch (DbException databaseException)
+            {
+                throw new DataOperationException("Database connection error occurred while saving the new password.", databaseException);
+            }
+        }
+
         public RegisterResult ValidateRegistration(string email, string username, string password)
         {
             string normalizedEmail = email.Trim();
@@ -87,7 +153,7 @@ namespace RiskGame.Server.Services
 
             try
             {
-                using (RiskGameContext context = new RiskGameContext())
+                using (RiskGameContext context = createContext())
                 {
                     if (context.Users.Any(user => user.Username == normalizedUsername))
                     {
@@ -112,7 +178,7 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                using RiskGameContext databaseContext = new RiskGameContext();
+                using RiskGameContext databaseContext = createContext();
                 if (databaseContext.Users.Any(user => user.Username == verifiedUser.Username))
                 {
                     return RegisterResult.UsernameExists;
@@ -133,6 +199,11 @@ namespace RiskGame.Server.Services
             {
                 throw new DataOperationException("Could not connect to save the verified account.", databaseException);
             }
+        }
+
+        private static RiskGameContext CreateDatabaseContext()
+        {
+            return new RiskGameContext();
         }
     }
 }

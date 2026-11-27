@@ -2,10 +2,13 @@ syntax = "proto3";
 option csharp_namespace = "RiskGame.Contracts.Profile";
 package riskgame.profile;
 
+import "google/protobuf/empty.proto";
+
 service Profile {
   rpc GetProfile (ProfileQuery) returns (UserProfile);
   rpc UpdateNickname (UpdateNicknameRequest) returns (UserProfile);
   rpc UpdateAvatar (UpdateAvatarRequest) returns (UserProfile);
+  rpc UpdatePassword (UpdatePasswordRequest) returns (google.protobuf.Empty);
 }
 
 message ProfileQuery {
@@ -43,4 +46,11 @@ message UpdateAvatarRequest {
   int32 user_id = 1;
   string session_token = 2;
   string avatar_reference = 3;
+}
+
+message UpdatePasswordRequest {
+  int32 user_id = 1;
+  string session_token = 2;
+  string current_password = 3;
+  string new_password = 4;
 }

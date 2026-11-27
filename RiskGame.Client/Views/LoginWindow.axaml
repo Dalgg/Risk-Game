@@ -3,10 +3,10 @@
         xmlns:res="using:RiskGame.Resources"
         x:Class="RiskGame.Views.LoginWindow"
         Title="{x:Static res:Strings.LoginTitleLabel}"
-        Width="600" Height="500"
+        Width="600" Height="540"
         Background="#1E1E1E">
 
-    <Border Background="#5C5C5C" Width="400" Height="440" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Border Background="#5C5C5C" Width="400" Height="480" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Grid>
             <Button Background="#8B0000" Width="50" Height="40" HorizontalAlignment="Left" VerticalAlignment="Top"
                 CornerRadius="0" Click="BackClick">
@@ -32,7 +32,7 @@
                 <TextBlock x:Name="MessageTextBlock" IsVisible="False" TextWrapping="Wrap" TextAlignment="Center"
                            FontSize="13" HorizontalAlignment="Center"/>
 
-                <StackPanel Spacing="15" Margin="0,15,0,0">
+                <StackPanel Spacing="12" Margin="0,12,0,0">
                     <Button Content="{x:Static res:Strings.LoginConfirmButton}" Background="#0084FF" Foreground="White" FontSize="16" CornerRadius="8"
                         Width="160" Height="40" HorizontalAlignment="Center" HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center" Click="OnConfirmLoginClick" />
@@ -40,6 +40,11 @@
                     <Button Content="{x:Static res:Strings.LoginRegisterButton}" Background="#F92A54" Foreground="White" FontSize="16" CornerRadius="8"
                          Width="160" Height="40" HorizontalAlignment="Center" HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center" Click="RegisterClick"/>
+
+                    <Button x:Name="ForgotPasswordButton" Content="{x:Static res:Strings.LoginForgotPasswordButton}"
+                            Background="Transparent" Foreground="#A8D8FF" FontSize="13" BorderThickness="0"
+                            HorizontalAlignment="Center" HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center" Click="ForgotPasswordClick"/>
                 </StackPanel>
             </StackPanel>
         </Grid>

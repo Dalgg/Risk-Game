@@ -485,5 +485,49 @@ namespace RiskGame.Resources
 
         public static string ProfileHistoryColumnsFormat => ResourceManager.GetString("ProfileHistoryColumnsFormat", _resourceCulture);
 
+        public static string ProfileCurrentPasswordPlaceholder => ResourceManager.GetString("ProfileCurrentPasswordPlaceholder", _resourceCulture);
+
+        public static string ProfileNewPasswordPlaceholder => ResourceManager.GetString("ProfileNewPasswordPlaceholder", _resourceCulture);
+
+        public static string ProfileConfirmPasswordPlaceholder => ResourceManager.GetString("ProfileConfirmPasswordPlaceholder", _resourceCulture);
+
+        public static string ProfilePasswordHint => ResourceManager.GetString("ProfilePasswordHint", _resourceCulture);
+
+        public static string ProfilePasswordEmptyError => ResourceManager.GetString("ProfilePasswordEmptyError", _resourceCulture);
+
+        public static string ProfilePasswordMismatchError => ResourceManager.GetString("ProfilePasswordMismatchError", _resourceCulture);
+
+        public static string ProfilePasswordPolicyError => ResourceManager.GetString("ProfilePasswordPolicyError", _resourceCulture);
+
+        public static string ProfilePasswordCurrentWrongError => ResourceManager.GetString("ProfilePasswordCurrentWrongError", _resourceCulture);
+
+        public static string ProfilePasswordSameError => ResourceManager.GetString("ProfilePasswordSameError", _resourceCulture);
+
+        public static string ProfilePasswordSaved => ResourceManager.GetString("ProfilePasswordSaved", _resourceCulture);
+
+        public static string LoginForgotPasswordButton => ResourceManager.GetString("LoginForgotPasswordButton", _resourceCulture);
+
+        public static string ForgotPasswordTitle => ResourceManager.GetString("ForgotPasswordTitle", _resourceCulture);
+
+        public static string ForgotPasswordEmailInstructions => ResourceManager.GetString("ForgotPasswordEmailInstructions", _resourceCulture);
+
+        public static string ForgotPasswordEmailPlaceholder => ResourceManager.GetString("ForgotPasswordEmailPlaceholder", _resourceCulture);
+
+        public static string ForgotPasswordSendCodeButton => ResourceManager.GetString("ForgotPasswordSendCodeButton", _resourceCulture);
+
+        public static string ForgotPasswordResetInstructions => ResourceManager.GetString("ForgotPasswordResetInstructions", _resourceCulture);
+
+        public static string ForgotPasswordConfirmButton => ResourceManager.GetString("ForgotPasswordConfirmButton", _resourceCulture);
+
+        public static string ForgotPasswordCodeSent => ResourceManager.GetString("ForgotPasswordCodeSent", _resourceCulture);
+
+        public static string ForgotPasswordEmailNotFound => ResourceManager.GetString("ForgotPasswordEmailNotFound", _resourceCulture);
+
+        public static string ForgotPasswordEmailInvalid => ResourceManager.GetString("ForgotPasswordEmailInvalid", _resourceCulture);
+
+        public static string ForgotPasswordResetError => ResourceManager.GetString("ForgotPasswordResetError", _resourceCulture);
+
+        public static string ForgotPasswordSuccess => ResourceManager.GetString("ForgotPasswordSuccess", _resourceCulture);
+
     }
 }

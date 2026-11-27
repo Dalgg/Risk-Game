@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using RiskGame.Contracts.Profile;
 using RiskGame.Exceptions;
 using RiskGame.Models;
+using RiskGame.Services;
 
 namespace RiskGame.Server.Services
 {
@@ -77,6 +78,50 @@ namespace RiskGame.Server.Services
             catch (DbException databaseException)
             {
                 throw new DataOperationException("Could not connect to save the avatar.", databaseException);
+            }
+        }
+
+        public void UpdatePassword(int userId, string currentPassword, string newPassword)
+        {
+            ValidatePasswordChangeInputs(currentPassword, newPassword);
+            try
+            {
+                using RiskGameContext databaseContext = createContext();
+                User user = FindUser(databaseContext.Users, userId);
+                PasswordVerificationResult currentVerification = PasswordHasher.Verify(
+                    currentPassword, user.PasswordHash);
+                if (!currentVerification.IsValid)
+                {
+                    throw new InvalidCredentialsException("The current password is incorrect.");
+                }
+                PasswordVerificationResult samePasswordCheck = PasswordHasher.Verify(
+                    newPassword, user.PasswordHash);
+                if (samePasswordCheck.IsValid)
+                {
+                    throw new ArgumentException("The new password must be different from the current password.");
+                }
+                user.PasswordHash = PasswordHasher.Hash(newPassword);
+                databaseContext.SaveChanges();
+            }
+            catch (DbUpdateException databaseUpdateException)
+            {
+                throw new DataOperationException("Could not save the new password.", databaseUpdateException);
+            }
+            catch (DbException databaseException)
+            {
+                throw new DataOperationException("Could not connect to save the new password.", databaseException);
+            }
+        }
+
+        private static void ValidatePasswordChangeInputs(string currentPassword, string newPassword)
+        {
+            if (string.IsNullOrEmpty(currentPassword))
+            {
+                throw new ArgumentException("The current password is required.");
+            }
+            if (string.IsNullOrEmpty(newPassword) || !PasswordPolicy.PasswordIsValid(newPassword))
+            {
+                throw new ArgumentException("The new password does not meet the security requirements.");
             }
         }
 

@@ -30,12 +30,16 @@ namespace RiskGame.Server
 
             builder.Services.AddGrpc();
             builder.Services.AddSingleton<EmailService>();
+            builder.Services.AddSingleton<IEmailDeliveryService>(
+                serviceProvider => serviceProvider.GetRequiredService<EmailService>());
             builder.Services.AddSingleton<AuthSessionManager>();
+            builder.Services.AddSingleton<PasswordResetManager>();
             builder.Services.AddSingleton<InvitationRepositoryService>();
             builder.Services.AddSingleton<InvitationSessionManager>();
             builder.Services.AddSingleton<FriendRepositoryService>();
             builder.Services.AddSingleton<FriendSessionManager>();
             builder.Services.AddSingleton<ProfileSessionRegistry>();
+            builder.Services.AddSingleton<SessionConnectionManager>();
             builder.Services.AddScoped<IProfileRepository, ProfileRepositoryService>();
             builder.Services.AddSingleton<AuthRepositoryService>();
             builder.Services.AddSingleton<ICompletedMatchRepository>(

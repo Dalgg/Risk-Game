@@ -252,4 +252,26 @@
   <data name="ProfileHistoryColumnsFormat" xml:space="preserve"><value>Columns claimed: {0}</value></data>
   <data name="LoginErrorSessionAlreadyActive" xml:space="preserve"><value>This account already has an active session. Sign out on the other session or wait for its reconnection period to end.</value></data>
   <data name="SessionExpiredMessage" xml:space="preserve"><value>Your session ended or the connection could not be recovered. Sign in again to continue.</value></data>
+  <data name="ProfileCurrentPasswordPlaceholder" xml:space="preserve"><value>Current password</value></data>
+  <data name="ProfileNewPasswordPlaceholder" xml:space="preserve"><value>New password</value></data>
+  <data name="ProfileConfirmPasswordPlaceholder" xml:space="preserve"><value>Confirm new password</value></data>
+  <data name="ProfilePasswordHint" xml:space="preserve"><value>At least 8 characters, including uppercase, lowercase, number, and symbol.</value></data>
+  <data name="ProfilePasswordEmptyError" xml:space="preserve"><value>Please complete all password fields.</value></data>
+  <data name="ProfilePasswordMismatchError" xml:space="preserve"><value>The password confirmation does not match the new password.</value></data>
+  <data name="ProfilePasswordPolicyError" xml:space="preserve"><value>The new password must have at least 8 characters, uppercase, lowercase, number, and symbol.</value></data>
+  <data name="ProfilePasswordCurrentWrongError" xml:space="preserve"><value>The current password is incorrect.</value></data>
+  <data name="ProfilePasswordSameError" xml:space="preserve"><value>The new password must be different from the current password.</value></data>
+  <data name="ProfilePasswordSaved" xml:space="preserve"><value>Password updated successfully.</value></data>
+  <data name="LoginForgotPasswordButton" xml:space="preserve"><value>Forgot your password?</value></data>
+  <data name="ForgotPasswordTitle" xml:space="preserve"><value>RESET PASSWORD</value></data>
+  <data name="ForgotPasswordEmailInstructions" xml:space="preserve"><value>Enter the email address registered with your account to receive a verification code.</value></data>
+  <data name="ForgotPasswordEmailPlaceholder" xml:space="preserve"><value>email@example.com</value></data>
+  <data name="ForgotPasswordSendCodeButton" xml:space="preserve"><value>SEND CODE</value></data>
+  <data name="ForgotPasswordResetInstructions" xml:space="preserve"><value>Enter the 6-digit code sent to your email and choose a new password.</value></data>
+  <data name="ForgotPasswordConfirmButton" xml:space="preserve"><value>RESET PASSWORD</value></data>
+  <data name="ForgotPasswordCodeSent" xml:space="preserve"><value>We sent a recovery code to your email. It expires in five minutes.</value></data>
+  <data name="ForgotPasswordEmailNotFound" xml:space="preserve"><value>No account is registered with that email address.</value></data>
+  <data name="ForgotPasswordEmailInvalid" xml:space="preserve"><value>Please enter a valid email address.</value></data>
+  <data name="ForgotPasswordResetError" xml:space="preserve"><value>Could not reset the password. Check your code or try again later.</value></data>
+  <data name="ForgotPasswordSuccess" xml:space="preserve"><value>Password reset successfully. You can now sign in.</value></data>
 </root>

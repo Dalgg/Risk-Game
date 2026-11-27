@@ -7,5 +7,6 @@ namespace RiskGame.Server.Services
         UserProfile GetProfile(int userId);
         UserProfile UpdateNickname(int userId, string nickname);
         UserProfile UpdateAvatar(int userId, string avatarReference);
+        void UpdatePassword(int userId, string currentPassword, string newPassword);
     }
 }

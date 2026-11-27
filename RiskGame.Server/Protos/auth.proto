@@ -11,6 +11,9 @@ service AuthGrpc {
   rpc ConfirmRegistration (RegistrationConfirmation) returns (RegisterResponse);
   rpc ResendVerification (RegistrationReference) returns (google.protobuf.Empty);
   rpc SubscribeSession (SessionRequest) returns (stream SessionState);
+  rpc RequestPasswordReset (PasswordResetRequest) returns (PasswordResetResponse);
+  rpc ConfirmPasswordReset (PasswordResetConfirmation) returns (google.protobuf.Empty);
+  rpc ResendPasswordReset (PasswordResetReference) returns (google.protobuf.Empty);
 }
 
 message RegisterRequest {
@@ -63,4 +66,22 @@ message SessionRequest {
 
 message SessionState {
   bool is_authenticated = 1;
+}
+
+message PasswordResetRequest {
+  string email = 1;
+}
+
+message PasswordResetResponse {
+  string reset_id = 1;
+}
+
+message PasswordResetConfirmation {
+  string reset_id = 1;
+  string code = 2;
+  string new_password = 3;
+}
+
+message PasswordResetReference {
+  string reset_id = 1;
 }

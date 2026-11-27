@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using RiskGame.Exceptions;
 using RiskGame.Resources;
 using RiskGame.Services;
@@ -12,8 +13,8 @@ namespace RiskGame.Views
 {
     public partial class LoginWindow : Window
     {
-        private static readonly IBrush ErrorBrush = new SolidColorBrush(Color.Parse("#FF8A8A"));
-        private static readonly IBrush SuccessBrush = new SolidColorBrush(Color.Parse("#8CE99A"));
+        private static readonly IBrush ErrorBrush = new ImmutableSolidColorBrush(Color.Parse("#FF8A8A"));
+        private static readonly IBrush SuccessBrush = new ImmutableSolidColorBrush(Color.Parse("#8CE99A"));
 
         public LoginWindow()
         {
@@ -39,6 +40,18 @@ namespace RiskGame.Views
         {
             RegisterWindow registerWindow = new RegisterWindow();
             registerWindow.Show();
+            this.Close();
+        }
+
+        private void ForgotPasswordClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            ForgotPasswordWindow forgotPasswordWindow = new ForgotPasswordWindow();
+            if (Application.Current != null
+                && Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+            {
+                desktopLifetime.MainWindow = forgotPasswordWindow;
+            }
+            forgotPasswordWindow.Show();
             this.Close();
         }
 
