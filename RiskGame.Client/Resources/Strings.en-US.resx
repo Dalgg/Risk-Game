@@ -274,4 +274,15 @@
   <data name="ForgotPasswordEmailInvalid" xml:space="preserve"><value>Please enter a valid email address.</value></data>
   <data name="ForgotPasswordResetError" xml:space="preserve"><value>Could not reset the password. Check your code or try again later.</value></data>
   <data name="ForgotPasswordSuccess" xml:space="preserve"><value>Password reset successfully. You can now sign in.</value></data>
+  <data name="AccountSuspendedMessage" xml:space="preserve"><value>Your account is temporarily suspended.</value></data>
+  <data name="AccountSuspendedUntilFormat" xml:space="preserve"><value>Your account is suspended until {0:g}.</value></data>
+  <data name="PlayerReportTitle" xml:space="preserve"><value>REPORT PLAYER</value></data>
+  <data name="PlayerReportButton" xml:space="preserve"><value>REPORT</value></data>
+  <data name="PlayerReportConfirmButton" xml:space="preserve"><value>CONFIRM REPORT</value></data>
+  <data name="PlayerReportCancelButton" xml:space="preserve"><value>CANCEL</value></data>
+  <data name="PlayerReportConfirmationFormat" xml:space="preserve"><value>Do you want to report {0} for misconduct?</value></data>
+  <data name="PlayerReportSuccess" xml:space="preserve"><value>Report submitted successfully.</value></data>
+  <data name="PlayerReportDuplicate" xml:space="preserve"><value>You have already reported this player in this lobby.</value></data>
+  <data name="PlayerReportNotAllowed" xml:space="preserve"><value>You can only report another registered account while both players are in a waiting lobby.</value></data>
+  <data name="PlayerReportConnectionError" xml:space="preserve"><value>Could not submit the report. Check your connection and try again.</value></data>
 </root>

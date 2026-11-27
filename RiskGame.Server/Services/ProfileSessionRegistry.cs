@@ -17,6 +17,7 @@ namespace RiskGame.Server.Services
         private readonly TimeProvider timeProvider;
         private readonly Dictionary<string, RegisteredSession> sessionsByToken =
             new Dictionary<string, RegisteredSession>();
+        private readonly Dictionary<int, DateTime> suspensionsByUserId = new Dictionary<int, DateTime>();
 
         public ProfileSessionRegistry() : this(TimeProvider.System)
         {
@@ -32,6 +33,10 @@ namespace RiskGame.Server.Services
             lock (sessionLock)
             {
                 ExpireSessions();
+                if (suspensionsByUserId.ContainsKey(userId))
+                {
+                    throw new AccountSuspendedException(suspensionsByUserId[userId]);
+                }
                 foreach (KeyValuePair<string, RegisteredSession> session in sessionsByToken)
                 {
                     if (session.Value.UserId == userId)
@@ -58,6 +63,11 @@ namespace RiskGame.Server.Services
                 if (sessionsByToken.ContainsKey(token))
                 {
                     RegisteredSession registeredSession = sessionsByToken[token];
+                    if (registeredSession.BannedUntil.HasValue
+                        && registeredSession.BannedUntil.Value > timeProvider.GetUtcNow().UtcDateTime)
+                    {
+                        throw new AccountSuspendedException(registeredSession.BannedUntil.Value);
+                    }
                     if (IsActive(registeredSession))
                     {
                         return registeredSession.UserId;
@@ -98,9 +108,35 @@ namespace RiskGame.Server.Services
 
         public void ValidateUser(int userId, string token)
         {
-            if (userId < MinimumRegisteredIdentifier || GetUserId(token) != userId)
+            lock (sessionLock)
             {
-                throw new InvalidSessionException("The session does not belong to the requested account.");
+                bool ownsSession = false;
+                if (sessionsByToken.ContainsKey(token))
+                {
+                    ownsSession = sessionsByToken[token].UserId == userId;
+                }
+                if (userId < MinimumRegisteredIdentifier || !ownsSession)
+                {
+                    throw new InvalidSessionException("The session does not belong to the requested account.");
+                }
+                GetUserId(token);
+            }
+        }
+
+        public void SuspendUser(int userId, DateTime bannedUntilUtc)
+        {
+            lock (sessionLock)
+            {
+                DateTime expiration = DateTime.SpecifyKind(bannedUntilUtc, DateTimeKind.Utc);
+                suspensionsByUserId[userId] = expiration;
+                foreach (RegisteredSession session in sessionsByToken.Values)
+                {
+                    if (session.UserId == userId)
+                    {
+                        session.BannedUntil = expiration;
+                        session.DisconnectedTimestamp = timeProvider.GetTimestamp();
+                    }
+                }
             }
         }
 
@@ -128,8 +164,9 @@ namespace RiskGame.Server.Services
             {
                 if (sessionsByToken.ContainsKey(token) && sessionsByToken[token].ConnectionId == connectionId)
                 {
-                    sessionsByToken[token].ConnectionId = string.Empty;
-                    sessionsByToken[token].DisconnectedTimestamp = timeProvider.GetTimestamp();
+                    RegisteredSession session = sessionsByToken[token];
+                    session.ConnectionId = string.Empty;
+                    session.DisconnectedTimestamp = timeProvider.GetTimestamp();
                 }
             }
         }
@@ -150,7 +187,9 @@ namespace RiskGame.Server.Services
                 List<string> expiredTokens = new List<string>();
                 foreach (KeyValuePair<string, RegisteredSession> session in sessionsByToken)
                 {
-                    if (!IsActive(session.Value))
+                    bool pendingSuspensionNotice = HasPendingSuspensionNotice(session.Value);
+                    bool shouldRetainSession = IsActive(session.Value) || pendingSuspensionNotice;
+                    if (!shouldRetainSession)
                     {
                         expiredTokens.Add(session.Key);
                     }
@@ -159,8 +198,18 @@ namespace RiskGame.Server.Services
                 {
                     sessionsByToken.Remove(token);
                 }
+                RemoveExpiredSuspensions();
                 return expiredTokens.Count > NoExpiredSessions;
             }
+        }
+
+        private bool HasPendingSuspensionNotice(RegisteredSession session)
+        {
+            bool hasConnection = !string.IsNullOrEmpty(session.ConnectionId);
+            bool isWithinNoticeGrace = timeProvider.GetElapsedTime(session.DisconnectedTimestamp)
+                < TimeSpan.FromSeconds(ReconnectionGraceSeconds);
+            bool canDeliverNotice = hasConnection || isWithinNoticeGrace;
+            return session.BannedUntil.HasValue && canDeliverNotice;
         }
 
         private bool IsActive(RegisteredSession session)
@@ -168,7 +217,25 @@ namespace RiskGame.Server.Services
             bool withinGrace = !string.IsNullOrEmpty(session.ConnectionId)
                 || timeProvider.GetElapsedTime(session.DisconnectedTimestamp)
                     < TimeSpan.FromSeconds(ReconnectionGraceSeconds);
-            return session.ExpiresAt > timeProvider.GetUtcNow().UtcDateTime && withinGrace;
+            bool isUnrestrictedSession = !session.BannedUntil.HasValue
+                && session.ExpiresAt > timeProvider.GetUtcNow().UtcDateTime;
+            return isUnrestrictedSession && withinGrace;
+        }
+
+        private void RemoveExpiredSuspensions()
+        {
+            List<int> expiredUsers = new List<int>();
+            foreach (KeyValuePair<int, DateTime> suspension in suspensionsByUserId)
+            {
+                if (suspension.Value <= timeProvider.GetUtcNow().UtcDateTime)
+                {
+                    expiredUsers.Add(suspension.Key);
+                }
+            }
+            foreach (int userId in expiredUsers)
+            {
+                suspensionsByUserId.Remove(userId);
+            }
         }
     }
 }

@@ -61,6 +61,58 @@ namespace RiskGame.Server.Services
             return JoinLobby(createdDatabaseLobby.LobbyCode, hostPlayer);
         }
 
+        public PlayerReportResult RecordPlayerReport(PlayerReportSubmission submission,
+            PlayerReportRepositoryService repository)
+        {
+            lock (syncLock)
+            {
+                ValidateReportRoom(submission);
+                PlayerReportResult result = repository.RecordReport(submission);
+                if (result.BannedUntil.HasValue && result.BannedUntil.Value > submission.ReportDateUtc)
+                {
+                    SuspendUser(submission.ReportedId, result.BannedUntil.Value);
+                }
+                return result;
+            }
+        }
+
+        private void ValidateReportRoom(PlayerReportSubmission submission)
+        {
+            bool hasInvalidAccounts = submission.ReporterId < MinimumValidIdentifier
+                || submission.ReportedId < MinimumValidIdentifier;
+            bool hasInvalidReporter = hasInvalidAccounts || submission.ReporterId == submission.ReportedId;
+            bool reporterHasLobby = userToLobbyCode.ContainsKey(submission.ReporterId);
+            if (hasInvalidReporter || !reporterHasLobby)
+            {
+                throw new ReportNotAllowedException("Only distinct registered lobby participants can report.");
+            }
+            ActiveLobbyRoom room = roomsByCode[userToLobbyCode[submission.ReporterId]];
+            bool reportedIsPresent = room.Players.Any(player => player.Player.UserId == submission.ReportedId);
+            bool isWaitingRoom = room.LobbyId == submission.LobbyId && room.Status == LobbyStatus.Waiting;
+            bool canReportInRoom = isWaitingRoom && reportedIsPresent;
+            if (!canReportInRoom)
+            {
+                throw new ReportNotAllowedException("Both accounts must belong to the same waiting lobby.");
+            }
+        }
+
+        public void SuspendUser(int userId, DateTime bannedUntilUtc)
+        {
+            lock (syncLock)
+            {
+                sessionRegistry.SuspendUser(userId, bannedUntilUtc);
+                try
+                {
+                    matchSessionManager.SuspendUser(userId);
+                }
+                finally
+                {
+                    LeaveLobby(userId);
+                    BroadcastPresenceUpdate();
+                }
+            }
+        }
+
         public void ValidateParticipant(int userId, string sessionToken)
         {
             if (userId >= MinimumValidIdentifier)

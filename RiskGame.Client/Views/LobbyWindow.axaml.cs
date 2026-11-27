@@ -4,6 +4,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
+using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
@@ -32,6 +33,10 @@ namespace RiskGame.Views
         private const int FriendsNoticeTopMargin = 10;
         private const int MaxChatMessagesDisplayed = 100;
         private const int MinimumPlayersToStart = 2;
+        private const int InvalidUserIdentifier = 0;
+        private const int ReportColumnIndex = 2;
+        private const int ReportButtonLeftMargin = 8;
+        private const int NoMargin = 0;
         private static readonly IBrush PlayerCardBackground = new SolidColorBrush(Color.Parse("#25293A"));
         private static readonly IBrush HostBadgeBrush = new SolidColorBrush(Color.Parse("#D4A32D"));
         private static readonly IBrush PlayerNameBrush = Brushes.White;
@@ -39,11 +44,18 @@ namespace RiskGame.Views
         private static readonly IBrush OtherChatMessageBrush = Brushes.White;
         private static readonly IBrush OnlineBadgeBrush = new SolidColorBrush(Color.Parse("#4CAF50"));
         private static readonly IBrush OfflineBadgeBrush = new SolidColorBrush(Color.Parse("#8A8E9B"));
+        private static readonly IBrush LobbyErrorBrush = new SolidColorBrush(Color.Parse("#FF8A8A"));
         private readonly LobbyViewModel lobbyViewModel;
         private readonly LobbySettingsViewModel settingsViewModel = new LobbySettingsViewModel();
+        private readonly PlayerReportViewModel reportViewModel = new PlayerReportViewModel();
+        private readonly HashSet<int> reportedUserIds = new HashSet<int>();
         private readonly List<LobbyPlayer> currentLobbyPlayers = new List<LobbyPlayer>();
+        private int currentLobbyId;
+        private LobbyStatus currentLobbyStatus;
+        private int pendingReportUserId;
         private bool hasLeftLobby;
         private bool hasEnteredMatch;
+        private bool hasReportNotice;
 
         public LobbyWindow()
         {
@@ -89,11 +101,18 @@ namespace RiskGame.Views
 
         private void ApplyLobbyDetails(LobbyDetails lobbyDetails)
         {
+            currentLobbyId = lobbyDetails.LobbyId;
+            currentLobbyStatus = lobbyDetails.Status;
             RoomCodeTextBlock.Text = string.Format(Strings.LobbyRoomIdFormat, lobbyDetails.LobbyCode);
             settingsViewModel.ApplySnapshot(lobbyDetails);
 
             currentLobbyPlayers.Clear();
             currentLobbyPlayers.AddRange(lobbyDetails.Players);
+
+            if (!IsReportTargetAvailable(pendingReportUserId))
+            {
+                CloseReportConfirmation();
+            }
 
             RenderPlayers(lobbyDetails.Players);
             RenderFriends();
@@ -112,7 +131,7 @@ namespace RiskGame.Views
             {
                 ShowLobbyMessage(Strings.LobbyWaitingForReturns);
             }
-            else
+            else if (!hasReportNotice)
             {
                 LobbyMessageTextBlock.IsVisible = false;
             }
@@ -160,6 +179,8 @@ namespace RiskGame.Views
 
         private void ShowLobbyMessage(string messageText)
         {
+            hasReportNotice = false;
+            LobbyMessageTextBlock.Foreground = LobbyErrorBrush;
             LobbyMessageTextBlock.Text = messageText;
             LobbyMessageTextBlock.IsVisible = true;
         }
@@ -169,6 +190,7 @@ namespace RiskGame.Views
             if (!hasEnteredMatch)
             {
                 hasEnteredMatch = true;
+                CloseReportConfirmation();
                 hasLeftLobby = true;
                 lobbyViewModel.StopSubscription();
                 lobbyViewModel.StopChatSubscription();
@@ -239,7 +261,7 @@ namespace RiskGame.Views
             }
         }
 
-        private static Border CreatePlayerCard(LobbyPlayer lobbyPlayer)
+        private Border CreatePlayerCard(LobbyPlayer lobbyPlayer)
         {
             string displayName = Strings.LobbyDefaultPlayerName;
             if (lobbyPlayer.Player != null && !string.IsNullOrWhiteSpace(lobbyPlayer.Player.Nickname))
@@ -255,7 +277,7 @@ namespace RiskGame.Views
 
             Grid cardGrid = new Grid
             {
-                ColumnDefinitions = new ColumnDefinitions("*, Auto")
+                ColumnDefinitions = new ColumnDefinitions("*, Auto, Auto")
             };
 
             TextBlock nameBlock = new TextBlock
@@ -264,6 +286,7 @@ namespace RiskGame.Views
                 Foreground = PlayerNameBrush,
                 FontSize = PlayerNameFontSize,
                 FontWeight = FontWeight.SemiBold,
+                TextTrimming = TextTrimming.CharacterEllipsis,
                 VerticalAlignment = VerticalAlignment.Center
             };
             Grid.SetColumn(nameBlock, NameColumnIndex);
@@ -280,6 +303,7 @@ namespace RiskGame.Views
 
             cardGrid.Children.Add(nameBlock);
             cardGrid.Children.Add(roleBlock);
+            cardGrid.Children.Add(CreateReportButton(lobbyPlayer));
 
             return new Border
             {
@@ -288,6 +312,141 @@ namespace RiskGame.Views
                 Padding = new Thickness(CardHorizontalPadding, CardVerticalPadding),
                 Child = cardGrid
             };
+        }
+
+        private Button CreateReportButton(LobbyPlayer lobbyPlayer)
+        {
+            int targetUserId = InvalidUserIdentifier;
+            if (lobbyPlayer.Player != null)
+            {
+                targetUserId = lobbyPlayer.Player.UserId;
+            }
+            Button reportButton = new Button
+            {
+                Content = Strings.PlayerReportButton, Tag = targetUserId,
+                FontSize = PlayerRoleFontSize, Foreground = PlayerNameBrush,
+                Margin = new Thickness(ReportButtonLeftMargin, NoMargin, NoMargin, NoMargin),
+                IsVisible = PlayerReportViewModel.CanReport(lobbyPlayer, currentLobbyStatus) && !hasEnteredMatch,
+                IsEnabled = !reportedUserIds.Contains(targetUserId)
+            };
+            reportButton.Click += ReportPlayerClick;
+            Grid.SetColumn(reportButton, ReportColumnIndex);
+            return reportButton;
+        }
+
+        private bool IsReportTargetAvailable(int targetUserId)
+        {
+            bool available = false;
+            foreach (LobbyPlayer player in currentLobbyPlayers)
+            {
+                if (player.Player != null && player.Player.UserId == targetUserId)
+                {
+                    available = PlayerReportViewModel.CanReport(player, currentLobbyStatus) && !hasEnteredMatch;
+                }
+            }
+            return available;
+        }
+
+        private void ReportPlayerClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            if (sender is Button reportButton && reportButton.Tag is int targetUserId)
+            {
+                OpenReportConfirmation(targetUserId);
+            }
+        }
+
+        private void OpenReportConfirmation(int targetUserId)
+        {
+            bool alreadyReported = reportedUserIds.Contains(targetUserId);
+            if (!alreadyReported && IsReportTargetAvailable(targetUserId))
+            {
+                foreach (LobbyPlayer player in currentLobbyPlayers)
+                {
+                    if (player.Player != null && player.Player.UserId == targetUserId)
+                    {
+                        pendingReportUserId = targetUserId;
+                        ReportConfirmationTextBlock.Text = string.Format(Strings.PlayerReportConfirmationFormat,
+                            player.Player.Nickname);
+                        ReportConfirmationOverlay.IsVisible = true;
+                        SetLobbyContentEnabled(false);
+                        SendChatMessageButton.IsDefault = false;
+                        ConfirmPlayerReportButton.IsDefault = true;
+                        ConfirmPlayerReportButton.Focus();
+                    }
+                }
+            }
+        }
+
+        private void ConfirmPlayerReportClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            if (IsReportTargetAvailable(pendingReportUserId))
+            {
+                ConfirmPlayerReportButton.IsEnabled = false;
+                try
+                {
+                    bool duplicate = reportViewModel.ReportPlayer(currentLobbyId, pendingReportUserId);
+                    reportedUserIds.Add(pendingReportUserId);
+                    string message = Strings.PlayerReportSuccess;
+                    if (duplicate)
+                    {
+                        message = Strings.PlayerReportDuplicate;
+                    }
+                    ShowLobbyMessage(message);
+                    LobbyMessageTextBlock.Foreground = OnlineBadgeBrush;
+                    hasReportNotice = true;
+                    RenderPlayers(currentLobbyPlayers);
+                }
+                catch (DataOperationException dataOperationException)
+                {
+                    JsonLogger.Error(dataOperationException, "Could not report player {0} from the lobby.",
+                        pendingReportUserId);
+                    ShowLobbyMessage(dataOperationException.Message);
+                }
+                finally
+                {
+                    CloseReportConfirmation();
+                    ConfirmPlayerReportButton.IsEnabled = true;
+                }
+            }
+        }
+
+        private void CancelPlayerReportClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            CloseReportConfirmation();
+        }
+
+        private void ReportConfirmationKeyDown(object? sender, KeyEventArgs keyEventArgs)
+        {
+            if (keyEventArgs.Key == Key.Escape)
+            {
+                CloseReportConfirmation();
+                keyEventArgs.Handled = true;
+            }
+        }
+
+        private void CloseReportConfirmation()
+        {
+            bool wasVisible = ReportConfirmationOverlay.IsVisible;
+            pendingReportUserId = InvalidUserIdentifier;
+            ReportConfirmationOverlay.IsVisible = false;
+            SetLobbyContentEnabled(true);
+            ConfirmPlayerReportButton.IsDefault = false;
+            SendChatMessageButton.IsDefault = true;
+            if (wasVisible && !hasEnteredMatch)
+            {
+                ChatInputTextBox.Focus();
+            }
+        }
+
+        private void SetLobbyContentEnabled(bool isEnabled)
+        {
+            foreach (Control lobbyControl in LobbyLayoutGrid.Children)
+            {
+                if (!ReferenceEquals(lobbyControl, ReportConfirmationOverlay))
+                {
+                    lobbyControl.IsEnabled = isEnabled;
+                }
+            }
         }
 
         private void RenderFriends()
@@ -446,7 +605,8 @@ namespace RiskGame.Views
                 }
                 catch (DataOperationException dataOperationException)
                 {
-                    JsonLogger.Error(dataOperationException, "Could not send lobby invitation to friend {0}.", friendUserId);
+                    JsonLogger.Error(dataOperationException, "Could not send lobby invitation to friend {0}.",
+                        friendUserId);
                     ShowLobbyMessage(dataOperationException.Message);
                 }
             }

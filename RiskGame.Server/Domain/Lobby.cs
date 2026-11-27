@@ -20,6 +20,8 @@ namespace RiskGame.Models
         public virtual ICollection<LobbyInvitation> LobbyInvitations { get; set; } = new List<LobbyInvitation>();
 
         public virtual ICollection<Match> Matches { get; set; } = new List<Match>();
+
+        public virtual ICollection<PlayerReport> PlayerReports { get; set; } = new List<PlayerReport>();
     }
 
 }

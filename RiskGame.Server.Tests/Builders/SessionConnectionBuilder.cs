@@ -62,8 +62,9 @@ namespace RiskGame.Server.Tests.Builders
 
             public ConnectionProbe(SessionConnectionManager manager, int userId, string sessionToken)
             {
-                subscription = Task.Run<Exception?>(() => Record.Exception(() =>
-                    manager.Subscribe(userId, sessionToken, stream, cancellation.Token).GetAwaiter().GetResult()));
+                subscription = Task.Factory.StartNew<Exception?>(() => Record.Exception(() =>
+                    manager.Subscribe(new AccountSessionIdentity(userId, sessionToken), stream,
+                        cancellation.Token).GetAwaiter().GetResult()), TaskCreationOptions.LongRunning);
             }
 
             public SessionState InitialState { get; private set; } = new SessionState();

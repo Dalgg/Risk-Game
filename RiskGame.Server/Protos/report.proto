@@ -1,0 +1,18 @@
+syntax = "proto3";
+option csharp_namespace = "RiskGame.Contracts.Report";
+package riskgame.report;
+
+service PlayerReport {
+  rpc ReportPlayer (PlayerReportRequest) returns (PlayerReportResponse);
+}
+
+message PlayerReportRequest {
+  int32 user_id = 1;
+  string session_token = 2;
+  int32 reported_user_id = 3;
+  int32 lobby_id = 4;
+}
+
+message PlayerReportResponse {
+  bool is_duplicate = 1;
+}

@@ -366,6 +366,31 @@ namespace RiskGame.Server.Services
             return snapshot;
         }
 
+        public void SuspendUser(int userId)
+        {
+            List<int> changedMatches = new List<int>();
+            lock (matchLock)
+            {
+                foreach (ActiveMatch match in matchesById.Values)
+                {
+                    if (!match.IsFinished && match.Participants.Any(player => player.UserId == userId))
+                    {
+                        match.AbandonParticipant(userId);
+                        RefreshMatch(match);
+                        if (match.IsFinished)
+                        {
+                            RetryCompletion(match);
+                        }
+                        changedMatches.Add(match.MatchId);
+                    }
+                }
+            }
+            foreach (int matchId in changedMatches)
+            {
+                BroadcastBoardState(matchId);
+            }
+        }
+
         private bool CanRetryCompletion(ActiveMatch match, long turnId, int userId)
         {
             bool hasPendingCompletion = match.IsFinished && !storedCompletions.Contains(match.MatchId);

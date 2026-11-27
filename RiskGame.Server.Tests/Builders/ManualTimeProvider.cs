@@ -14,6 +14,11 @@ namespace RiskGame.Server.Tests.Builders
             return Interlocked.Read(ref timestamp);
         }
 
+        public override DateTimeOffset GetUtcNow()
+        {
+            return DateTimeOffset.UnixEpoch.AddTicks(GetTimestamp());
+        }
+
         public void Advance(TimeSpan elapsed)
         {
             Interlocked.Add(ref timestamp, elapsed.Ticks);

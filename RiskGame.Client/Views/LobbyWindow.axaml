@@ -11,7 +11,7 @@
         MinHeight="680"
         Background="#181A25">
 
-    <Grid RowDefinitions="Auto, Auto, *, Auto, Auto, Auto" Margin="20">
+    <Grid x:Name="LobbyLayoutGrid" RowDefinitions="Auto, Auto, *, Auto, Auto, Auto" Margin="20">
         <StackPanel Grid.Row="0"
                     HorizontalAlignment="Center"
                     Spacing="5"
@@ -223,5 +223,54 @@
                     IsEnabled="False"
                     Click="PlayClick" />
         </Grid>
+
+        <Border x:Name="ReportConfirmationOverlay"
+                Grid.RowSpan="6"
+                IsVisible="False"
+                Background="{StaticResource PlayerReportOverlayBrush}"
+                KeyDown="ReportConfirmationKeyDown">
+            <Border Background="{StaticResource ScoreboardPanelBrush}"
+                    BorderBrush="{StaticResource ScoreboardBorderBrush}"
+                    BorderThickness="{StaticResource ScoreboardBorderThickness}"
+                    CornerRadius="{StaticResource ScoreboardRadius}"
+                    Padding="{StaticResource PlayerReportPadding}"
+                    MaxWidth="{StaticResource PlayerReportDialogWidth}"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+                <StackPanel Spacing="{StaticResource PlayerReportSpacing}">
+                    <TextBlock Text="{x:Static res:Strings.PlayerReportTitle}"
+                               Foreground="{StaticResource ScoreboardTextBrush}"
+                               FontSize="{StaticResource PlayerReportTitleSize}"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center" />
+
+                    <TextBlock x:Name="ReportConfirmationTextBlock"
+                               Foreground="{StaticResource ScoreboardTextBrush}"
+                               FontSize="{StaticResource ScoreboardTextSize}"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center" />
+
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Spacing="{StaticResource PlayerReportSpacing}">
+                        <Button x:Name="ConfirmPlayerReportButton"
+                                Content="{x:Static res:Strings.PlayerReportConfirmButton}"
+                                Background="{StaticResource PlayerReportConfirmBrush}"
+                                Foreground="{StaticResource ScoreboardTextBrush}"
+                                CornerRadius="{StaticResource PlayerReportButtonRadius}"
+                                TabIndex="0"
+                                Click="ConfirmPlayerReportClick" />
+
+                        <Button Content="{x:Static res:Strings.PlayerReportCancelButton}"
+                                Background="{StaticResource PlayerReportCancelBrush}"
+                                Foreground="{StaticResource ScoreboardTextBrush}"
+                                CornerRadius="{StaticResource PlayerReportButtonRadius}"
+                                TabIndex="1"
+                                IsCancel="True"
+                                Click="CancelPlayerReportClick" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
     </Grid>
 </Window>

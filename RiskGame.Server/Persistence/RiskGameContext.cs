@@ -31,6 +31,8 @@ namespace RiskGame.Models
 
         public virtual DbSet<User> Users { get; set; }
 
+        public virtual DbSet<PlayerReport> PlayerReports { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
@@ -256,6 +258,9 @@ namespace RiskGame.Models
                 entity.HasIndex(e => e.Username, "UQ__User__F3DBC5728651C725").IsUnique();
 
                 entity.Property(e => e.IdUser).HasColumnName("id_user");
+                entity.Property(e => e.BannedUntil)
+                    .HasColumnType("datetime2(7)")
+                    .HasColumnName("banned_until");
                 entity.Property(e => e.AvatarReference)
                     .HasMaxLength(255)
                     .IsUnicode(false)
@@ -282,7 +287,41 @@ namespace RiskGame.Models
                     .HasColumnName("username");
             });
 
+            ConfigurePlayerReports(modelBuilder);
             OnModelCreatingPartial(modelBuilder);
+        }
+
+        private static void ConfigurePlayerReports(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<PlayerReport>(entity =>
+            {
+                entity.ToTable("PlayerReport", table =>
+                {
+                    table.HasCheckConstraint("CK_PlayerReport_DifferentUsers", "id_reporter <> id_reported");
+                    table.HasCheckConstraint("CK_PlayerReport_RegisteredUsers", "id_reporter > 0 AND id_reported > 0");
+                });
+                entity.HasKey(report => report.IdPlayerReport).HasName("PK_PlayerReport");
+                entity.HasIndex(report => new { report.IdReporter, report.IdReported, report.IdLobby },
+                    "UQ_PlayerReport_Pair_Lobby").IsUnique();
+                entity.HasIndex(report => new { report.IdReported, report.IsProcessed, report.IdReporter },
+                    "IX_PlayerReport_Reported_Processed_Reporter");
+                entity.Property(report => report.IdPlayerReport).HasColumnName("id_player_report");
+                entity.Property(report => report.IdReporter).HasColumnName("id_reporter");
+                entity.Property(report => report.IdReported).HasColumnName("id_reported");
+                entity.Property(report => report.IdLobby).HasColumnName("id_lobby");
+                entity.Property(report => report.ReportDate).HasColumnType("datetime2(7)")
+                    .HasDefaultValueSql("(sysutcdatetime())").HasColumnName("report_date");
+                entity.Property(report => report.IsProcessed).HasDefaultValue(false).HasColumnName("is_processed");
+                entity.HasOne(report => report.Reporter).WithMany(user => user.ReportsSubmitted)
+                    .HasForeignKey(report => report.IdReporter).OnDelete(DeleteBehavior.NoAction)
+                    .HasConstraintName("FK_PlayerReport_Reporter");
+                entity.HasOne(report => report.Reported).WithMany(user => user.ReportsReceived)
+                    .HasForeignKey(report => report.IdReported).OnDelete(DeleteBehavior.NoAction)
+                    .HasConstraintName("FK_PlayerReport_Reported");
+                entity.HasOne(report => report.Lobby).WithMany(lobby => lobby.PlayerReports)
+                    .HasForeignKey(report => report.IdLobby).OnDelete(DeleteBehavior.NoAction)
+                    .HasConstraintName("FK_PlayerReport_Lobby");
+            });
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

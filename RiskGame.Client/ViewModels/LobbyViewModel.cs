@@ -81,16 +81,23 @@ namespace RiskGame.ViewModels
         {
             StopSubscription();
             StopChatSubscription();
-            try
+            SessionUser? session = SessionService.CurrentUser;
+            if (session != null)
             {
-                GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
-                Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
-                UserLobbyRequest leaveRequest = BuildUserLobbyRequest();
-                lobbyClient.LeaveLobby(leaveRequest, cancellationToken: CancellationToken.None);
-            }
-            catch (RpcException rpcException)
-            {
-                JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while leaving lobby.");
+                try
+                {
+                    GrpcChannel grpcChannel = GrpcChannelProvider.GetChannel();
+                    Lobby.LobbyClient lobbyClient = new Lobby.LobbyClient(grpcChannel);
+                    UserLobbyRequest leaveRequest = new UserLobbyRequest
+                    {
+                        UserId = session.IdUser, SessionToken = session.SessionToken
+                    };
+                    lobbyClient.LeaveLobby(leaveRequest, cancellationToken: CancellationToken.None);
+                }
+                catch (RpcException rpcException)
+                {
+                    JsonLogger.Error(rpcException, "gRPC communication error (RpcException) while leaving lobby.");
+                }
             }
         }
 

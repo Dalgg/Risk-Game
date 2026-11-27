@@ -53,6 +53,33 @@ namespace RiskGame.Resources
             ResourceManager.GetString("LoginErrorSessionAlreadyActive", _resourceCulture);
 
         public static string SessionExpiredMessage => ResourceManager.GetString("SessionExpiredMessage", _resourceCulture);
+
+        public static string AccountSuspendedMessage => ResourceManager.GetString("AccountSuspendedMessage", _resourceCulture);
+
+        public static string AccountSuspendedUntilFormat =>
+            ResourceManager.GetString("AccountSuspendedUntilFormat", _resourceCulture);
+
+        public static string PlayerReportTitle => ResourceManager.GetString("PlayerReportTitle", _resourceCulture);
+
+        public static string PlayerReportButton => ResourceManager.GetString("PlayerReportButton", _resourceCulture);
+
+        public static string PlayerReportConfirmButton =>
+            ResourceManager.GetString("PlayerReportConfirmButton", _resourceCulture);
+
+        public static string PlayerReportCancelButton =>
+            ResourceManager.GetString("PlayerReportCancelButton", _resourceCulture);
+
+        public static string PlayerReportConfirmationFormat =>
+            ResourceManager.GetString("PlayerReportConfirmationFormat", _resourceCulture);
+
+        public static string PlayerReportSuccess => ResourceManager.GetString("PlayerReportSuccess", _resourceCulture);
+
+        public static string PlayerReportDuplicate => ResourceManager.GetString("PlayerReportDuplicate", _resourceCulture);
+
+        public static string PlayerReportNotAllowed => ResourceManager.GetString("PlayerReportNotAllowed", _resourceCulture);
+
+        public static string PlayerReportConnectionError =>
+            ResourceManager.GetString("PlayerReportConnectionError", _resourceCulture);
         
         public static string RegisterTitleLabel => ResourceManager.GetString("RegisterTitleLabel", _resourceCulture);
 

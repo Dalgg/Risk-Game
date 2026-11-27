@@ -32,7 +32,7 @@ namespace RiskGame.Server.Services
             this.createContext = createContext;
         }
 
-        public User AuthenticateUser(string username, string password)
+        public virtual User AuthenticateUser(string username, string password)
         {
             try
             {

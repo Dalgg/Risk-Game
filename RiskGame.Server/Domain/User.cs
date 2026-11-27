@@ -19,6 +19,8 @@ namespace RiskGame.Models
 
         public DateTime RegistrationDate { get; set; }
 
+        public DateTime? BannedUntil { get; set; }
+
         public virtual ICollection<Friendship> FriendshipIdUser1Navigations { get; set; } = new List<Friendship>();
 
         public virtual ICollection<Friendship> FriendshipIdUser2Navigations { get; set; } = new List<Friendship>();
@@ -32,6 +34,10 @@ namespace RiskGame.Models
         public virtual ICollection<MatchResult> MatchResults { get; set; } = new List<MatchResult>();
 
         public virtual ICollection<PasswordRecovery> PasswordRecoveries { get; set; } = new List<PasswordRecovery>();
+
+        public virtual ICollection<PlayerReport> ReportsSubmitted { get; set; } = new List<PlayerReport>();
+
+        public virtual ICollection<PlayerReport> ReportsReceived { get; set; } = new List<PlayerReport>();
     }
 
 }

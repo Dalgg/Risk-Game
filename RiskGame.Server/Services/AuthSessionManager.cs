@@ -25,16 +25,29 @@ namespace RiskGame.Server.Services
             new Dictionary<string, PendingRegistration>();
         private readonly AuthRepositoryService authRepository;
         private readonly EmailService emailService;
+        private readonly TimeProvider timeProvider;
 
         public AuthSessionManager(AuthRepositoryService authRepository, EmailService emailService)
+            : this(authRepository, emailService, TimeProvider.System)
+        {
+        }
+
+        public AuthSessionManager(AuthRepositoryService authRepository, EmailService emailService,
+            TimeProvider timeProvider)
         {
             this.authRepository = authRepository;
             this.emailService = emailService;
+            this.timeProvider = timeProvider;
         }
 
         public User AuthenticateUser(string username, string password)
         {
-            return authRepository.AuthenticateUser(username, password);
+            User user = authRepository.AuthenticateUser(username, password);
+            if (user.BannedUntil.HasValue && user.BannedUntil.Value > timeProvider.GetUtcNow().UtcDateTime)
+            {
+                throw new AccountSuspendedException(user.BannedUntil.Value);
+            }
+            return user;
         }
 
         public RegisterResponse BeginRegistration(RegisterRequest registerRequest)

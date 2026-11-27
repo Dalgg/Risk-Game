@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
 using RiskGame.Contracts.Auth;
+using RiskGame.Exceptions;
 
 namespace RiskGame.Server.Services
 {
@@ -10,30 +11,79 @@ namespace RiskGame.Server.Services
     {
         private const int ConnectionCheckSeconds = 1;
         private readonly ProfileSessionRegistry sessions;
+        private readonly LobbySessionManager? lobbies;
 
         public SessionConnectionManager(ProfileSessionRegistry sessions)
+            : this(sessions, null)
         {
-            this.sessions = sessions;
         }
 
-        public Task Subscribe(int userId, string sessionToken, IServerStreamWriter<SessionState> stream,
+        public SessionConnectionManager(ProfileSessionRegistry sessions, LobbySessionManager? lobbies)
+        {
+            this.sessions = sessions;
+            this.lobbies = lobbies;
+        }
+
+        public string Register(int userId)
+        {
+            string token = sessions.Register(userId);
+            BroadcastPresence();
+            return token;
+        }
+
+        public void Logout(string sessionToken)
+        {
+            sessions.RemoveSession(sessionToken);
+            BroadcastPresence();
+        }
+
+        private void BroadcastPresence()
+        {
+            if (lobbies != null)
+            {
+                lobbies.BroadcastPresenceUpdate();
+            }
+        }
+
+        public Task Subscribe(AccountSessionIdentity identity, IServerStreamWriter<SessionState> stream,
+            CancellationToken cancellationToken)
+        {
+            Task subscription = Task.CompletedTask;
+            try
+            {
+                subscription = ReadSession(identity, stream, cancellationToken);
+            }
+            catch (AccountSuspendedException accountSuspendedException)
+            {
+                SessionState state = new SessionState
+                {
+                    IsSuspended = true,
+                    BannedUntilUnixMilliseconds = new DateTimeOffset(accountSuspendedException.BannedUntilUtc)
+                        .ToUnixTimeMilliseconds()
+                };
+                stream.WriteAsync(state).GetAwaiter().GetResult();
+            }
+            return subscription;
+        }
+
+        private Task ReadSession(AccountSessionIdentity identity, IServerStreamWriter<SessionState> stream,
             CancellationToken cancellationToken)
         {
             string connectionId = Guid.NewGuid().ToString();
             try
             {
-                sessions.AttachSession(userId, sessionToken, connectionId);
+                sessions.AttachSession(identity.UserId, identity.SessionToken, connectionId);
                 stream.WriteAsync(new SessionState { IsAuthenticated = true }).GetAwaiter().GetResult();
-                WaitForConnectionEnd(sessionToken, connectionId, cancellationToken);
+                WaitForConnectionEnd(identity.SessionToken, connectionId, cancellationToken);
                 if (!cancellationToken.IsCancellationRequested)
                 {
-                    sessions.ValidateUser(userId, sessionToken);
+                    sessions.ValidateUser(identity.UserId, identity.SessionToken);
                 }
                 return Task.CompletedTask;
             }
             finally
             {
-                sessions.DetachSession(sessionToken, connectionId);
+                sessions.DetachSession(identity.SessionToken, connectionId);
             }
         }
 

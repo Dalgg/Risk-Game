@@ -17,7 +17,7 @@ namespace RiskGame.Services
         private static SessionUser? currentUser;
         private static AccountSessionConnection? accountConnection;
 
-        public static event EventHandler? SessionExpired;
+        public static event EventHandler<SessionExpiredEventArgs>? SessionExpired;
 
         public static SessionUser? CurrentUser
         {
@@ -151,10 +151,10 @@ namespace RiskGame.Services
                     expired = true;
                 }
             }
-            EventHandler? handler = SessionExpired;
-            if (expired && handler != null)
+            EventHandler<SessionExpiredEventArgs>? eventHandler = SessionExpired;
+            if (expired && eventHandler != null)
             {
-                handler(null, EventArgs.Empty);
+                eventHandler(null, expectedConnection.Expiration);
             }
         }
     }

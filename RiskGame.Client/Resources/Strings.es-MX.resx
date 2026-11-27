@@ -167,4 +167,15 @@
   <data name="ForgotPasswordEmailInvalid" xml:space="preserve"><value>Ingresa un correo electrónico válido.</value></data>
   <data name="ForgotPasswordResetError" xml:space="preserve"><value>No se pudo restablecer la contraseña. Revisa el código o inténtalo más tarde.</value></data>
   <data name="ForgotPasswordSuccess" xml:space="preserve"><value>Contraseña restablecida con éxito. Ya puedes iniciar sesión.</value></data>
+  <data name="AccountSuspendedMessage" xml:space="preserve"><value>Tu cuenta está suspendida temporalmente.</value></data>
+  <data name="AccountSuspendedUntilFormat" xml:space="preserve"><value>Tu cuenta está suspendida hasta {0:g}.</value></data>
+  <data name="PlayerReportTitle" xml:space="preserve"><value>REPORTAR JUGADOR</value></data>
+  <data name="PlayerReportButton" xml:space="preserve"><value>REPORTAR</value></data>
+  <data name="PlayerReportConfirmButton" xml:space="preserve"><value>CONFIRMAR REPORTE</value></data>
+  <data name="PlayerReportCancelButton" xml:space="preserve"><value>CANCELAR</value></data>
+  <data name="PlayerReportConfirmationFormat" xml:space="preserve"><value>¿Quieres reportar a {0} por mal comportamiento?</value></data>
+  <data name="PlayerReportSuccess" xml:space="preserve"><value>Reporte registrado correctamente.</value></data>
+  <data name="PlayerReportDuplicate" xml:space="preserve"><value>Ya reportaste a este jugador en esta sala.</value></data>
+  <data name="PlayerReportNotAllowed" xml:space="preserve"><value>Solo puedes reportar a otra cuenta registrada mientras ambos están en una sala en espera.</value></data>
+  <data name="PlayerReportConnectionError" xml:space="preserve"><value>No se pudo registrar el reporte. Revisa tu conexión e inténtalo nuevamente.</value></data>
 </root>

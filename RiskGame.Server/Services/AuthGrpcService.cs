@@ -9,24 +9,18 @@ using RiskGame.Services;
 
 namespace RiskGame.Server.Services
 {
-    public class AuthGrpcService : AuthGrpc.AuthGrpcBase
+    public sealed class AuthGrpcService : AuthGrpc.AuthGrpcBase
     {
         private readonly AuthSessionManager authSessionManager;
-        private readonly ProfileSessionRegistry profileSessions;
-        private readonly LobbySessionManager lobbySessionManager;
         private readonly SessionConnectionManager sessionConnectionManager;
         private readonly PasswordResetManager passwordResetManager;
 
         public AuthGrpcService(
             AuthSessionManager authSessionManager,
-            ProfileSessionRegistry sessions,
-            LobbySessionManager lobbySessionManager,
             SessionConnectionManager sessionConnectionManager,
             PasswordResetManager passwordResetManager)
         {
             this.authSessionManager = authSessionManager;
-            profileSessions = sessions;
-            this.lobbySessionManager = lobbySessionManager;
             this.sessionConnectionManager = sessionConnectionManager;
             this.passwordResetManager = passwordResetManager;
         }
@@ -61,10 +55,9 @@ namespace RiskGame.Server.Services
             LoginResponse response = new LoginResponse
             {
                 IsAuthenticated = true,
-                SessionToken = profileSessions.Register(user.IdUser),
+                SessionToken = sessionConnectionManager.Register(user.IdUser),
                 Player = CreatePlayer(user)
             };
-            lobbySessionManager.BroadcastPresenceUpdate();
             return response;
         }
 
@@ -83,11 +76,25 @@ namespace RiskGame.Server.Services
 
         private Task<LoginResponse> HandleLoginFailure(DataOperationException exception)
         {
-            if (exception is InvalidCredentialsException)
+            LoginResponse response = new LoginResponse { IsAuthenticated = false };
+            if (exception is AccountSuspendedException suspension)
             {
-                return Task.FromResult(new LoginResponse { IsAuthenticated = false });
+                response = CreateSuspendedLogin(suspension);
             }
-            throw CreateLoginFailure(exception);
+            else if (exception is not InvalidCredentialsException)
+            {
+                throw CreateLoginFailure(exception);
+            }
+            return Task.FromResult(response);
+        }
+
+        private static LoginResponse CreateSuspendedLogin(AccountSuspendedException suspension)
+        {
+            return new LoginResponse
+            {
+                IsSuspended = true,
+                BannedUntilUnixMilliseconds = new DateTimeOffset(suspension.BannedUntilUtc).ToUnixTimeMilliseconds()
+            };
         }
 
         private static RpcException CreateLoginFailure(DataOperationException exception)
@@ -103,8 +110,7 @@ namespace RiskGame.Server.Services
 
         public override Task<Empty> Logout(LogoutRequest logoutRequest, ServerCallContext callContext)
         {
-            profileSessions.RemoveSession(logoutRequest.SessionToken);
-            lobbySessionManager.BroadcastPresenceUpdate();
+            sessionConnectionManager.Logout(logoutRequest.SessionToken);
             return Task.FromResult(new Empty());
         }
 
@@ -113,7 +119,8 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                return sessionConnectionManager.Subscribe(request.UserId, request.SessionToken, responseStream,
+                AccountSessionIdentity identity = new AccountSessionIdentity(request.UserId, request.SessionToken);
+                return sessionConnectionManager.Subscribe(identity, responseStream,
                     callContext.CancellationToken);
             }
             catch (InvalidSessionException invalidSessionException)

@@ -53,6 +53,9 @@ namespace RiskGame.Server
             builder.Services.AddHostedService<MatchTurnTimerService>();
             builder.Services.AddHostedService<SessionExpirationService>();
             builder.Services.AddSingleton<LobbySessionManager>();
+            builder.Services.AddSingleton<PlayerReportRepositoryService>(
+                new PlayerReportRepositoryService(CreateDatabaseContext));
+            builder.Services.AddSingleton<ReportSessionManager>();
 
             WebApplication app = builder.Build();
 
@@ -65,6 +68,7 @@ namespace RiskGame.Server
             app.MapGrpcService<ChatGrpcService>();
             app.MapGrpcService<MatchGrpcService>();
             app.MapGrpcService<ScoreboardGrpcService>();
+            app.MapGrpcService<PlayerReportGrpcService>();
 
             app.Run();
         }

@@ -52,20 +52,26 @@ namespace RiskGame
             SessionService.Logout();
         }
 
-        private void OnSessionExpired(object? sender, EventArgs eventArgs)
+        private void OnSessionExpired(object? sender, SessionExpiredEventArgs eventArgs)
         {
-            Dispatcher.UIThread.Post(OpenLoginAfterSessionExpiry);
+            Dispatcher.UIThread.Post(() => OpenLoginAfterSessionExpiry(eventArgs));
         }
 
-        private void OpenLoginAfterSessionExpiry()
+        private void OpenLoginAfterSessionExpiry(SessionExpiredEventArgs eventArgs)
         {
             SessionUser? currentSession = SessionService.CurrentUser;
             bool hasNewSession = currentSession != null && !currentSession.IsGuest;
-            if (!isShuttingDown && !hasNewSession
+            bool canOpenLogin = !(isShuttingDown || hasNewSession);
+            if (canOpenLogin
                 && ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
                 List<Window> previousWindows = desktopLifetime.Windows.ToList();
-                LoginWindow loginWindow = new LoginWindow(Strings.SessionExpiredMessage, true);
+                string message = Strings.SessionExpiredMessage;
+                if (eventArgs.IsSuspended)
+                {
+                    message = AccountSuspensionMessage.Format(eventArgs.BannedUntilUnixMilliseconds);
+                }
+                LoginWindow loginWindow = new LoginWindow(message, true);
                 desktopLifetime.MainWindow = loginWindow;
                 loginWindow.Show();
                 foreach (Window previousWindow in previousWindows)

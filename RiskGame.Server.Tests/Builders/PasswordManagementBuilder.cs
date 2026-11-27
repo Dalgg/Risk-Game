@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using RiskGame.Contracts.Profile;
@@ -75,6 +76,21 @@ namespace RiskGame.Server.Tests.Builders
         public RiskGameContext CreateContext()
         {
             return new RiskGameContext(options);
+        }
+
+        public void SetBannedUntil(DateTime bannedUntilUtc)
+        {
+            using RiskGameContext databaseContext = CreateContext();
+            User account = databaseContext.Users.Single(user => user.IdUser == UserId);
+            account.BannedUntil = bannedUntilUtc;
+            databaseContext.SaveChanges();
+        }
+
+        public DateTime? ReadBannedUntil()
+        {
+            using RiskGameContext databaseContext = CreateContext();
+            User account = databaseContext.Users.Single(user => user.IdUser == UserId);
+            return account.BannedUntil;
         }
 
         public void UpdatePasswordViaGrpc(int userId, string sessionToken, string currentPassword, string newPassword)

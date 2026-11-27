@@ -29,6 +29,8 @@ namespace RiskGame.Services
 
         public SessionUser Session => session;
 
+        public SessionExpiredEventArgs Expiration { get; private set; } = new SessionExpiredEventArgs();
+
         public void Start()
         {
             Task.Run(MonitorSession);
@@ -143,7 +145,12 @@ namespace RiskGame.Services
             bool valid = true;
             while (hasNext && valid)
             {
-                valid = call.ResponseStream.Current.IsAuthenticated;
+                SessionState state = call.ResponseStream.Current;
+                valid = state.IsAuthenticated;
+                if (!valid)
+                {
+                    Expiration = new SessionExpiredEventArgs(state.IsSuspended, state.BannedUntilUnixMilliseconds);
+                }
                 if (valid)
                 {
                     recoveryStartedTimestamp = null;

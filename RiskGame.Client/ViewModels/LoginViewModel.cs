@@ -21,6 +21,12 @@ namespace RiskGame.ViewModels
                     Password = password
                 });
 
+                if (loginResponse.IsSuspended)
+                {
+                    throw new DataOperationException(
+                        AccountSuspensionMessage.Format(loginResponse.BannedUntilUnixMilliseconds));
+                }
+
                 SessionUser authenticatedUser;
                 if (loginResponse.IsAuthenticated && loginResponse.Player != null)
                 {
