@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -10,6 +11,8 @@ namespace RiskGame.Server
     public static class Program
     {
         private const int DefaultGrpcPort = 5050;
+        private const int KeepAlivePingDelaySeconds = 10;
+        private const int KeepAlivePingTimeoutSeconds = 5;
 
         public static void Main(string[] args)
         {
@@ -17,6 +20,8 @@ namespace RiskGame.Server
 
             builder.WebHost.ConfigureKestrel(serverOptions =>
             {
+                serverOptions.Limits.Http2.KeepAlivePingDelay = TimeSpan.FromSeconds(KeepAlivePingDelaySeconds);
+                serverOptions.Limits.Http2.KeepAlivePingTimeout = TimeSpan.FromSeconds(KeepAlivePingTimeoutSeconds);
                 serverOptions.ListenAnyIP(DefaultGrpcPort, listenOptions =>
                 {
                     listenOptions.Protocols = HttpProtocols.Http2;

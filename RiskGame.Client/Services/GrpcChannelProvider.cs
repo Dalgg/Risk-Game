@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 using Grpc.Net.Client;
 
@@ -10,17 +11,30 @@ namespace RiskGame.Services
         private const string DefaultServerAddress = "http://localhost:5050";
         private const string SettingsFileName = "appsettings.local.json";
         private const string ServerUrlPropertyName = "GrpcServerUrl";
+        private const int KeepAlivePingDelaySeconds = 10;
+        private const int KeepAlivePingTimeoutSeconds = 5;
+        private static readonly object channelLock = new object();
         private static GrpcChannel? cachedChannel;
 
         public static GrpcChannel GetChannel()
         {
-            if (cachedChannel == null)
+            lock (channelLock)
             {
-                string serverAddress = ResolveServerAddress();
-                cachedChannel = GrpcChannel.ForAddress(serverAddress);
+                if (cachedChannel == null)
+                {
+                    string serverAddress = ResolveServerAddress();
+                    SocketsHttpHandler httpHandler = new SocketsHttpHandler
+                    {
+                        KeepAlivePingDelay = TimeSpan.FromSeconds(KeepAlivePingDelaySeconds),
+                        KeepAlivePingTimeout = TimeSpan.FromSeconds(KeepAlivePingTimeoutSeconds),
+                        KeepAlivePingPolicy = HttpKeepAlivePingPolicy.WithActiveRequests,
+                        EnableMultipleHttp2Connections = true
+                    };
+                    cachedChannel = GrpcChannel.ForAddress(serverAddress,
+                        new GrpcChannelOptions { HttpHandler = httpHandler, DisposeHttpClient = true });
+                }
+                return cachedChannel;
             }
-
-            return cachedChannel;
         }
 
         private static string ResolveServerAddress()
@@ -42,7 +56,8 @@ namespace RiskGame.Services
                     }
                     catch (JsonException jsonException)
                     {
-                        JsonLogger.Error(jsonException, "Failed to parse local configuration file {0}.", settingsFilePath);
+                        JsonLogger.Error(jsonException, "Failed to parse local configuration file {0}.",
+                            settingsFilePath);
                         return DefaultServerAddress;
                     }
                 }
