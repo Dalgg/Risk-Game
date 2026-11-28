@@ -4,57 +4,63 @@
         x:Class="RiskGame.Views.RegisterWindow"
         Title="{x:Static res:Strings.RegisterTitleLabel}"
         Width="600" Height="500"
-        Background="#1E1E1E">
+        Background="#181A25">
 
     <Window.Resources>
         <Thickness x:Key="VerificationMargin">50,110,50,30</Thickness>
         <x:Double x:Key="VerificationSpacing">15</x:Double>
         <x:Int32 x:Key="VerificationCodeLength">6</x:Int32>
     </Window.Resources>
-    <Border Background="#5C5C5C" Width="480" Height="460" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Border Background="#25293A" BorderBrush="#353A5A" BorderThickness="2" CornerRadius="10"
+            Width="480" Height="460" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Grid>
-            <Button Background="#8B0000" Width="60" Height="50" HorizontalAlignment="Left" VerticalAlignment="Top"
-                 CornerRadius="0" Click="BackClick">
+            <Button Background="#A12431" Width="56" Height="46" HorizontalAlignment="Left" VerticalAlignment="Top"
+                    CornerRadius="8,0,8,0" Click="BackClick">
                 <Image Source="avares://RiskGame.Client/Assets/back_arrow.png" Margin="5"/>
             </Button>
 
-            <TextBlock Text="{x:Static res:Strings.RegisterTitleLabel}" Foreground="White" FontSize="28" HorizontalAlignment="Center"
-                VerticalAlignment="Top" Margin="0,15,0,0"/>
+            <TextBlock Text="{x:Static res:Strings.RegisterTitleLabel}" Foreground="White" FontSize="26"
+                       FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,16,0,0"/>
 
             <TextBlock x:Name="MessageTextBlock" IsVisible="False" TextWrapping="Wrap" TextAlignment="Center"
                        FontSize="13" HorizontalAlignment="Stretch" VerticalAlignment="Top" Margin="30,62,30,0"/>
 
-            <Grid x:Name="RegistrationForm" RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="Auto, *" HorizontalAlignment="Stretch"
-                VerticalAlignment="Center" Margin="50,60,50,0">
+            <Grid x:Name="RegistrationForm" RowDefinitions="Auto, Auto, Auto" ColumnDefinitions="Auto, *"
+                  HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="50,60,50,0">
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.LoginUsernameLabel}" Foreground="White" FontSize="22"
-                           VerticalAlignment="Center" Margin="0,0,20,25"/>
-                <TextBox x:Name="UsernameTextBox" Grid.Row="0" Grid.Column="1" Background="White" Foreground="Black" Height="35"
-                    CornerRadius="0" Margin="0,0,0,25"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static res:Strings.LoginUsernameLabel}"
+                           Foreground="#D8DCE8" FontSize="20" VerticalAlignment="Center" Margin="0,0,20,25"/>
+                <TextBox x:Name="UsernameTextBox" Grid.Row="0" Grid.Column="1" Background="White" Foreground="Black"
+                         Height="36" CornerRadius="6" Margin="0,0,0,25"/>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.LoginPasswordLabel}" Foreground="White" FontSize="22"
-                           VerticalAlignment="Center" Margin="0,0,20,25"/>
-                <TextBox x:Name="PasswordTextBox" Grid.Row="1" Grid.Column="1" Background="White" Foreground="Black" Height="35"
-                    CornerRadius="0" PasswordChar="*" Margin="0,0,0,25"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="{x:Static res:Strings.LoginPasswordLabel}"
+                           Foreground="#D8DCE8" FontSize="20" VerticalAlignment="Center" Margin="0,0,20,25"/>
+                <TextBox x:Name="PasswordTextBox" Grid.Row="1" Grid.Column="1" Background="White" Foreground="Black"
+                         Height="36" CornerRadius="6" PasswordChar="*" Margin="0,0,0,25"/>
 
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static res:Strings.RegisterEmailLabel}" Foreground="White" FontSize="22"
-                           VerticalAlignment="Center" Margin="0,0,20,25"/>
-                <TextBox x:Name="EmailTextBox" Grid.Row="2" Grid.Column="1" Background="White" Foreground="Black" Height="35"
-                    CornerRadius="0" Margin="0,0,0,25"/>
-        </Grid>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{x:Static res:Strings.RegisterEmailLabel}"
+                           Foreground="#D8DCE8" FontSize="20" VerticalAlignment="Center" Margin="0,0,20,25"/>
+                <TextBox x:Name="EmailTextBox" Grid.Row="2" Grid.Column="1" Background="White" Foreground="Black"
+                         Height="36" CornerRadius="6" Margin="0,0,0,25"/>
+            </Grid>
 
-            <Button x:Name="RegisterConfirmButton" Content="{x:Static res:Strings.RegisterConfirmButton}" Background="#0084FF" Foreground="White" FontSize="20" CornerRadius="12"
-                Width="180" Height="45" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,40"
+            <Button x:Name="RegisterConfirmButton" Content="{x:Static res:Strings.RegisterConfirmButton}"
+                    Background="#3273B2" Foreground="White" FontSize="19" FontWeight="Bold" CornerRadius="10"
+                    Width="200" Height="45" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,36"
                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Click="OnConfirmClick" />
             <StackPanel x:Name="VerificationPanel" IsVisible="False" VerticalAlignment="Center"
                         Margin="{StaticResource VerificationMargin}" Spacing="{StaticResource VerificationSpacing}">
-                <TextBlock Text="{x:Static res:Strings.VerificationInstructions}" Foreground="White"
+                <TextBlock Text="{x:Static res:Strings.VerificationInstructions}" Foreground="#D8DCE8"
                            TextWrapping="Wrap"/>
                 <TextBox x:Name="VerificationCodeTextBox" MaxLength="{StaticResource VerificationCodeLength}"
+                         Background="White" Foreground="Black" CornerRadius="6"
                          TabIndex="0" PlaceholderText="{x:Static res:Strings.VerificationCodeLabel}"/>
-                <Button x:Name="VerifyConfirmButton" Content="{x:Static res:Strings.VerificationConfirm}" Click="OnVerifyClick"
-                        HotKey="Enter" TabIndex="1"/>
-                <Button x:Name="ResendCodeButton" Content="{x:Static res:Strings.VerificationResend}" Click="OnResendClick" TabIndex="2"/>
+                <Button x:Name="VerifyConfirmButton" Content="{x:Static res:Strings.VerificationConfirm}"
+                        Background="#3273B2" Foreground="White" FontWeight="Bold" CornerRadius="8" Height="40"
+                        Click="OnVerifyClick" HotKey="Enter" TabIndex="1"/>
+                <Button x:Name="ResendCodeButton" Content="{x:Static res:Strings.VerificationResend}"
+                        Background="#2A2F5B" BorderBrush="#4A5288" BorderThickness="1" Foreground="White"
+                        CornerRadius="8" Height="40" Click="OnResendClick" TabIndex="2"/>
             </StackPanel>
         </Grid>
     </Border>

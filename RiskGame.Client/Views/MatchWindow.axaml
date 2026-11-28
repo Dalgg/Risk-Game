@@ -17,20 +17,27 @@
         <x:Double x:Key="TitleFontSize">28</x:Double>
         <x:Double x:Key="TurnFontSize">18</x:Double>
         <x:Double x:Key="CaptionFontSize">14</x:Double>
+        <x:Double x:Key="SubtleLeaveFontSize">12</x:Double>
         <x:Double x:Key="HeaderSpacing">5</x:Double>
         <x:Double x:Key="ColumnSpacing">8</x:Double>
         <x:Double x:Key="ActionSpacing">15</x:Double>
         <x:Double x:Key="ActionHeight">45</x:Double>
+        <x:Double x:Key="PrimaryActionHeight">48</x:Double>
+        <x:Double x:Key="SubtleLeaveHeight">32</x:Double>
         <x:Double x:Key="PairButtonHeight">52</x:Double>
         <x:Double x:Key="DiceSpacing">10</x:Double>
+        <x:Double x:Key="DialogWidth">440</x:Double>
+        <x:Double x:Key="DialogTitleSize">22</x:Double>
         <Thickness x:Key="WindowMargin">20</Thickness>
         <Thickness x:Key="SectionMargin">0,10</Thickness>
         <Thickness x:Key="BoardMargin">0,0,10,0</Thickness>
         <Thickness x:Key="PanelPadding">15</Thickness>
-        <Thickness x:Key="DiceTrayPadding">14,8</Thickness>
+        <Thickness x:Key="DiceTrayPadding">14,10</Thickness>
         <Thickness x:Key="ActionPadding">20,10</Thickness>
+        <Thickness x:Key="SubtleLeavePadding">12,4</Thickness>
         <Thickness x:Key="PairButtonPadding">10,6</Thickness>
         <Thickness x:Key="PairButtonMargin">4,0</Thickness>
+        <Thickness x:Key="DialogPadding">24</Thickness>
         <Thickness x:Key="PanelBorderThickness">2</Thickness>
         <CornerRadius x:Key="PanelCornerRadius">8</CornerRadius>
         <SolidColorBrush x:Key="WindowBackground">#181A25</SolidColorBrush>
@@ -38,7 +45,17 @@
         <SolidColorBrush x:Key="PanelBorderBrush">#2A2F5B</SolidColorBrush>
         <SolidColorBrush x:Key="CaptionBrush">#9EA1B2</SolidColorBrush>
         <SolidColorBrush x:Key="TurnBrush">#D4A32D</SolidColorBrush>
+        <SolidColorBrush x:Key="RollGlowBorderBrush">#F5D90A</SolidColorBrush>
+        <SolidColorBrush x:Key="RollReadyTextBrush">#181A25</SolidColorBrush>
+        <SolidColorBrush x:Key="StopReadyBrush">#30A46C</SolidColorBrush>
+        <SolidColorBrush x:Key="StopGlowBorderBrush">#6EE7B7</SolidColorBrush>
+        <SolidColorBrush x:Key="InactiveActionBrush">#25293A</SolidColorBrush>
+        <SolidColorBrush x:Key="InactiveBorderBrush">#353A5A</SolidColorBrush>
+        <SolidColorBrush x:Key="SubtleLeaveBackground">#231A22</SolidColorBrush>
+        <SolidColorBrush x:Key="SubtleLeaveBorderBrush">#6E2D36</SolidColorBrush>
+        <SolidColorBrush x:Key="SubtleLeaveForeground">#D9A1A8</SolidColorBrush>
         <SolidColorBrush x:Key="LeaveBrush">#B02C3A</SolidColorBrush>
+        <SolidColorBrush x:Key="OverlayBackdropBrush">#CC12141E</SolidColorBrush>
     </Window.Resources>
     <Window.Styles>
         <Style Selector="TextBlock"><Setter Property="Foreground" Value="White"/></Style>
@@ -48,105 +65,200 @@
             <Setter Property="CornerRadius" Value="{StaticResource PanelCornerRadius}"/>
             <Setter Property="Foreground" Value="White"/>
         </Style>
+        <Style Selector="Border.DiceTray">
+            <Setter Property="Background" Value="{StaticResource DiceTrayBackground}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PanelBorderBrush}"/>
+        </Style>
+        <Style Selector="Border.DiceTray.YourTurnTray">
+            <Setter Property="BorderBrush" Value="{StaticResource TurnBrush}"/>
+        </Style>
+        <Style Selector="Button.RollAction">
+            <Setter Property="Height" Value="{StaticResource PrimaryActionHeight}"/>
+            <Setter Property="Background" Value="{StaticResource InactiveActionBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InactiveBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Foreground" Value="{StaticResource CaptionBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style Selector="Button.RollAction.RollReady">
+            <Setter Property="Background" Value="{StaticResource TurnBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource RollGlowBorderBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource RollReadyTextBrush}"/>
+        </Style>
+        <Style Selector="Button.RollAction.RollReady:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource RollGlowBorderBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource RollReadyTextBrush}"/>
+        </Style>
+        <Style Selector="Button.RollAction.RollReady:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource TurnBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource RollReadyTextBrush}"/>
+        </Style>
+        <Style Selector="Button.StopAction">
+            <Setter Property="Height" Value="{StaticResource PrimaryActionHeight}"/>
+            <Setter Property="Background" Value="{StaticResource InactiveActionBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource InactiveBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Foreground" Value="{StaticResource CaptionBrush}"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+        </Style>
+        <Style Selector="Button.StopAction.StopReady">
+            <Setter Property="Background" Value="{StaticResource StopReadyBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource StopGlowBorderBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.StopAction.StopReady:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource StopReadyBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource StopGlowBorderBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.StopAction.StopReady:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource StopReadyBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
     </Window.Styles>
-    <Grid RowDefinitions="Auto,*,Auto" Margin="{StaticResource WindowMargin}">
-        <StackPanel HorizontalAlignment="Center" Spacing="{StaticResource HeaderSpacing}">
-            <TextBlock Text="{x:Static res:Strings.MatchTitleLabel}" FontSize="{StaticResource TitleFontSize}"
-                       FontWeight="Bold" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="MatchIdTextBlock" FontSize="{StaticResource CaptionFontSize}"
-                       Foreground="{StaticResource CaptionBrush}" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="CurrentTurnTextBlock" FontSize="{StaticResource TurnFontSize}"
-                       Foreground="{StaticResource TurnBrush}" HorizontalAlignment="Center"/>
-            <TextBlock x:DataType="vm:MatchViewModel" Text="{Binding Countdown.Text}"
-                       IsVisible="{Binding Countdown.IsVisible}" FontSize="{StaticResource TurnFontSize}"
-                       Foreground="{StaticResource TurnBrush}" HorizontalAlignment="Center"/>
-            <TextBlock x:Name="MatchRulesTextBlock" FontSize="{StaticResource CaptionFontSize}"
-                       HorizontalAlignment="Center"/>
-        </StackPanel>
-        <Grid Grid.Row="1" ColumnDefinitions="3*,*" Margin="{StaticResource SectionMargin}">
-            <Border BorderBrush="{StaticResource PanelBorderBrush}"
-                    BorderThickness="{StaticResource PanelBorderThickness}"
-                    CornerRadius="{StaticResource PanelCornerRadius}" Margin="{StaticResource BoardMargin}"
-                    Padding="{StaticResource PanelPadding}">
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" TabIndex="2"
-                              AutomationProperties.Name="{x:Static res:Strings.MatchBoardLabel}">
-                    <StackPanel x:Name="MatchBoardStackPanel" Orientation="Horizontal"
-                                Spacing="{StaticResource ColumnSpacing}" VerticalAlignment="Bottom"
-                                HorizontalAlignment="Center"/>
-                </ScrollViewer>
-            </Border>
-            <Border Grid.Column="1" BorderBrush="{StaticResource PanelBorderBrush}"
-                    BorderThickness="{StaticResource PanelBorderThickness}"
-                    CornerRadius="{StaticResource PanelCornerRadius}" Padding="{StaticResource PanelPadding}">
-                <Grid RowDefinitions="Auto,*">
-                    <TextBlock Text="{x:Static res:Strings.MatchPlayersHeaderLabel}"
-                               Margin="{StaticResource SectionMargin}" HorizontalAlignment="Center"/>
-                    <ScrollViewer Grid.Row="1" TabIndex="3">
-                        <StackPanel x:Name="MatchPlayersStackPanel" Spacing="{StaticResource ColumnSpacing}"/>
+    <Grid>
+        <Grid RowDefinitions="Auto,*,Auto" Margin="{StaticResource WindowMargin}">
+            <Grid>
+                <Button x:Name="LeaveMatchButton" Content="{x:Static res:Strings.MatchLeaveButton}"
+                        Click="LeaveMatchClick" HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Height="{StaticResource SubtleLeaveHeight}" Padding="{StaticResource SubtleLeavePadding}"
+                        FontSize="{StaticResource SubtleLeaveFontSize}"
+                        Background="{StaticResource SubtleLeaveBackground}"
+                        BorderBrush="{StaticResource SubtleLeaveBorderBrush}" BorderThickness="1"
+                        Foreground="{StaticResource SubtleLeaveForeground}" TabIndex="4"/>
+                <StackPanel HorizontalAlignment="Center" Spacing="{StaticResource HeaderSpacing}">
+                    <TextBlock Text="{x:Static res:Strings.MatchTitleLabel}" FontSize="{StaticResource TitleFontSize}"
+                               FontWeight="Bold" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="MatchIdTextBlock" FontSize="{StaticResource CaptionFontSize}"
+                               Foreground="{StaticResource CaptionBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="CurrentTurnTextBlock" FontSize="{StaticResource TurnFontSize}"
+                               Foreground="{StaticResource TurnBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock x:DataType="vm:MatchViewModel" Text="{Binding Countdown.Text}"
+                               IsVisible="{Binding Countdown.IsVisible}" FontSize="{StaticResource TurnFontSize}"
+                               Foreground="{StaticResource TurnBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="MatchRulesTextBlock" FontSize="{StaticResource CaptionFontSize}"
+                               HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+            <Grid Grid.Row="1" ColumnDefinitions="3*,*" Margin="{StaticResource SectionMargin}">
+                <Border BorderBrush="{StaticResource PanelBorderBrush}"
+                        BorderThickness="{StaticResource PanelBorderThickness}"
+                        CornerRadius="{StaticResource PanelCornerRadius}" Margin="{StaticResource BoardMargin}"
+                        Padding="{StaticResource PanelPadding}">
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" TabIndex="2"
+                                  AutomationProperties.Name="{x:Static res:Strings.MatchBoardLabel}">
+                        <StackPanel x:Name="MatchBoardStackPanel" Orientation="Horizontal"
+                                    Spacing="{StaticResource ColumnSpacing}" VerticalAlignment="Bottom"
+                                    HorizontalAlignment="Center"/>
                     </ScrollViewer>
+                </Border>
+                <Border Grid.Column="1" BorderBrush="{StaticResource PanelBorderBrush}"
+                        BorderThickness="{StaticResource PanelBorderThickness}"
+                        CornerRadius="{StaticResource PanelCornerRadius}" Padding="{StaticResource PanelPadding}">
+                    <Grid RowDefinitions="Auto,*">
+                        <TextBlock Text="{x:Static res:Strings.MatchPlayersHeaderLabel}"
+                                   Margin="{StaticResource SectionMargin}" HorizontalAlignment="Center"/>
+                        <ScrollViewer Grid.Row="1" TabIndex="3">
+                            <StackPanel x:Name="MatchPlayersStackPanel" Spacing="{StaticResource ColumnSpacing}"/>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </Grid>
+            <StackPanel Grid.Row="2" Spacing="{StaticResource HeaderSpacing}">
+                <TextBlock x:Name="TemporaryMarkersTextBlock" Foreground="{StaticResource TurnBrush}"/>
+                <TextBlock Text="{x:Static res:Strings.MatchMarkerLegend}"
+                           Foreground="{StaticResource CaptionBrush}"/>
+                <Border x:Name="DiceTrayBorder" Classes="DiceTray"
+                        BorderThickness="{StaticResource PanelBorderThickness}"
+                        CornerRadius="{StaticResource PanelCornerRadius}"
+                        Padding="{StaticResource DiceTrayPadding}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource ActionSpacing}">
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource DiceSpacing}"
+                                    VerticalAlignment="Center">
+                            <StackPanel x:Name="DiceImagesStackPanel" Orientation="Horizontal"
+                                        Spacing="{StaticResource DiceSpacing}" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="DiceValuesTextBlock" Text="{x:Static res:Strings.MatchNoRoll}"
+                                       FontSize="{StaticResource TurnFontSize}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource DiceSpacing}"
+                                    VerticalAlignment="Center">
+                            <Button x:Name="RollDiceButton" Classes="RollAction"
+                                    Content="{x:Static res:Strings.MatchRollDice}"
+                                    Click="RollDiceClick" HotKey="R" IsEnabled="False"
+                                    VerticalAlignment="Center"/>
+                            <Button x:Name="StopTurnButton" Classes="StopAction"
+                                    Content="{x:Static res:Strings.MatchStopTurn}"
+                                    Click="StopTurnClick" IsEnabled="False" HotKey="S"
+                                    VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <Grid ColumnDefinitions="*,*,*">
+                    <Button x:Name="FirstPairButton" Tag="{StaticResource FirstPairIndex}"
+                            Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"
+                            Height="{StaticResource PairButtonHeight}" Padding="{StaticResource PairButtonPadding}"
+                            Margin="{StaticResource PairButtonMargin}" HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"/>
+                    <Button Grid.Column="1" x:Name="SecondPairButton" Tag="{StaticResource SecondPairIndex}"
+                            Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"
+                            Height="{StaticResource PairButtonHeight}" Padding="{StaticResource PairButtonPadding}"
+                            Margin="{StaticResource PairButtonMargin}" HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"/>
+                    <Button Grid.Column="2" x:Name="ThirdPairButton" Tag="{StaticResource ThirdPairIndex}"
+                            Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"
+                            Height="{StaticResource PairButtonHeight}" Padding="{StaticResource PairButtonPadding}"
+                            Margin="{StaticResource PairButtonMargin}" HorizontalContentAlignment="Center"
+                            VerticalContentAlignment="Center"/>
                 </Grid>
-            </Border>
+                <StackPanel x:Name="ColumnChoicePanel" IsVisible="False" Spacing="{StaticResource HeaderSpacing}">
+                    <TextBlock Text="{x:Static res:Strings.MatchChooseColumnPrompt}" TextWrapping="Wrap"/>
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource ActionSpacing}">
+                        <Button x:Name="FirstColumnChoiceButton" Click="ChooseColumnClick"/>
+                        <Button x:Name="SecondColumnChoiceButton" Click="ChooseColumnClick"/>
+                    </StackPanel>
+                </StackPanel>
+                <TextBlock x:Name="PairSelectionTextBlock" TextWrapping="Wrap"/>
+                <TextBlock x:Name="TurnOutcomeTextBlock" TextWrapping="Wrap"
+                           Foreground="{StaticResource TurnBrush}"/>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource ActionSpacing}">
+                    <TextBlock x:Name="MatchStatusTextBlock" Text="{x:Static res:Strings.MatchConnecting}"
+                               Foreground="{StaticResource CaptionBrush}" TextWrapping="Wrap"
+                               VerticalAlignment="Center"/>
+                    <Button Grid.Column="1" x:Name="ReconnectButton" Content="{x:Static res:Strings.MatchReconnect}"
+                            Click="ReconnectClick" IsEnabled="False" HotKey="Ctrl+R" TabIndex="0"
+                            Background="{StaticResource PanelBorderBrush}"/>
+                </Grid>
+            </StackPanel>
         </Grid>
-        <StackPanel Grid.Row="2" Spacing="{StaticResource HeaderSpacing}">
-            <TextBlock x:Name="TemporaryMarkersTextBlock" Foreground="{StaticResource TurnBrush}"/>
-            <TextBlock Text="{x:Static res:Strings.MatchMarkerLegend}"
-                       Foreground="{StaticResource CaptionBrush}"/>
-            <Border Background="{StaticResource DiceTrayBackground}"
-                    BorderBrush="{StaticResource PanelBorderBrush}"
+
+        <Border x:Name="LeaveConfirmOverlay" IsVisible="False"
+                Background="{StaticResource OverlayBackdropBrush}">
+            <Border Width="{StaticResource DialogWidth}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                    Background="{StaticResource DiceTrayBackground}"
+                    BorderBrush="{StaticResource LeaveBrush}"
                     BorderThickness="{StaticResource PanelBorderThickness}"
                     CornerRadius="{StaticResource PanelCornerRadius}"
-                    Padding="{StaticResource DiceTrayPadding}">
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource ActionSpacing}">
-                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource DiceSpacing}"
-                                VerticalAlignment="Center">
-                        <StackPanel x:Name="DiceImagesStackPanel" Orientation="Horizontal"
-                                    Spacing="{StaticResource DiceSpacing}" IsVisible="False"
-                                    VerticalAlignment="Center"/>
-                        <TextBlock x:Name="DiceValuesTextBlock" Text="{x:Static res:Strings.MatchNoRoll}"
-                                   FontSize="{StaticResource TurnFontSize}" VerticalAlignment="Center"/>
+                    Padding="{StaticResource DialogPadding}">
+                <StackPanel Spacing="{StaticResource ActionSpacing}">
+                    <TextBlock Text="{x:Static res:Strings.MatchLeaveConfirmTitle}"
+                               FontSize="{StaticResource DialogTitleSize}" FontWeight="Bold"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="{x:Static res:Strings.MatchLeaveConfirmMessage}"
+                               Foreground="{StaticResource CaptionBrush}" TextWrapping="Wrap"
+                               TextAlignment="Center"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                                Spacing="{StaticResource ActionSpacing}">
+                        <Button x:Name="CancelLeaveButton"
+                                Content="{x:Static res:Strings.MatchLeaveCancelButton}"
+                                Background="{StaticResource PanelBorderBrush}"
+                                Click="CancelLeaveClick"/>
+                        <Button x:Name="ConfirmLeaveButton"
+                                Content="{x:Static res:Strings.MatchLeaveConfirmButton}"
+                                Background="{StaticResource LeaveBrush}" FontWeight="Bold"
+                                Click="ConfirmLeaveClick"/>
                     </StackPanel>
-                    <Button Grid.Column="1" x:Name="RollDiceButton" Content="{x:Static res:Strings.MatchRollDice}"
-                            Click="RollDiceClick" HotKey="R" IsEnabled="False"
-                            Background="{StaticResource PanelBorderBrush}" VerticalAlignment="Center"/>
-                </Grid>
-            </Border>
-            <Grid ColumnDefinitions="*,*,*">
-                <Button x:Name="FirstPairButton" Tag="{StaticResource FirstPairIndex}"
-                        Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"
-                        Height="{StaticResource PairButtonHeight}" Padding="{StaticResource PairButtonPadding}"
-                        Margin="{StaticResource PairButtonMargin}" HorizontalContentAlignment="Center"
-                        VerticalContentAlignment="Center"/>
-                <Button Grid.Column="1" x:Name="SecondPairButton" Tag="{StaticResource SecondPairIndex}"
-                        Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"
-                        Height="{StaticResource PairButtonHeight}" Padding="{StaticResource PairButtonPadding}"
-                        Margin="{StaticResource PairButtonMargin}" HorizontalContentAlignment="Center"
-                        VerticalContentAlignment="Center"/>
-                <Button Grid.Column="2" x:Name="ThirdPairButton" Tag="{StaticResource ThirdPairIndex}"
-                        Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"
-                        Height="{StaticResource PairButtonHeight}" Padding="{StaticResource PairButtonPadding}"
-                        Margin="{StaticResource PairButtonMargin}" HorizontalContentAlignment="Center"
-                        VerticalContentAlignment="Center"/>
-            </Grid>
-            <StackPanel x:Name="ColumnChoicePanel" IsVisible="False" Spacing="{StaticResource HeaderSpacing}">
-                <TextBlock Text="{x:Static res:Strings.MatchChooseColumnPrompt}" TextWrapping="Wrap"/>
-                <StackPanel Orientation="Horizontal" Spacing="{StaticResource ActionSpacing}">
-                    <Button x:Name="FirstColumnChoiceButton" Click="ChooseColumnClick"/>
-                    <Button x:Name="SecondColumnChoiceButton" Click="ChooseColumnClick"/>
                 </StackPanel>
-            </StackPanel>
-            <TextBlock x:Name="PairSelectionTextBlock" TextWrapping="Wrap"/>
-            <TextBlock x:Name="TurnOutcomeTextBlock" TextWrapping="Wrap"
-                       Foreground="{StaticResource TurnBrush}"/>
-            <TextBlock x:Name="MatchStatusTextBlock" Text="{x:Static res:Strings.MatchConnecting}"
-                       Foreground="{StaticResource CaptionBrush}" TextWrapping="Wrap"/>
-            <StackPanel Orientation="Horizontal" Spacing="{StaticResource ActionSpacing}">
-                <Button x:Name="StopTurnButton" Content="{x:Static res:Strings.MatchStopTurn}"
-                        Click="StopTurnClick" IsEnabled="False" HotKey="S"/>
-                <Button x:Name="ReconnectButton" Content="{x:Static res:Strings.MatchReconnect}"
-                        Click="ReconnectClick" IsEnabled="False" HotKey="Ctrl+R" TabIndex="0"/>
-                <Button Content="{x:Static res:Strings.MatchLeaveButton}" Click="LeaveMatchClick"
-                        Background="{StaticResource LeaveBrush}" IsCancel="True" TabIndex="1"/>
-            </StackPanel>
-        </StackPanel>
+            </Border>
+        </Border>
     </Grid>
 </Window>

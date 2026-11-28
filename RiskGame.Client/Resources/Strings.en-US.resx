@@ -287,4 +287,8 @@
   <data name="PlayerReportNotAllowed" xml:space="preserve"><value>You can only report another registered account while both players are in a waiting lobby.</value></data>
   <data name="PlayerReportConnectionError" xml:space="preserve"><value>Could not submit the report. Check your connection and try again.</value></data>
   <data name="MatchResultAbandonedNotice" xml:space="preserve"><value>You left the match or were removed for inactivity, so you cannot return to the original lobby.</value></data>
+  <data name="MatchLeaveConfirmTitle" xml:space="preserve"><value>Leave match?</value></data>
+  <data name="MatchLeaveConfirmMessage" xml:space="preserve"><value>Leaving now counts as an abandonment and you will not be able to return to the original lobby.</value></data>
+  <data name="MatchLeaveConfirmButton" xml:space="preserve"><value>YES, LEAVE</value></data>
+  <data name="MatchLeaveCancelButton" xml:space="preserve"><value>KEEP PLAYING</value></data>
 </root>

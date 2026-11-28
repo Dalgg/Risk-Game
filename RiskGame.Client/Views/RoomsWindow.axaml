@@ -5,52 +5,65 @@
         Title="{x:Static res:Strings.RoomsTitleLabel}"
         Width="600"
         Height="480"
-        Background="#1E1E1E">
+        Background="#181A25">
 
-    <Border Background="#5C5C5C" Margin="40">
+    <Border Background="#25293A"
+            BorderBrush="#353A5A"
+            BorderThickness="2"
+            CornerRadius="10"
+            Margin="40">
         <Grid>
             <StackPanel x:Name="MenuButtonsStackPanel"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Spacing="25">
+                        Spacing="22">
 
                 <TextBlock Text="{x:Static res:Strings.RoomsTitleLabel}"
                            Foreground="White"
                            FontSize="32"
+                           FontWeight="Bold"
                            HorizontalAlignment="Center"
-                           Margin="0,0,0,15" />
+                           Margin="0,0,0,12" />
 
                 <Button Content="{x:Static res:Strings.RoomsCreateRoomButton}"
-                        Background="#0084FF"
+                        Background="#3273B2"
+                        BorderBrush="#4A8ED1"
+                        BorderThickness="1"
                         Foreground="White"
-                        FontSize="20"
+                        FontSize="19"
+                        FontWeight="Bold"
                         CornerRadius="10"
-                        Width="220"
-                        Height="50"
+                        Width="230"
+                        Height="52"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         TabIndex="0"
                         Click="CreateRoomClick" />
 
                 <Button Content="{x:Static res:Strings.RoomsJoinRoomButton}"
-                        Background="#F4882A"
-                        Foreground="White"
-                        FontSize="20"
+                        Background="#D4A32D"
+                        BorderBrush="#F5D90A"
+                        BorderThickness="1"
+                        Foreground="#181A25"
+                        FontSize="19"
+                        FontWeight="Bold"
                         CornerRadius="10"
-                        Width="220"
-                        Height="50"
+                        Width="230"
+                        Height="52"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         TabIndex="1"
                         Click="JoinRoomClick" />
 
                 <Button Content="{x:Static res:Strings.GlobalBackButton}"
-                        Background="#F92A54"
+                        Background="#1E2233"
+                        BorderBrush="#A12431"
+                        BorderThickness="1.5"
                         Foreground="White"
-                        FontSize="20"
+                        FontSize="18"
                         CornerRadius="10"
-                        Width="220"
-                        Height="50"
+                        Width="230"
+                        Height="48"
                         HorizontalContentAlignment="Center"
                         VerticalContentAlignment="Center"
                         TabIndex="2"
@@ -77,20 +90,21 @@
                 <TextBlock Text="{x:Static res:Strings.RoomsJoinRoomButton}"
                            Foreground="White"
                            FontSize="28"
+                           FontWeight="Bold"
                            HorizontalAlignment="Center"
                            Margin="0,0,0,5" />
 
                 <TextBlock Text="{x:Static res:Strings.RoomsCodeLabel}"
-                           Foreground="White"
+                           Foreground="#D4A32D"
                            FontSize="16"
                            HorizontalAlignment="Center" />
 
                 <TextBox x:Name="RoomCodeTextBox"
                          Background="White"
                          Foreground="Black"
-                         Height="34"
+                         Height="36"
                          MaxLength="10"
-                         CornerRadius="0"
+                         CornerRadius="6"
                          HorizontalContentAlignment="Center"
                          VerticalContentAlignment="Center"
                          TabIndex="3" />
@@ -109,12 +123,13 @@
                             Margin="0,10,0,0">
 
                     <Button Content="{x:Static res:Strings.LoginConfirmButton}"
-                            Background="#0084FF"
+                            Background="#3273B2"
                             Foreground="White"
                             FontSize="16"
+                            FontWeight="Bold"
                             CornerRadius="8"
                             Width="130"
-                            Height="40"
+                            Height="42"
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
                             TabIndex="4"
@@ -122,12 +137,12 @@
                             Click="ConfirmJoinRoomClick" />
 
                     <Button Content="{x:Static res:Strings.GlobalBackButton}"
-                            Background="#F92A54"
+                            Background="#A12431"
                             Foreground="White"
                             FontSize="16"
                             CornerRadius="8"
                             Width="130"
-                            Height="40"
+                            Height="42"
                             HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center"
                             TabIndex="5"

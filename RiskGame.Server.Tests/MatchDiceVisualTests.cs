@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Avalonia.Automation;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using RiskGame.Server.Tests.Builders;
 using Xunit;
@@ -25,8 +26,16 @@ namespace RiskGame.Server.Tests
         private const int ThirdDie = 4;
         private const int FourthDie = 6;
         private const int FirstOptionIndex = 0;
+        private const double FullOpacity = 1.0;
         private const string DiceImagesPanelName = "DiceImagesStackPanel";
         private const string FirstPairButtonName = "FirstPairButton";
+        private const string RollDiceButtonName = "RollDiceButton";
+        private const string StopTurnButtonName = "StopTurnButton";
+        private const string LeaveMatchButtonName = "LeaveMatchButton";
+        private const string LeaveConfirmOverlayName = "LeaveConfirmOverlay";
+        private const string CancelLeaveButtonName = "CancelLeaveButton";
+        private const string RollReadyClass = "RollReady";
+        private const string StopReadyClass = "StopReady";
 
         [Fact]
         public void DiceImageCatalog_AllSixFaces_LoadDistinctImages()
@@ -70,11 +79,12 @@ namespace RiskGame.Server.Tests
                 Assert.Same(DiceImageCatalog.GetFaceImage(SecondDie), renderedDice[1].Source);
                 Assert.Same(DiceImageCatalog.GetFaceImage(ThirdDie), renderedDice[2].Source);
                 Assert.Same(DiceImageCatalog.GetFaceImage(FourthDie), renderedDice[3].Source);
+                Assert.All(renderedDice, die => Assert.Equal(FullOpacity, die.Opacity));
             });
         }
 
         [Fact]
-        public void MatchWindow_NoRoll_HidesAndClearsDiceImages()
+        public void MatchWindow_NoRoll_RendersFourIdlePreviewDice()
         {
             ProfileTestApplication.Run(() =>
             {
@@ -85,9 +95,11 @@ namespace RiskGame.Server.Tests
                 setup.ApplySnapshot();
 
                 StackPanel dicePanel = setup.Window.FindControl<StackPanel>(DiceImagesPanelName)!;
+                List<Image> previewDice = dicePanel.Children.OfType<Image>().ToList();
 
-                Assert.False(dicePanel.IsVisible);
-                Assert.Empty(dicePanel.Children);
+                Assert.True(dicePanel.IsVisible);
+                Assert.Equal(ExpectedRolledDiceCount, previewDice.Count);
+                Assert.All(previewDice, die => Assert.True(die.Opacity < FullOpacity));
             });
         }
 
@@ -114,6 +126,47 @@ namespace RiskGame.Server.Tests
                 Assert.Same(DiceImageCatalog.GetFaceImage(ThirdDie), buttonDice[2].Source);
                 Assert.Same(DiceImageCatalog.GetFaceImage(FourthDie), buttonDice[3].Source);
                 Assert.False(string.IsNullOrWhiteSpace(AutomationProperties.GetName(firstPairButton)));
+            });
+        }
+
+        [Fact]
+        public void MatchWindow_TurnReadyAndCanStop_HighlightsRollAndStopButtons()
+        {
+            ProfileTestApplication.Run(() =>
+            {
+                using MatchKeyboardBuilder setup = new MatchKeyboardBuilder();
+                setup.Snapshot.Revision++;
+                setup.Snapshot.AwaitingPairChoice = false;
+                setup.Snapshot.CanStop = true;
+                setup.ApplySnapshot();
+
+                Button rollButton = setup.Window.FindControl<Button>(RollDiceButtonName)!;
+                Button stopButton = setup.Window.FindControl<Button>(StopTurnButtonName)!;
+
+                Assert.Contains(RollReadyClass, rollButton.Classes);
+                Assert.Contains(StopReadyClass, stopButton.Classes);
+            });
+        }
+
+        [Fact]
+        public void MatchWindow_LeaveMatchClick_OpensConfirmationOverlayWithoutLeaving()
+        {
+            ProfileTestApplication.Run(() =>
+            {
+                using MatchKeyboardBuilder setup = new MatchKeyboardBuilder();
+                Button leaveButton = setup.Window.FindControl<Button>(LeaveMatchButtonName)!;
+                Border overlay = setup.Window.FindControl<Border>(LeaveConfirmOverlayName)!;
+                Button cancelButton = setup.Window.FindControl<Button>(CancelLeaveButtonName)!;
+
+                Assert.False(overlay.IsVisible);
+
+                leaveButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+                Assert.True(overlay.IsVisible);
+
+                cancelButton.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+
+                Assert.False(overlay.IsVisible);
             });
         }
 

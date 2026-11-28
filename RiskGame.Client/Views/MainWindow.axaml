@@ -8,7 +8,7 @@
         x:Class="RiskGame.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="{x:Static res:Strings.GlobalGameTitle}"
-        Background="#D3D3D3"
+        Background="#181A25"
         Loaded="OnWindowLoaded"
         Activated="OnWindowActivated">
 
@@ -20,12 +20,20 @@
         <SolidColorBrush x:Key="InboxPendingBrush">#D4A32D</SolidColorBrush>
         <SolidColorBrush x:Key="InboxNormalForegroundBrush">White</SolidColorBrush>
         <SolidColorBrush x:Key="InboxPendingForegroundBrush">#181A25</SolidColorBrush>
+        <SolidColorBrush x:Key="MenuPanelBrush">#25293A</SolidColorBrush>
+        <SolidColorBrush x:Key="MenuBorderBrush">#353A5A</SolidColorBrush>
+        <SolidColorBrush x:Key="MenuPrimaryBrush">#3273B2</SolidColorBrush>
+        <SolidColorBrush x:Key="MenuDangerBrush">#A12431</SolidColorBrush>
+        <SolidColorBrush x:Key="MenuAccentBrush">#D4A32D</SolidColorBrush>
+        <SolidColorBrush x:Key="MenuIconTileBrush">#E8ECF4</SolidColorBrush>
     </Window.Resources>
 
     <Window.Styles>
         <Style Selector="Button.InboxNotification">
             <Setter Property="Background" Value="{StaticResource InboxNormalBrush}" />
             <Setter Property="Foreground" Value="{StaticResource InboxNormalForegroundBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource MenuBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
         </Style>
         <Style Selector="Button.InboxNotification.InboxPending">
             <Setter Property="Background" Value="{StaticResource InboxPendingBrush}" />
@@ -63,66 +71,83 @@
                 Padding="{StaticResource InboxButtonPadding}"
                 CornerRadius="{StaticResource InboxButtonCornerRadius}"
                 TabIndex="0" />
-        <Button x:Name="LoginButton" Content="{x:Static res:Strings.LoginTitleLabel}" 
+        <Button x:Name="LoginButton" Content="{x:Static res:Strings.LoginTitleLabel}"
                 IsVisible="{Binding IsGuest}"
                 HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20"
-                Background="#333333" Foreground="White" CornerRadius="8" Padding="15,10" FontSize="16"
+                Background="{StaticResource MenuPanelBrush}" BorderBrush="{StaticResource MenuBorderBrush}"
+                BorderThickness="1" Foreground="White" CornerRadius="8" Padding="15,10" FontSize="16"
                 Click="OnLoginClick"/>
 
         <Button x:Name="ProfileButton" IsVisible="{Binding IsLoggedIn}"
                 HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20"
-                Background="#333333" Foreground="White" CornerRadius="8" Padding="10"
+                Background="{StaticResource MenuPanelBrush}" BorderBrush="{StaticResource MenuBorderBrush}"
+                BorderThickness="1" Foreground="White" CornerRadius="8" Padding="10"
                 Command="{Binding OpenProfileCommand}">
             <StackPanel Orientation="Horizontal" Spacing="12">
-                <Border Width="40" Height="40" CornerRadius="20" ClipToBounds="True" Background="White">
+                <Border Width="40" Height="40" CornerRadius="20" ClipToBounds="True"
+                        Background="{StaticResource MenuIconTileBrush}">
                     <Image Source="{Binding AvatarImage}" Stretch="UniformToFill"/>
                 </Border>
-                <TextBlock Text="{Binding LoggedNickname}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding LoggedNickname}" FontSize="18" FontWeight="Bold"
+                           Foreground="White" VerticalAlignment="Center"/>
             </StackPanel>
         </Button>
 
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,40,0,0" Spacing="5">
-            <TextBlock Text="{x:Static res:Strings.GlobalGameTitle}" FontSize="42" FontWeight="Normal" HorizontalAlignment="Center" Foreground="Black"/>
-            <TextBlock Text="{x:Static res:Strings.MainMenuStartButton}" FontSize="20" HorizontalAlignment="Center" Foreground="#333333"/>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,42,0,0" Spacing="6">
+            <TextBlock Text="{x:Static res:Strings.GlobalGameTitle}" FontSize="42" FontWeight="Bold"
+                       HorizontalAlignment="Center" Foreground="White"/>
+            <TextBlock Text="{x:Static res:Strings.MainMenuStartButton}" FontSize="20"
+                       HorizontalAlignment="Center" Foreground="{StaticResource MenuAccentBrush}"/>
         </StackPanel>
 
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="25" Margin="0,60,0,0">
-            <Button x:Name="RoomsButton" Content="{x:Static res:Strings.MainMenuRoomsButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
-                VerticalContentAlignment="Center" Background="#333333" Foreground="White" CornerRadius="8"
-                    FontSize="18" Click="OnRoomsClick"/>
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="22" Margin="0,60,0,0">
+            <Button x:Name="RoomsButton" Content="{x:Static res:Strings.MainMenuRoomsButton}" Width="240" Height="65"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Background="{StaticResource MenuPrimaryBrush}" BorderBrush="{StaticResource MenuBorderBrush}"
+                    BorderThickness="1" Foreground="White" FontWeight="Bold" CornerRadius="10"
+                    FontSize="19" Click="OnRoomsClick"/>
 
-            <Button x:Name="ExitButton" Content="{x:Static res:Strings.MainMenuExitButton}" Width="220" Height="65" HorizontalContentAlignment="Center"
-                VerticalContentAlignment="Center" Background="#333333" Foreground="White" CornerRadius="8"
-                    FontSize="18" Click="OnExitClick"/>
+            <Button x:Name="ExitButton" Content="{x:Static res:Strings.MainMenuExitButton}" Width="240" Height="56"
+                    HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                    Background="{StaticResource MenuPanelBrush}" BorderBrush="{StaticResource MenuDangerBrush}"
+                    BorderThickness="1.5" Foreground="White" CornerRadius="10"
+                    FontSize="17" Click="OnExitClick"/>
         </StackPanel>
 
-        <Button x:Name="LeaderboardButton" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,60,0,0" Background="Transparent"
-            BorderThickness="0" Padding="0" Click="OnLeaderboardClick">
+        <Button x:Name="LeaderboardButton" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="60,60,0,0"
+                Background="{StaticResource MenuPanelBrush}" BorderBrush="{StaticResource MenuBorderBrush}"
+                BorderThickness="1" CornerRadius="10" Padding="12" Click="OnLeaderboardClick">
             <StackPanel Spacing="10">
-                <Border Width="80" Height="80" Background="White" CornerRadius="4">
+                <Border Width="76" Height="76" Background="{StaticResource MenuIconTileBrush}" CornerRadius="8">
                     <Image Source="/Assets/trophy.png" Stretch="Uniform" Margin="10"/>
                 </Border>
-                <TextBlock Text="{x:Static res:Strings.MainMenuLeaderboardButton}" HorizontalAlignment="Center" FontSize="18" Foreground="Black"/>
+                <TextBlock Text="{x:Static res:Strings.MainMenuLeaderboardButton}" HorizontalAlignment="Center"
+                           FontSize="16" Foreground="White"/>
             </StackPanel>
         </Button>
 
-        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,60,60,0" Spacing="40">
-
-            <Button x:Name="FriendsButton" Background="Transparent" BorderThickness="0" Padding="0" Click="OnFriendsClick">
+        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,60,60,0" Spacing="28">
+            <Button x:Name="FriendsButton" Background="{StaticResource MenuPanelBrush}"
+                    BorderBrush="{StaticResource MenuBorderBrush}" BorderThickness="1"
+                    CornerRadius="10" Padding="12" Click="OnFriendsClick">
                 <StackPanel Spacing="10">
-                    <Border Width="80" Height="80" Background="White" CornerRadius="4">
+                    <Border Width="76" Height="76" Background="{StaticResource MenuIconTileBrush}" CornerRadius="8">
                         <Image Source="/Assets/friends.png" Stretch="Uniform" Margin="10"/>
                     </Border>
-                    <TextBlock Text="{x:Static res:Strings.MainMenuFriendsButton}" HorizontalAlignment="Center" FontSize="18" Foreground="Black"/>
+                    <TextBlock Text="{x:Static res:Strings.MainMenuFriendsButton}" HorizontalAlignment="Center"
+                               FontSize="16" Foreground="White"/>
                 </StackPanel>
             </Button>
 
-            <Button x:Name="SettingsButton" Background="Transparent" BorderThickness="0" Padding="0" Click="OnSettingsClick">
+            <Button x:Name="SettingsButton" Background="{StaticResource MenuPanelBrush}"
+                    BorderBrush="{StaticResource MenuBorderBrush}" BorderThickness="1"
+                    CornerRadius="10" Padding="12" Click="OnSettingsClick">
                 <StackPanel Spacing="10">
-                    <Border Width="80" Height="80" Background="White" CornerRadius="4">
+                    <Border Width="76" Height="76" Background="{StaticResource MenuIconTileBrush}" CornerRadius="8">
                         <Image Source="/Assets/configuration.png" Stretch="Uniform" Margin="10"/>
                     </Border>
-                <TextBlock Text="{x:Static res:Strings.MainMenuSettingsButton}" HorizontalAlignment="Center" FontSize="18" Foreground="Black"/>
+                    <TextBlock Text="{x:Static res:Strings.MainMenuSettingsButton}" HorizontalAlignment="Center"
+                               FontSize="16" Foreground="White"/>
                 </StackPanel>
             </Button>
         </StackPanel>

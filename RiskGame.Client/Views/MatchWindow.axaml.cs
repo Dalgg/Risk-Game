@@ -49,6 +49,9 @@ namespace RiskGame.Views
         private const int NoDice = 0;
         private const int NoKeyboardOption = 0;
         private const int CountdownIntervalMilliseconds = 200;
+        private const string RollReadyClass = "RollReady";
+        private const string StopReadyClass = "StopReady";
+        private const string YourTurnTrayClass = "YourTurnTray";
         private static readonly IBrush CellBackground = new ImmutableSolidColorBrush(Color.Parse("#25293A"));
         private static readonly IBrush CellBorderBrush = new ImmutableSolidColorBrush(Color.Parse("#42485B"));
         private static readonly IBrush ActiveTurnBrush = new ImmutableSolidColorBrush(Color.Parse("#D4A32D"));
@@ -84,6 +87,7 @@ namespace RiskGame.Views
             this.matchViewModel = matchViewModel;
             matchIdentifier = matchId;
             InitializeComponent();
+            MatchDiceRenderer.RenderIdleDice(DiceImagesStackPanel);
             DataContext = matchViewModel;
             countdownTimer.Interval = TimeSpan.FromMilliseconds(CountdownIntervalMilliseconds);
             countdownTimer.Tick += OnCountdownTick;
@@ -258,7 +262,11 @@ namespace RiskGame.Views
 
         private void CancelPendingChoice()
         {
-            if (ColumnChoicePanel.IsVisible && currentBoardState != null)
+            if (LeaveConfirmOverlay.IsVisible)
+            {
+                LeaveConfirmOverlay.IsVisible = false;
+            }
+            else if (ColumnChoicePanel.IsVisible && currentBoardState != null)
             {
                 pendingColumnChoice = null;
                 RefreshColumnChoice(currentBoardState);
@@ -358,15 +366,12 @@ namespace RiskGame.Views
                 boardState.TemporaryStepsByColumn.Count, boardState.MaximumTemporaryMarkers);
             DiceValuesTextBlock.Text = Strings.MatchNoRoll;
             PairSelectionTextBlock.Text = Strings.MatchRollPrompt;
-            DiceImagesStackPanel.Children.Clear();
-            DiceImagesStackPanel.IsVisible = false;
             FirstPairButton.IsVisible = false;
             SecondPairButton.IsVisible = false;
             ThirdPairButton.IsVisible = false;
             if (boardState.Dice.Count > NoDice)
             {
                 MatchDiceRenderer.RenderRolledDice(DiceImagesStackPanel, boardState.Dice);
-                DiceImagesStackPanel.IsVisible = DiceImagesStackPanel.Children.Count > NoDice;
                 DiceValuesTextBlock.Text = string.Format(Strings.MatchDiceFormat,
                     string.Join(Strings.MatchDiceSeparator, boardState.Dice));
                 PairSelectionTextBlock.Text = Strings.MatchChoosePairPrompt;
@@ -379,6 +384,10 @@ namespace RiskGame.Views
                 {
                     PairSelectionTextBlock.Text = Strings.MatchNoLegalAdvance;
                 }
+            }
+            else
+            {
+                MatchDiceRenderer.RenderIdleDice(DiceImagesStackPanel);
             }
             foreach (PairOption pairOption in boardState.PairOptions)
             {
@@ -471,6 +480,9 @@ namespace RiskGame.Views
             StopTurnButton.IsEnabled = canStopTurn;
             ReconnectButton.IsEnabled = CanReconnect();
             RollDiceButton.IsEnabled = canRollDice;
+            RollDiceButton.Classes.Set(RollReadyClass, canRollDice);
+            StopTurnButton.Classes.Set(StopReadyClass, canStopTurn);
+            DiceTrayBorder.Classes.Set(YourTurnTrayClass, canRollDice || canStopTurn);
             FirstPairButton.IsEnabled = canChooseFirstPair;
             SecondPairButton.IsEnabled = canChooseSecondPair;
             ThirdPairButton.IsEnabled = canChooseThirdPair;
@@ -882,6 +894,22 @@ namespace RiskGame.Views
             bool isWindowBusy = hasClosed || isLeavingMatch;
             if (!isWindowBusy)
             {
+                LeaveConfirmOverlay.IsVisible = true;
+                CancelLeaveButton.Focus();
+            }
+        }
+
+        private void CancelLeaveClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            LeaveConfirmOverlay.IsVisible = false;
+        }
+
+        private void ConfirmLeaveClick(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            bool isWindowBusy = hasClosed || isLeavingMatch;
+            if (!isWindowBusy)
+            {
+                LeaveConfirmOverlay.IsVisible = false;
                 isLeavingMatch = true;
                 UpdateActionButtons();
                 MatchStatusTextBlock.Text = Strings.MatchLeaving;

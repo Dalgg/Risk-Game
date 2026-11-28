@@ -157,6 +157,11 @@ namespace RiskGame.Server.Services
             {
                 throw new MatchActionException("The turn cannot be stopped before choosing a valid advance.");
             }
+            SaveTemporaryProgressAndAdvance();
+        }
+
+        private void SaveTemporaryProgressAndAdvance()
+        {
             foreach (MatchColumn column in Columns)
             {
                 if (TurnProgress.StepsByColumn.ContainsKey(column.ColumnNumber))
@@ -209,9 +214,14 @@ namespace RiskGame.Server.Services
             {
                 MatchParticipant participant = GetParticipant(CurrentTurnUserId);
                 bool shouldCountMissedTurn = participant.IsConnected && !hasRolledThisTurn;
+                bool hasTemporaryProgress = TurnProgress.StepsByColumn.Count > NoSelectedPair;
                 if (shouldCountMissedTurn && participant.RecordMissedTurn())
                 {
                     AbandonParticipant(participant.UserId);
+                }
+                else if (hasTemporaryProgress)
+                {
+                    SaveTemporaryProgressAndAdvance();
                 }
                 else
                 {

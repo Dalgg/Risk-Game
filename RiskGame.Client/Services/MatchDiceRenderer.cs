@@ -14,7 +14,10 @@ namespace RiskGame.Services
     public static class MatchDiceRenderer
     {
         private const double RolledDieSize = 44;
+        private const double IdleDieOpacity = 0.45;
+        private const double ActiveDieOpacity = 1.0;
         private const double PairDieSize = 26;
+        private static readonly int[] IdlePreviewFaces = new[] { 1, 3, 4, 6 };
         private const double PairGroupSpacing = 5;
         private const double PairContentSpacing = 8;
         private const double BadgeSize = 22;
@@ -29,14 +32,26 @@ namespace RiskGame.Services
         private static readonly IBrush DividerBrush = new ImmutableSolidColorBrush(Color.Parse("#555D7A"));
         private static readonly IBrush SelectedDividerBrush = new ImmutableSolidColorBrush(Color.Parse("#6E5414"));
 
+        public static void RenderIdleDice(StackPanel container)
+        {
+            RenderDiceRow(container, IdlePreviewFaces, IdleDieOpacity);
+        }
+
         public static void RenderRolledDice(StackPanel container, IEnumerable<int> diceValues)
+        {
+            RenderDiceRow(container, diceValues, ActiveDieOpacity);
+        }
+
+        private static void RenderDiceRow(StackPanel container, IEnumerable<int> diceValues, double opacity)
         {
             container.Children.Clear();
             foreach (int dieValue in diceValues)
             {
                 if (DiceImageCatalog.IsValidFace(dieValue))
                 {
-                    container.Children.Add(CreateDieImage(dieValue, RolledDieSize));
+                    Image dieImage = CreateDieImage(dieValue, RolledDieSize);
+                    dieImage.Opacity = opacity;
+                    container.Children.Add(dieImage);
                 }
             }
         }

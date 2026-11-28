@@ -561,5 +561,13 @@ namespace RiskGame.Resources
 
         public static string MatchResultAbandonedNotice => ResourceManager.GetString("MatchResultAbandonedNotice", _resourceCulture);
 
+        public static string MatchLeaveConfirmTitle => ResourceManager.GetString("MatchLeaveConfirmTitle", _resourceCulture);
+
+        public static string MatchLeaveConfirmMessage => ResourceManager.GetString("MatchLeaveConfirmMessage", _resourceCulture);
+
+        public static string MatchLeaveConfirmButton => ResourceManager.GetString("MatchLeaveConfirmButton", _resourceCulture);
+
+        public static string MatchLeaveCancelButton => ResourceManager.GetString("MatchLeaveCancelButton", _resourceCulture);
+
     }
 }

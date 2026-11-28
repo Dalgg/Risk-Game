@@ -16,6 +16,7 @@ namespace RiskGame.Server.Tests
         private const int RemainingSeconds = 20;
         private const int ElapsedSeconds = 10;
         private const int ShortColumn = 2;
+        private const int AdvancedStep = 1;
         private const long NextTurnId = 2;
         private const long FullRotationTurnId = 3;
         private static readonly int[] PendingDice = { 3, 3, 4, 4 };
@@ -66,7 +67,7 @@ namespace RiskGame.Server.Tests
         }
 
         [Fact]
-        public void ExpireTurns_Expired_DiscardsTemporaryProgress()
+        public void ExpireTurns_Expired_ClearsTemporaryMarkersAfterSaving()
         {
             using TimedMatchBuilder setup = new TimedMatchBuilder();
             setup.PrepareTemporaryProgress();
@@ -78,7 +79,7 @@ namespace RiskGame.Server.Tests
         }
 
         [Fact]
-        public void ExpireTurns_Expired_KeepsSavedProgress()
+        public void ExpireTurns_Expired_SavesTemporaryProgress()
         {
             using TimedMatchBuilder setup = new TimedMatchBuilder();
             setup.PrepareTemporaryProgress();
@@ -86,12 +87,12 @@ namespace RiskGame.Server.Tests
 
             setup.Manager.ExpireTurns();
 
-            Assert.Equal(TimedMatchBuilder.SavedSteps,
+            Assert.Equal(TimedMatchBuilder.SavedSteps + AdvancedStep,
                 setup.GetColumn(TimedMatchBuilder.TemporaryColumn).StepsByUserId[TimedMatchBuilder.FirstUserId]);
         }
 
         [Fact]
-        public void ExpireTurns_AtSummit_DoesNotClaimColumn()
+        public void ExpireTurns_AtSummit_ClaimsColumn()
         {
             using TimedMatchBuilder setup = new TimedMatchBuilder();
             setup.PrepareSummit();
@@ -99,7 +100,7 @@ namespace RiskGame.Server.Tests
 
             setup.Manager.ExpireTurns();
 
-            Assert.False(setup.GetColumn(ShortColumn).IsClaimed);
+            Assert.True(setup.GetColumn(ShortColumn).IsClaimed);
         }
 
         [Fact]

@@ -4,45 +4,48 @@
         x:Class="RiskGame.Views.LoginWindow"
         Title="{x:Static res:Strings.LoginTitleLabel}"
         Width="600" Height="540"
-        Background="#1E1E1E">
+        Background="#181A25">
 
-    <Border Background="#5C5C5C" Width="400" Height="480" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Border Background="#25293A" BorderBrush="#353A5A" BorderThickness="2" CornerRadius="10"
+            Width="410" Height="480" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Grid>
-            <Button Background="#8B0000" Width="50" Height="40" HorizontalAlignment="Left" VerticalAlignment="Top"
-                CornerRadius="0" Click="BackClick">
+            <Button Background="#A12431" Width="50" Height="40" HorizontalAlignment="Left" VerticalAlignment="Top"
+                    CornerRadius="8,0,8,0" Click="BackClick">
                 <Image Source="avares://RiskGame.Client/Assets/back_arrow.png" Margin="2"/>
             </Button>
 
-            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="15" Width="250"
-                Margin="0,20,0,0">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="15" Width="260"
+                        Margin="0,20,0,0">
 
-                <TextBlock Text="{x:Static res:Strings.LoginTitleLabel}" Foreground="White" FontSize="26" HorizontalAlignment="Center"
-                    Margin="0,0,0,10"/>
+                <TextBlock Text="{x:Static res:Strings.LoginTitleLabel}" Foreground="White" FontSize="26"
+                           FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,10"/>
 
                 <StackPanel Spacing="5">
-                    <TextBlock Text="{x:Static res:Strings.LoginUsernameLabel}" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
-                    <TextBox x:Name="UserTextBox" Background="White" Foreground="Black" Height="30" CornerRadius="0"/>
+                    <TextBlock Text="{x:Static res:Strings.LoginUsernameLabel}" Foreground="#D8DCE8" FontSize="15" HorizontalAlignment="Center"/>
+                    <TextBox x:Name="UserTextBox" Background="White" Foreground="Black" Height="34" CornerRadius="6"/>
                 </StackPanel>
 
                 <StackPanel Spacing="5">
-                    <TextBlock Text="{x:Static res:Strings.LoginPasswordLabel}" Foreground="White" FontSize="16" HorizontalAlignment="Center"/>
-                    <TextBox x:Name="PasswordTextBox" Background="White" Foreground="Black" Height="30" CornerRadius="0" PasswordChar="*"/>
+                    <TextBlock Text="{x:Static res:Strings.LoginPasswordLabel}" Foreground="#D8DCE8" FontSize="15" HorizontalAlignment="Center"/>
+                    <TextBox x:Name="PasswordTextBox" Background="White" Foreground="Black" Height="34" CornerRadius="6" PasswordChar="*"/>
                 </StackPanel>
 
                 <TextBlock x:Name="MessageTextBlock" IsVisible="False" TextWrapping="Wrap" TextAlignment="Center"
                            FontSize="13" HorizontalAlignment="Center"/>
 
                 <StackPanel Spacing="12" Margin="0,12,0,0">
-                    <Button Content="{x:Static res:Strings.LoginConfirmButton}" Background="#0084FF" Foreground="White" FontSize="16" CornerRadius="8"
-                        Width="160" Height="40" HorizontalAlignment="Center" HorizontalContentAlignment="Center"
+                    <Button Content="{x:Static res:Strings.LoginConfirmButton}" Background="#3273B2" Foreground="White"
+                            FontSize="16" FontWeight="Bold" CornerRadius="8" Width="180" Height="42"
+                            HorizontalAlignment="Center" HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center" Click="OnConfirmLoginClick" />
 
-                    <Button Content="{x:Static res:Strings.LoginRegisterButton}" Background="#F92A54" Foreground="White" FontSize="16" CornerRadius="8"
-                         Width="160" Height="40" HorizontalAlignment="Center" HorizontalContentAlignment="Center"
+                    <Button Content="{x:Static res:Strings.LoginRegisterButton}" Background="#2A2F5B"
+                            BorderBrush="#4A5288" BorderThickness="1" Foreground="White" FontSize="16" CornerRadius="8"
+                            Width="180" Height="42" HorizontalAlignment="Center" HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center" Click="RegisterClick"/>
 
                     <Button x:Name="ForgotPasswordButton" Content="{x:Static res:Strings.LoginForgotPasswordButton}"
-                            Background="Transparent" Foreground="#A8D8FF" FontSize="13" BorderThickness="0"
+                            Background="Transparent" Foreground="#D4A32D" FontSize="13" BorderThickness="0"
                             HorizontalAlignment="Center" HorizontalContentAlignment="Center"
                             VerticalContentAlignment="Center" Click="ForgotPasswordClick"/>
                 </StackPanel>

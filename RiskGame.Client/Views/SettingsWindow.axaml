@@ -4,42 +4,45 @@
         x:Class="RiskGame.Views.SettingsWindow"
         Title="{x:Static res:Strings.SettingsTitleLabel}"
         Width="600" Height="550"
-        Background="#1E1E1E">
+        Background="#181A25">
 
-    <Border Background="#5C5C5C" Width="420" Height="450" HorizontalAlignment="Center" VerticalAlignment="Center"
-        CornerRadius="4">
+    <Border Background="#25293A" BorderBrush="#353A5A" BorderThickness="2"
+            Width="430" Height="450" HorizontalAlignment="Center" VerticalAlignment="Center"
+            CornerRadius="10">
         <Grid RowDefinitions="Auto, *, Auto" Margin="30">
 
-            <TextBlock Grid.Row="0" Text="{x:Static res:Strings.SettingsTitleLabel}" Foreground="White" FontSize="32" HorizontalAlignment="Center"
-                Margin="0,0,0,30"/>
+            <TextBlock Grid.Row="0" Text="{x:Static res:Strings.SettingsTitleLabel}" Foreground="White" FontSize="30"
+                       FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,28"/>
 
-            <StackPanel Grid.Row="1" Spacing="25" HorizontalAlignment="Center" Width="260">
+            <StackPanel Grid.Row="1" Spacing="25" HorizontalAlignment="Center" Width="270">
 
                 <StackPanel Spacing="10">
-                    <TextBlock Text="{x:Static res:Strings.SettingsLanguageLabel}" Foreground="White" FontSize="16"/>
-                    <ComboBox x:Name="LanguageComboBox"  Width="150" Background="#EBEBEB" Foreground="Black" CornerRadius="2" SelectionChanged="OnLanguageChanged">
+                    <TextBlock Text="{x:Static res:Strings.SettingsLanguageLabel}" Foreground="#D4A32D" FontSize="16" FontWeight="Bold"/>
+                    <ComboBox x:Name="LanguageComboBox" Width="180" Background="#EBEBEB" Foreground="Black"
+                              CornerRadius="6" SelectionChanged="OnLanguageChanged">
                         <ComboBoxItem Content="{x:Static res:Strings.SettingsLanguageSpanish}"/>
                         <ComboBoxItem Content="{x:Static res:Strings.SettingsLanguageEnglish}"/>
                     </ComboBox>
                 </StackPanel>
 
                 <StackPanel Spacing="10">
-                    <TextBlock Text="{x:Static res:Strings.SettingsVolumeLabel}" Foreground="White" FontSize="16"/>
+                    <TextBlock Text="{x:Static res:Strings.SettingsVolumeLabel}" Foreground="#D8DCE8" FontSize="16"/>
                     <Grid ColumnDefinitions="*, Auto">
                         <Slider Grid.Column="0" Value="75" Minimum="0" Maximum="100" VerticalAlignment="Center"/>
                     </Grid>
                 </StackPanel>
 
                 <StackPanel Spacing="10">
-                    <TextBlock Text="{x:Static res:Strings.SettingsBrightnessLabel}" Foreground="White" FontSize="16"/>
+                    <TextBlock Text="{x:Static res:Strings.SettingsBrightnessLabel}" Foreground="#D8DCE8" FontSize="16"/>
                     <Grid ColumnDefinitions="*, Auto">
                         <Slider Grid.Column="0" Value="50" Minimum="0" Maximum="100" VerticalAlignment="Center"/>
                     </Grid>
                 </StackPanel>
             </StackPanel>
 
-            <Button Grid.Row="2" Content="{x:Static res:Strings.GlobalBackButton}" Background="#B71C1C" Foreground="White" FontSize="18"
-                CornerRadius="8" Padding="25,10" HorizontalAlignment="Center" Margin="0,30,0,0" Click="BackClick" />
+            <Button Grid.Row="2" Content="{x:Static res:Strings.GlobalBackButton}" Background="#A12431"
+                    Foreground="White" FontSize="17" FontWeight="Bold" CornerRadius="8" Padding="28,10"
+                    HorizontalAlignment="Center" Margin="0,28,0,0" Click="BackClick" />
         </Grid>
     </Border>
 </Window>
