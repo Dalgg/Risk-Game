@@ -627,6 +627,7 @@ namespace RiskGame.Server.Services
             }
 
             lobbyRepository.CreateLobbyInvitation(targetLobbyId, senderUserId, recipientUserId);
+            sessionRegistry.MarkInboxChanged(recipientUserId);
         }
 
         public void BroadcastPresenceUpdate()

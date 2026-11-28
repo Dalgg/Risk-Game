@@ -12,6 +12,8 @@ namespace RiskGame.Server.Services
         private const int ReconnectionGraceSeconds = 30;
         private const int MinimumRegisteredIdentifier = 1;
         private const int NoExpiredSessions = 0;
+        private const long InitialInboxRevision = 0;
+        private const long InboxRevisionIncrement = 1;
         private static readonly TimeSpan SessionLifetime = TimeSpan.FromHours(SessionLifetimeHours);
         private readonly object sessionLock = new object();
         private readonly TimeProvider timeProvider;
@@ -147,6 +149,33 @@ namespace RiskGame.Server.Services
                 return sessionsByToken.ContainsKey(token) && sessionsByToken[token].UserId == userId
                     && IsActive(sessionsByToken[token]);
             }
+        }
+
+        public void MarkInboxChanged(int userId)
+        {
+            lock (sessionLock)
+            {
+                foreach (RegisteredSession session in sessionsByToken.Values)
+                {
+                    if (userId >= MinimumRegisteredIdentifier && session.UserId == userId && IsActive(session))
+                    {
+                        session.InboxRevision += InboxRevisionIncrement;
+                    }
+                }
+            }
+        }
+
+        public long GetInboxRevision(string token)
+        {
+            long revision = InitialInboxRevision;
+            lock (sessionLock)
+            {
+                if (sessionsByToken.ContainsKey(token))
+                {
+                    revision = sessionsByToken[token].InboxRevision;
+                }
+            }
+            return revision;
         }
 
         public void AttachSession(int userId, string token, string connectionId)

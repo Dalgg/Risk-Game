@@ -131,6 +131,7 @@
   <data name="FriendsUsernamePlaceholder" xml:space="preserve"><value>Username of your friend</value></data>
   <data name="FriendsAdd" xml:space="preserve"><value>ADD +</value></data>
   <data name="InboxTitle" xml:space="preserve"><value>INBOX</value></data>
+  <data name="InboxPendingNotifications" xml:space="preserve"><value>You have pending friend requests or invitations.</value></data>
   <data name="InboxFriendRequests" xml:space="preserve"><value>Received friend requests</value></data>
   <data name="InboxLoading" xml:space="preserve"><value>Loading notifications...</value></data>
   <data name="InboxEmpty" xml:space="preserve"><value>You have no pending notifications.</value></data>

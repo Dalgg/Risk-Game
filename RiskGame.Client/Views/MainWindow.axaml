@@ -8,19 +8,61 @@
         x:Class="RiskGame.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="{x:Static res:Strings.GlobalGameTitle}"
-        Background="#D3D3D3">
+        Background="#D3D3D3"
+        Loaded="OnWindowLoaded"
+        Activated="OnWindowActivated">
 
     <Window.Resources>
         <Thickness x:Key="InboxButtonMargin">0,20,20,0</Thickness>
         <Thickness x:Key="InboxButtonPadding">15,10</Thickness>
         <CornerRadius x:Key="InboxButtonCornerRadius">8</CornerRadius>
+        <SolidColorBrush x:Key="InboxNormalBrush">#333333</SolidColorBrush>
+        <SolidColorBrush x:Key="InboxPendingBrush">#D4A32D</SolidColorBrush>
+        <SolidColorBrush x:Key="InboxNormalForegroundBrush">White</SolidColorBrush>
+        <SolidColorBrush x:Key="InboxPendingForegroundBrush">#181A25</SolidColorBrush>
     </Window.Resources>
+
+    <Window.Styles>
+        <Style Selector="Button.InboxNotification">
+            <Setter Property="Background" Value="{StaticResource InboxNormalBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource InboxNormalForegroundBrush}" />
+        </Style>
+        <Style Selector="Button.InboxNotification.InboxPending">
+            <Setter Property="Background" Value="{StaticResource InboxPendingBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource InboxPendingForegroundBrush}" />
+        </Style>
+        <Style Selector="Button.InboxNotification:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource InboxNormalBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource InboxNormalForegroundBrush}" />
+        </Style>
+        <Style Selector="Button.InboxNotification:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource InboxNormalBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource InboxNormalForegroundBrush}" />
+        </Style>
+        <Style Selector="Button.InboxNotification.InboxPending:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource InboxPendingBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource InboxPendingForegroundBrush}" />
+        </Style>
+        <Style Selector="Button.InboxNotification.InboxPending:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource InboxPendingBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource InboxPendingForegroundBrush}" />
+        </Style>
+    </Window.Styles>
+
     <Grid>
-        <Button x:Name="InboxButton" Content="{x:Static res:Strings.InboxTitle}" Click="OnInboxClick"
-                HorizontalAlignment="Right" VerticalAlignment="Top"
-                Margin="{StaticResource InboxButtonMargin}" Padding="{StaticResource InboxButtonPadding}"
+        <Button x:Name="InboxButton"
+                Classes="InboxNotification"
+                Classes.InboxPending="{Binding HasPendingInboxNotifications}"
+                Content="{x:Static res:Strings.InboxTitle}"
+                ToolTip.Tip="{Binding InboxButtonDescription}"
+                AutomationProperties.Name="{Binding InboxButtonDescription}"
+                Click="OnInboxClick"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Margin="{StaticResource InboxButtonMargin}"
+                Padding="{StaticResource InboxButtonPadding}"
                 CornerRadius="{StaticResource InboxButtonCornerRadius}"
-                Background="#333333" Foreground="White"/>
+                TabIndex="0" />
         <Button x:Name="LoginButton" Content="{x:Static res:Strings.LoginTitleLabel}" 
                 IsVisible="{Binding IsGuest}"
                 HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20"

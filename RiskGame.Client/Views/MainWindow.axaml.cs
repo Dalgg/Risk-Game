@@ -1,7 +1,9 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using RiskGame.Services;
 using RiskGame.ViewModels;
 
@@ -9,10 +11,47 @@ namespace RiskGame.Views
 {
     public partial class MainWindow : Window
     {
+        private bool isClosed;
+
         public MainWindow()
         {
             InitializeComponent();
             DataContext = new MainViewModel();
+            SessionService.InboxChanged += OnInboxChanged;
+        }
+
+        private void OnWindowLoaded(object? sender, RoutedEventArgs routedEventArgs)
+        {
+            RefreshInboxIndicator();
+        }
+
+        private void OnWindowActivated(object? sender, EventArgs eventArgs)
+        {
+            RefreshInboxIndicator();
+        }
+
+        private void OnInboxChanged(object? sender, EventArgs eventArgs)
+        {
+            Dispatcher.UIThread.Post(RefreshInboxIndicator);
+        }
+
+        private void RefreshInboxIndicator()
+        {
+            if (!isClosed && DataContext is MainViewModel mainViewModel)
+            {
+                mainViewModel.RefreshInboxNotifications();
+            }
+        }
+
+        protected override void OnClosed(EventArgs eventArgs)
+        {
+            isClosed = true;
+            SessionService.InboxChanged -= OnInboxChanged;
+            if (DataContext is MainViewModel mainViewModel)
+            {
+                mainViewModel.StopInboxNotifications();
+            }
+            base.OnClosed(eventArgs);
         }
 
         private void ChangeWindow(Window newWindow)

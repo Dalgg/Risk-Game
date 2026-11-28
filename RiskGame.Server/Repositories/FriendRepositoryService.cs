@@ -14,12 +14,22 @@ namespace RiskGame.Server.Services
         private const string RejectedStatus = "rejected";
         private const string AcceptedStatus = "accepted";
         private const int NoUpdatedRequests = 0;
+        private readonly Func<RiskGameContext> createContext;
+
+        public FriendRepositoryService() : this(CreateDatabaseContext)
+        {
+        }
+
+        public FriendRepositoryService(Func<RiskGameContext> createContext)
+        {
+            this.createContext = createContext;
+        }
 
         public PendingFriendRequestList GetPendingRequests(int userId)
         {
             try
             {
-                using RiskGameContext databaseContext = new RiskGameContext();
+                using RiskGameContext databaseContext = createContext();
                 PendingFriendRequestList pendingRequests = new PendingFriendRequestList();
                 pendingRequests.Requests.AddRange(databaseContext.Friendships.AsNoTracking()
                     .Where(friendship => friendship.IdUser2 == userId && friendship.Status == PendingStatus)
@@ -49,7 +59,7 @@ namespace RiskGame.Server.Services
             }
             try
             {
-                using RiskGameContext databaseContext = new RiskGameContext();
+                using RiskGameContext databaseContext = createContext();
                 int updatedRequests = databaseContext.Friendships
                     .Where(friendship => friendship.IdFriendship == requestId
                         && friendship.IdUser2 == userId && friendship.Status == PendingStatus)
@@ -67,11 +77,11 @@ namespace RiskGame.Server.Services
             }
         }
 
-        public void SendFriendRequest(int userId, string targetUsername)
+        public int SendFriendRequest(int userId, string targetUsername)
         {
             try
             {
-                using RiskGameContext databaseContext = new RiskGameContext();
+                using RiskGameContext databaseContext = createContext();
                 User? targetUser = databaseContext.Users.AsNoTracking()
                     .FirstOrDefault(user => user.Username == targetUsername);
                 if (targetUser == null || targetUser.IdUser == userId)
@@ -80,6 +90,7 @@ namespace RiskGame.Server.Services
                 }
 
                 SaveFriendRequest(databaseContext, userId, targetUser.IdUser);
+                return targetUser.IdUser;
             }
             catch (DbUpdateException databaseUpdateException)
             {
@@ -89,6 +100,11 @@ namespace RiskGame.Server.Services
             {
                 throw new DataOperationException("Could not access friendships.", databaseException);
             }
+        }
+
+        private static RiskGameContext CreateDatabaseContext()
+        {
+            return new RiskGameContext();
         }
 
         private void SaveFriendRequest(RiskGameContext databaseContext, int userId, int targetUserId)

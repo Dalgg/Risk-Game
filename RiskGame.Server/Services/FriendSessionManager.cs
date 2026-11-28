@@ -26,7 +26,8 @@ namespace RiskGame.Server.Services
 
             string targetUsername = friendRequest.TargetUsername.Trim();
             ValidateUsername(targetUsername);
-            friendRepository.SendFriendRequest(authenticatedUserId, targetUsername);
+            int recipientId = friendRepository.SendFriendRequest(authenticatedUserId, targetUsername);
+            sessionRegistry.MarkInboxChanged(recipientId);
         }
 
         public PendingFriendRequestList GetPendingRequests(FriendInboxRequest inboxRequest)
@@ -43,6 +44,7 @@ namespace RiskGame.Server.Services
                 throw new FriendRequestRejectedException("A valid friendship request identifier is required.");
             }
             friendRepository.RespondToRequest(requestReply.UserId, requestReply.RequestId, requestReply.Accept);
+            sessionRegistry.MarkInboxChanged(requestReply.UserId);
         }
 
         private void ValidateUser(int userId, string sessionToken)

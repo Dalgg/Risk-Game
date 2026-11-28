@@ -70,6 +70,7 @@ message SessionState {
   bool is_authenticated = 1;
   bool is_suspended = 2;
   int64 banned_until_unix_milliseconds = 3;
+  bool inbox_changed = 4;
 }
 
 message PasswordResetRequest {

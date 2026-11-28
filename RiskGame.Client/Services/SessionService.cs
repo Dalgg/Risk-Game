@@ -19,6 +19,8 @@ namespace RiskGame.Services
 
         public static event EventHandler<SessionExpiredEventArgs>? SessionExpired;
 
+        public static event EventHandler<EventArgs>? InboxChanged;
+
         public static SessionUser? CurrentUser
         {
             get
@@ -50,7 +52,7 @@ namespace RiskGame.Services
                 bool hasSessionToken = isRegisteredUser && !string.IsNullOrWhiteSpace(user!.SessionToken);
                 if (accountConnection == null && hasSessionToken)
                 {
-                    accountConnection = new AccountSessionConnection(user!, ExpireSession);
+                    accountConnection = new AccountSessionConnection(user!, ExpireSession, NotifyInboxChanged);
                     accountConnection.Start();
                 }
             }
@@ -155,6 +157,23 @@ namespace RiskGame.Services
             if (expired && eventHandler != null)
             {
                 eventHandler(null, expectedConnection.Expiration);
+            }
+        }
+
+        private static void NotifyInboxChanged(AccountSessionConnection expectedConnection)
+        {
+            EventHandler<EventArgs>? eventHandler = null;
+            lock (sessionLock)
+            {
+                if (ReferenceEquals(accountConnection, expectedConnection)
+                    && IsCurrentSession(expectedConnection.Session))
+                {
+                    eventHandler = InboxChanged;
+                }
+            }
+            if (eventHandler != null)
+            {
+                eventHandler(null, EventArgs.Empty);
             }
         }
     }

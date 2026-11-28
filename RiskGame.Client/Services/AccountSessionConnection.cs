@@ -18,13 +18,21 @@ namespace RiskGame.Services
         private readonly CancellationTokenSource cancellation = new CancellationTokenSource();
         private readonly SessionUser session;
         private readonly Action<AccountSessionConnection> expireSession;
+        private readonly Action<AccountSessionConnection>? inboxChanged;
         private long? recoveryStartedTimestamp;
         private bool stopped;
 
         public AccountSessionConnection(SessionUser session, Action<AccountSessionConnection> expireSession)
+            : this(session, expireSession, null)
+        {
+        }
+
+        public AccountSessionConnection(SessionUser session, Action<AccountSessionConnection> expireSession,
+            Action<AccountSessionConnection>? inboxChanged)
         {
             this.session = session;
             this.expireSession = expireSession;
+            this.inboxChanged = inboxChanged;
         }
 
         public SessionUser Session => session;
@@ -153,6 +161,10 @@ namespace RiskGame.Services
                 }
                 if (valid)
                 {
+                    if (state.InboxChanged && inboxChanged != null)
+                    {
+                        inboxChanged(this);
+                    }
                     recoveryStartedTimestamp = null;
                     hasNext = call.ResponseStream.MoveNext(cancellationToken).GetAwaiter().GetResult();
                 }

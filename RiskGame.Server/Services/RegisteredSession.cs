@@ -13,5 +13,7 @@ namespace RiskGame.Server.Services
         public long DisconnectedTimestamp { get; set; }
 
         public DateTime? BannedUntil { get; set; }
+
+        public long InboxRevision { get; set; }
     }
 }

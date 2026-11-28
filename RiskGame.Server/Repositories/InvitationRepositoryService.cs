@@ -13,12 +13,27 @@ namespace RiskGame.Server.Services
         private const string PendingStatus = "pending";
         private const string AcceptedStatus = "accepted";
         private const int NoUpdatedInvitations = 0;
+        private readonly Func<RiskGameContext> createContext;
+
+        public InvitationRepositoryService() : this(CreateDatabaseContext)
+        {
+        }
+
+        public InvitationRepositoryService(Func<RiskGameContext> createContext)
+        {
+            this.createContext = createContext;
+        }
+
+        private static RiskGameContext CreateDatabaseContext()
+        {
+            return new RiskGameContext();
+        }
 
         public PendingInvitationList GetPendingInvitations(int userId)
         {
             try
             {
-                using RiskGameContext databaseContext = new RiskGameContext();
+                using RiskGameContext databaseContext = createContext();
                 DateTime currentServerDateTime = DateTime.UtcNow;
                 PendingInvitationList invitations = new PendingInvitationList();
                 invitations.Invitations.AddRange(databaseContext.LobbyInvitations.AsNoTracking()
@@ -44,7 +59,7 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                using RiskGameContext databaseContext = new RiskGameContext();
+                using RiskGameContext databaseContext = createContext();
                 LobbyInvitation? invitation = databaseContext.LobbyInvitations.AsNoTracking()
                     .Include(invitationRecord => invitationRecord.IdRecipientNavigation)
                     .FirstOrDefault(invitationRecord => invitationRecord.IdInvitation == invitationId
@@ -65,7 +80,7 @@ namespace RiskGame.Server.Services
         {
             try
             {
-                using RiskGameContext databaseContext = new RiskGameContext();
+                using RiskGameContext databaseContext = createContext();
                 IQueryable<LobbyInvitation> matchingInvitations = databaseContext.LobbyInvitations
                     .Where(invitation => invitation.IdRecipient == userId
                         && invitation.IdInvitation == invitationId && invitation.Status == PendingStatus);

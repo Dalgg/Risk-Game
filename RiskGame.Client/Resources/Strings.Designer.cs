@@ -274,6 +274,9 @@ namespace RiskGame.Resources
 
         public static string InboxTitle => ResourceManager.GetString("InboxTitle", _resourceCulture);
 
+        public static string InboxPendingNotifications =>
+            ResourceManager.GetString("InboxPendingNotifications", _resourceCulture);
+
         public static string InboxFriendRequests => ResourceManager.GetString("InboxFriendRequests", _resourceCulture);
 
         public static string InboxLoading => ResourceManager.GetString("InboxLoading", _resourceCulture);

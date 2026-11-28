@@ -73,8 +73,19 @@ namespace RiskGame.Server.Services
             try
             {
                 sessions.AttachSession(identity.UserId, identity.SessionToken, connectionId);
-                stream.WriteAsync(new SessionState { IsAuthenticated = true }).GetAwaiter().GetResult();
-                WaitForConnectionEnd(identity.SessionToken, connectionId, cancellationToken);
+                long inboxRevision = sessions.GetInboxRevision(identity.SessionToken);
+                stream.WriteAsync(new SessionState { IsAuthenticated = true, InboxChanged = true })
+                    .GetAwaiter().GetResult();
+                TimeSpan interval = TimeSpan.FromSeconds(ConnectionCheckSeconds);
+                bool connected = true;
+                while (connected && !cancellationToken.WaitHandle.WaitOne(interval))
+                {
+                    connected = sessions.IsConnectionCurrent(identity.SessionToken, connectionId);
+                    if (connected)
+                    {
+                        inboxRevision = SendInboxChange(identity, stream, inboxRevision);
+                    }
+                }
                 if (!cancellationToken.IsCancellationRequested)
                 {
                     sessions.ValidateUser(identity.UserId, identity.SessionToken);
@@ -87,14 +98,16 @@ namespace RiskGame.Server.Services
             }
         }
 
-        private void WaitForConnectionEnd(string token, string connectionId, CancellationToken cancellationToken)
+        private long SendInboxChange(AccountSessionIdentity identity, IServerStreamWriter<SessionState> stream,
+            long previousRevision)
         {
-            TimeSpan interval = TimeSpan.FromSeconds(ConnectionCheckSeconds);
-            bool connected = true;
-            while (connected && !cancellationToken.WaitHandle.WaitOne(interval))
+            long currentRevision = sessions.GetInboxRevision(identity.SessionToken);
+            if (currentRevision != previousRevision)
             {
-                connected = sessions.IsConnectionCurrent(token, connectionId);
+                stream.WriteAsync(new SessionState { IsAuthenticated = true, InboxChanged = true })
+                    .GetAwaiter().GetResult();
             }
+            return currentRevision;
         }
     }
 }

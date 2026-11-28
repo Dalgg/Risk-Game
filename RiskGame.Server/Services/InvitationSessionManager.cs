@@ -47,6 +47,7 @@ namespace RiskGame.Server.Services
                     lobbySessionManager.LeaveLobby(invitationAction.UserId);
                     throw;
                 }
+                sessionRegistry.MarkInboxChanged(invitationAction.UserId);
                 return lobbyDetails;
             }
         }
@@ -58,6 +59,7 @@ namespace RiskGame.Server.Services
             {
                 invitationRepository.CompleteInvitation(invitationAction.UserId,
                     invitationAction.InvitationId, false);
+                sessionRegistry.MarkInboxChanged(invitationAction.UserId);
             }
         }
 
