@@ -11,6 +11,7 @@ namespace RiskGame.Server.Tests.Builders
     {
         private const string ResourceRoot = "avares://RiskGame.Client/";
         private const string ProfileImagesResourcePath = "Assets/ProfileImages/ProfileImages.axaml";
+        private const string DiceImagesResourcePath = "Assets/DiceImages/DiceImages.axaml";
         private const string AppThemeStylePath = "Styles/AppTheme.axaml";
         private static readonly object testSessionLock = new object();
         private static readonly Lazy<HeadlessUnitTestSession> testSession =
@@ -41,6 +42,10 @@ namespace RiskGame.Server.Tests.Builders
             Resources.MergedDictionaries.Add(new ResourceInclude(new Uri(ResourceRoot))
             {
                 Source = new Uri(ResourceRoot + ProfileImagesResourcePath)
+            });
+            Resources.MergedDictionaries.Add(new ResourceInclude(new Uri(ResourceRoot))
+            {
+                Source = new Uri(ResourceRoot + DiceImagesResourcePath)
             });
             Styles.Add(new StyleInclude(new Uri(ResourceRoot))
             {

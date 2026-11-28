@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Automation;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
@@ -357,11 +358,15 @@ namespace RiskGame.Views
                 boardState.TemporaryStepsByColumn.Count, boardState.MaximumTemporaryMarkers);
             DiceValuesTextBlock.Text = Strings.MatchNoRoll;
             PairSelectionTextBlock.Text = Strings.MatchRollPrompt;
+            DiceImagesStackPanel.Children.Clear();
+            DiceImagesStackPanel.IsVisible = false;
             FirstPairButton.IsVisible = false;
             SecondPairButton.IsVisible = false;
             ThirdPairButton.IsVisible = false;
             if (boardState.Dice.Count > NoDice)
             {
+                MatchDiceRenderer.RenderRolledDice(DiceImagesStackPanel, boardState.Dice);
+                DiceImagesStackPanel.IsVisible = DiceImagesStackPanel.Children.Count > NoDice;
                 DiceValuesTextBlock.Text = string.Format(Strings.MatchDiceFormat,
                     string.Join(Strings.MatchDiceSeparator, boardState.Dice));
                 PairSelectionTextBlock.Text = Strings.MatchChoosePairPrompt;
@@ -378,15 +383,14 @@ namespace RiskGame.Views
             foreach (PairOption pairOption in boardState.PairOptions)
             {
                 Button pairButton = GetPairButton(pairOption.PairIndex);
+                bool isSelected = pairOption.PairIndex == boardState.SelectedPairIndex;
+                string readableLabel = MatchDiceRenderer.FormatPairOptionLabel(pairOption);
                 pairButton.IsVisible = true;
-                pairButton.Content = string.Format(Strings.MatchPairOptionFormat, new object[]
-                {
-                    pairOption.PairIndex,
-                    string.Join(Strings.MatchPairSeparator, pairOption.FirstPairDice), pairOption.FirstSum,
-                    string.Join(Strings.MatchPairSeparator, pairOption.SecondPairDice), pairOption.SecondSum
-                });
+                pairButton.Content = MatchDiceRenderer.CreatePairOptionContent(pairOption, isSelected);
+                ToolTip.SetTip(pairButton, readableLabel);
+                AutomationProperties.SetName(pairButton, readableLabel);
                 pairButton.Background = CellBackground;
-                if (pairOption.PairIndex == boardState.SelectedPairIndex)
+                if (isSelected)
                 {
                     pairButton.Background = ActiveTurnBrush;
                 }

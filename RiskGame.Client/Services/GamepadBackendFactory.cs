@@ -2,24 +2,57 @@ using System;
 
 namespace RiskGame.Services
 {
+    public enum GamepadPlatform
+    {
+        Unsupported = 0,
+        Linux,
+        Windows,
+        MacOs
+    }
+
     public static class GamepadBackendFactory
     {
         public static IGamepadInputBackend CreateDefault()
         {
-            return Create(OperatingSystem.IsLinux(), OperatingSystem.IsWindows());
+            return Create(DetectCurrentPlatform());
         }
 
-        public static IGamepadInputBackend Create(bool isLinux, bool isWindows)
+        public static GamepadPlatform DetectCurrentPlatform()
         {
-            if (isLinux)
+            GamepadPlatform platform = GamepadPlatform.Unsupported;
+            if (OperatingSystem.IsLinux())
             {
-                return new LinuxGamepadInputBackend();
+                platform = GamepadPlatform.Linux;
             }
-            if (isWindows)
+            else if (OperatingSystem.IsWindows())
             {
-                return new WindowsGamepadInputBackend();
+                platform = GamepadPlatform.Windows;
             }
-            return new NullGamepadInputBackend();
+            else if (OperatingSystem.IsMacOS())
+            {
+                platform = GamepadPlatform.MacOs;
+            }
+            return platform;
+        }
+
+        public static IGamepadInputBackend Create(GamepadPlatform platform)
+        {
+            IGamepadInputBackend backend;
+            switch (platform)
+            {
+                case GamepadPlatform.Linux:
+                    backend = new LinuxGamepadInputBackend();
+                    break;
+                case GamepadPlatform.Windows:
+                    backend = new WindowsGamepadInputBackend();
+                    break;
+                case GamepadPlatform.MacOs:
+                case GamepadPlatform.Unsupported:
+                default:
+                    backend = new NullGamepadInputBackend();
+                    break;
+            }
+            return backend;
         }
     }
 }

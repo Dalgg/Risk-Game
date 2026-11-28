@@ -12,6 +12,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceInclude Source="avares://RiskGame.Client/Assets/ProfileImages/ProfileImages.axaml" />
+                <ResourceInclude Source="avares://RiskGame.Client/Assets/DiceImages/DiceImages.axaml" />
             </ResourceDictionary.MergedDictionaries>
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">

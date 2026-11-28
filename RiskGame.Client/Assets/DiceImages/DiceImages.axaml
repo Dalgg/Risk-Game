@@ -1,0 +1,104 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DrawingImage x:Key="DiceFace1Image">
+        <DrawingGroup>
+            <GeometryDrawing Brush="#0D0F18"
+                             Geometry="M22,10 H76 Q92,10 92,26 V78 Q92,94 76,94 H22 Q6,94 6,78 V26 Q6,10 22,10 Z" />
+            <GeometryDrawing Brush="#C9A654"
+                             Geometry="M22,6 H74 Q90,6 90,22 V74 Q90,90 74,90 H22 Q6,90 6,74 V22 Q6,6 22,6 Z" />
+            <GeometryDrawing Brush="#F5EBD0"
+                             Geometry="M23,10 H73 Q86,10 86,23 V73 Q86,86 73,86 H23 Q10,86 10,73 V23 Q10,10 23,10 Z" />
+            <GeometryDrawing Brush="#FFF9EC"
+                             Geometry="M24,13 H72 Q82,13 82,23 V28 Q50,21 14,32 V23 Q14,13 24,13 Z" />
+            <GeometryDrawing Brush="#DFCCA0"
+                             Geometry="M14,76 Q14,83 22,83 H74 Q83,83 83,74 V22 Q83,16 79,14 Q86,18 86,24 V73 Q86,86 73,86 H23 Q15,86 14,76 Z" />
+            <GeometryDrawing Brush="#C92A3E"
+                             Geometry="M48,38.5 A9.5,9.5 0 1 0 48,57.5 A9.5,9.5 0 1 0 48,38.5 Z" />
+        </DrawingGroup>
+    </DrawingImage>
+
+    <DrawingImage x:Key="DiceFace2Image">
+        <DrawingGroup>
+            <GeometryDrawing Brush="#0D0F18"
+                             Geometry="M22,10 H76 Q92,10 92,26 V78 Q92,94 76,94 H22 Q6,94 6,78 V26 Q6,10 22,10 Z" />
+            <GeometryDrawing Brush="#C9A654"
+                             Geometry="M22,6 H74 Q90,6 90,22 V74 Q90,90 74,90 H22 Q6,90 6,74 V22 Q6,6 22,6 Z" />
+            <GeometryDrawing Brush="#F5EBD0"
+                             Geometry="M23,10 H73 Q86,10 86,23 V73 Q86,86 73,86 H23 Q10,86 10,73 V23 Q10,10 23,10 Z" />
+            <GeometryDrawing Brush="#FFF9EC"
+                             Geometry="M24,13 H72 Q82,13 82,23 V28 Q50,21 14,32 V23 Q14,13 24,13 Z" />
+            <GeometryDrawing Brush="#DFCCA0"
+                             Geometry="M14,76 Q14,83 22,83 H74 Q83,83 83,74 V22 Q83,16 79,14 Q86,18 86,24 V73 Q86,86 73,86 H23 Q15,86 14,76 Z" />
+            <GeometryDrawing Brush="#1B1F30"
+                             Geometry="M68,20.5 A7.5,7.5 0 1 0 68,35.5 A7.5,7.5 0 1 0 68,20.5 Z M28,60.5 A7.5,7.5 0 1 0 28,75.5 A7.5,7.5 0 1 0 28,60.5 Z" />
+        </DrawingGroup>
+    </DrawingImage>
+
+    <DrawingImage x:Key="DiceFace3Image">
+        <DrawingGroup>
+            <GeometryDrawing Brush="#0D0F18"
+                             Geometry="M22,10 H76 Q92,10 92,26 V78 Q92,94 76,94 H22 Q6,94 6,78 V26 Q6,10 22,10 Z" />
+            <GeometryDrawing Brush="#C9A654"
+                             Geometry="M22,6 H74 Q90,6 90,22 V74 Q90,90 74,90 H22 Q6,90 6,74 V22 Q6,6 22,6 Z" />
+            <GeometryDrawing Brush="#F5EBD0"
+                             Geometry="M23,10 H73 Q86,10 86,23 V73 Q86,86 73,86 H23 Q10,86 10,73 V23 Q10,10 23,10 Z" />
+            <GeometryDrawing Brush="#FFF9EC"
+                             Geometry="M24,13 H72 Q82,13 82,23 V28 Q50,21 14,32 V23 Q14,13 24,13 Z" />
+            <GeometryDrawing Brush="#DFCCA0"
+                             Geometry="M14,76 Q14,83 22,83 H74 Q83,83 83,74 V22 Q83,16 79,14 Q86,18 86,24 V73 Q86,86 73,86 H23 Q15,86 14,76 Z" />
+            <GeometryDrawing Brush="#1B1F30"
+                             Geometry="M68,20.5 A7.5,7.5 0 1 0 68,35.5 A7.5,7.5 0 1 0 68,20.5 Z M48,40.5 A7.5,7.5 0 1 0 48,55.5 A7.5,7.5 0 1 0 48,40.5 Z M28,60.5 A7.5,7.5 0 1 0 28,75.5 A7.5,7.5 0 1 0 28,60.5 Z" />
+        </DrawingGroup>
+    </DrawingImage>
+
+    <DrawingImage x:Key="DiceFace4Image">
+        <DrawingGroup>
+            <GeometryDrawing Brush="#0D0F18"
+                             Geometry="M22,10 H76 Q92,10 92,26 V78 Q92,94 76,94 H22 Q6,94 6,78 V26 Q6,10 22,10 Z" />
+            <GeometryDrawing Brush="#C9A654"
+                             Geometry="M22,6 H74 Q90,6 90,22 V74 Q90,90 74,90 H22 Q6,90 6,74 V22 Q6,6 22,6 Z" />
+            <GeometryDrawing Brush="#F5EBD0"
+                             Geometry="M23,10 H73 Q86,10 86,23 V73 Q86,86 73,86 H23 Q10,86 10,73 V23 Q10,10 23,10 Z" />
+            <GeometryDrawing Brush="#FFF9EC"
+                             Geometry="M24,13 H72 Q82,13 82,23 V28 Q50,21 14,32 V23 Q14,13 24,13 Z" />
+            <GeometryDrawing Brush="#DFCCA0"
+                             Geometry="M14,76 Q14,83 22,83 H74 Q83,83 83,74 V22 Q83,16 79,14 Q86,18 86,24 V73 Q86,86 73,86 H23 Q15,86 14,76 Z" />
+            <GeometryDrawing Brush="#1B1F30"
+                             Geometry="M28,20.5 A7.5,7.5 0 1 0 28,35.5 A7.5,7.5 0 1 0 28,20.5 Z M68,20.5 A7.5,7.5 0 1 0 68,35.5 A7.5,7.5 0 1 0 68,20.5 Z M28,60.5 A7.5,7.5 0 1 0 28,75.5 A7.5,7.5 0 1 0 28,60.5 Z M68,60.5 A7.5,7.5 0 1 0 68,75.5 A7.5,7.5 0 1 0 68,60.5 Z" />
+        </DrawingGroup>
+    </DrawingImage>
+
+    <DrawingImage x:Key="DiceFace5Image">
+        <DrawingGroup>
+            <GeometryDrawing Brush="#0D0F18"
+                             Geometry="M22,10 H76 Q92,10 92,26 V78 Q92,94 76,94 H22 Q6,94 6,78 V26 Q6,10 22,10 Z" />
+            <GeometryDrawing Brush="#C9A654"
+                             Geometry="M22,6 H74 Q90,6 90,22 V74 Q90,90 74,90 H22 Q6,90 6,74 V22 Q6,6 22,6 Z" />
+            <GeometryDrawing Brush="#F5EBD0"
+                             Geometry="M23,10 H73 Q86,10 86,23 V73 Q86,86 73,86 H23 Q10,86 10,73 V23 Q10,10 23,10 Z" />
+            <GeometryDrawing Brush="#FFF9EC"
+                             Geometry="M24,13 H72 Q82,13 82,23 V28 Q50,21 14,32 V23 Q14,13 24,13 Z" />
+            <GeometryDrawing Brush="#DFCCA0"
+                             Geometry="M14,76 Q14,83 22,83 H74 Q83,83 83,74 V22 Q83,16 79,14 Q86,18 86,24 V73 Q86,86 73,86 H23 Q15,86 14,76 Z" />
+            <GeometryDrawing Brush="#1B1F30"
+                             Geometry="M28,20.5 A7.5,7.5 0 1 0 28,35.5 A7.5,7.5 0 1 0 28,20.5 Z M68,20.5 A7.5,7.5 0 1 0 68,35.5 A7.5,7.5 0 1 0 68,20.5 Z M48,40.5 A7.5,7.5 0 1 0 48,55.5 A7.5,7.5 0 1 0 48,40.5 Z M28,60.5 A7.5,7.5 0 1 0 28,75.5 A7.5,7.5 0 1 0 28,60.5 Z M68,60.5 A7.5,7.5 0 1 0 68,75.5 A7.5,7.5 0 1 0 68,60.5 Z" />
+        </DrawingGroup>
+    </DrawingImage>
+
+    <DrawingImage x:Key="DiceFace6Image">
+        <DrawingGroup>
+            <GeometryDrawing Brush="#0D0F18"
+                             Geometry="M22,10 H76 Q92,10 92,26 V78 Q92,94 76,94 H22 Q6,94 6,78 V26 Q6,10 22,10 Z" />
+            <GeometryDrawing Brush="#C9A654"
+                             Geometry="M22,6 H74 Q90,6 90,22 V74 Q90,90 74,90 H22 Q6,90 6,74 V22 Q6,6 22,6 Z" />
+            <GeometryDrawing Brush="#F5EBD0"
+                             Geometry="M23,10 H73 Q86,10 86,23 V73 Q86,86 73,86 H23 Q10,86 10,73 V23 Q10,10 23,10 Z" />
+            <GeometryDrawing Brush="#FFF9EC"
+                             Geometry="M24,13 H72 Q82,13 82,23 V28 Q50,21 14,32 V23 Q14,13 24,13 Z" />
+            <GeometryDrawing Brush="#DFCCA0"
+                             Geometry="M14,76 Q14,83 22,83 H74 Q83,83 83,74 V22 Q83,16 79,14 Q86,18 86,24 V73 Q86,86 73,86 H23 Q15,86 14,76 Z" />
+            <GeometryDrawing Brush="#1B1F30"
+                             Geometry="M28,20.5 A7.5,7.5 0 1 0 28,35.5 A7.5,7.5 0 1 0 28,20.5 Z M68,20.5 A7.5,7.5 0 1 0 68,35.5 A7.5,7.5 0 1 0 68,20.5 Z M28,40.5 A7.5,7.5 0 1 0 28,55.5 A7.5,7.5 0 1 0 28,40.5 Z M68,40.5 A7.5,7.5 0 1 0 68,55.5 A7.5,7.5 0 1 0 68,40.5 Z M28,60.5 A7.5,7.5 0 1 0 28,75.5 A7.5,7.5 0 1 0 28,60.5 Z M68,60.5 A7.5,7.5 0 1 0 68,75.5 A7.5,7.5 0 1 0 68,60.5 Z" />
+        </DrawingGroup>
+    </DrawingImage>
+</ResourceDictionary>

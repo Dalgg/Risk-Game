@@ -559,5 +559,7 @@ namespace RiskGame.Resources
 
         public static string ForgotPasswordSuccess => ResourceManager.GetString("ForgotPasswordSuccess", _resourceCulture);
 
+        public static string MatchResultAbandonedNotice => ResourceManager.GetString("MatchResultAbandonedNotice", _resourceCulture);
+
     }
 }

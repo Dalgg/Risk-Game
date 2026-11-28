@@ -21,14 +21,20 @@
         <x:Double x:Key="ColumnSpacing">8</x:Double>
         <x:Double x:Key="ActionSpacing">15</x:Double>
         <x:Double x:Key="ActionHeight">45</x:Double>
+        <x:Double x:Key="PairButtonHeight">52</x:Double>
+        <x:Double x:Key="DiceSpacing">10</x:Double>
         <Thickness x:Key="WindowMargin">20</Thickness>
         <Thickness x:Key="SectionMargin">0,10</Thickness>
         <Thickness x:Key="BoardMargin">0,0,10,0</Thickness>
         <Thickness x:Key="PanelPadding">15</Thickness>
+        <Thickness x:Key="DiceTrayPadding">14,8</Thickness>
         <Thickness x:Key="ActionPadding">20,10</Thickness>
+        <Thickness x:Key="PairButtonPadding">10,6</Thickness>
+        <Thickness x:Key="PairButtonMargin">4,0</Thickness>
         <Thickness x:Key="PanelBorderThickness">2</Thickness>
         <CornerRadius x:Key="PanelCornerRadius">8</CornerRadius>
         <SolidColorBrush x:Key="WindowBackground">#181A25</SolidColorBrush>
+        <SolidColorBrush x:Key="DiceTrayBackground">#202437</SolidColorBrush>
         <SolidColorBrush x:Key="PanelBorderBrush">#2A2F5B</SolidColorBrush>
         <SolidColorBrush x:Key="CaptionBrush">#9EA1B2</SolidColorBrush>
         <SolidColorBrush x:Key="TurnBrush">#D4A32D</SolidColorBrush>
@@ -85,18 +91,41 @@
             <TextBlock x:Name="TemporaryMarkersTextBlock" Foreground="{StaticResource TurnBrush}"/>
             <TextBlock Text="{x:Static res:Strings.MatchMarkerLegend}"
                        Foreground="{StaticResource CaptionBrush}"/>
-            <TextBlock x:Name="DiceValuesTextBlock" Text="{x:Static res:Strings.MatchNoRoll}"
-                       FontSize="{StaticResource TurnFontSize}"/>
-            <Button x:Name="RollDiceButton" Content="{x:Static res:Strings.MatchRollDice}"
-                    Click="RollDiceClick" HotKey="R" IsEnabled="False"
-                    Background="{StaticResource PanelBorderBrush}"/>
+            <Border Background="{StaticResource DiceTrayBackground}"
+                    BorderBrush="{StaticResource PanelBorderBrush}"
+                    BorderThickness="{StaticResource PanelBorderThickness}"
+                    CornerRadius="{StaticResource PanelCornerRadius}"
+                    Padding="{StaticResource DiceTrayPadding}">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource ActionSpacing}">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource DiceSpacing}"
+                                VerticalAlignment="Center">
+                        <StackPanel x:Name="DiceImagesStackPanel" Orientation="Horizontal"
+                                    Spacing="{StaticResource DiceSpacing}" IsVisible="False"
+                                    VerticalAlignment="Center"/>
+                        <TextBlock x:Name="DiceValuesTextBlock" Text="{x:Static res:Strings.MatchNoRoll}"
+                                   FontSize="{StaticResource TurnFontSize}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button Grid.Column="1" x:Name="RollDiceButton" Content="{x:Static res:Strings.MatchRollDice}"
+                            Click="RollDiceClick" HotKey="R" IsEnabled="False"
+                            Background="{StaticResource PanelBorderBrush}" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
             <Grid ColumnDefinitions="*,*,*">
                 <Button x:Name="FirstPairButton" Tag="{StaticResource FirstPairIndex}"
-                        Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"/>
+                        Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"
+                        Height="{StaticResource PairButtonHeight}" Padding="{StaticResource PairButtonPadding}"
+                        Margin="{StaticResource PairButtonMargin}" HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"/>
                 <Button Grid.Column="1" x:Name="SecondPairButton" Tag="{StaticResource SecondPairIndex}"
-                        Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"/>
+                        Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"
+                        Height="{StaticResource PairButtonHeight}" Padding="{StaticResource PairButtonPadding}"
+                        Margin="{StaticResource PairButtonMargin}" HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"/>
                 <Button Grid.Column="2" x:Name="ThirdPairButton" Tag="{StaticResource ThirdPairIndex}"
-                        Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"/>
+                        Click="ChoosePairClick" IsVisible="False" HorizontalAlignment="Stretch"
+                        Height="{StaticResource PairButtonHeight}" Padding="{StaticResource PairButtonPadding}"
+                        Margin="{StaticResource PairButtonMargin}" HorizontalContentAlignment="Center"
+                        VerticalContentAlignment="Center"/>
             </Grid>
             <StackPanel x:Name="ColumnChoicePanel" IsVisible="False" Spacing="{StaticResource HeaderSpacing}">
                 <TextBlock Text="{x:Static res:Strings.MatchChooseColumnPrompt}" TextWrapping="Wrap"/>

@@ -42,10 +42,29 @@ namespace RiskGame.Views
                 }
                 WinnerTextBlock.Text = string.Format(winnerFormat, winner.Nickname);
             }
-            if (state.EndReason == MatchEndReason.Cancelled)
+            ConfigureReturnOptions(state);
+        }
+
+        private void ConfigureReturnOptions(BoardState state)
+        {
+            if (HasCurrentPlayerAbandoned(state))
+            {
+                ReturnButton.IsVisible = false;
+                ReturnButton.IsEnabled = false;
+                MenuButton.IsVisible = true;
+                ErrorTextBlock.Text = Strings.MatchResultAbandonedNotice;
+            }
+            else if (state.EndReason == MatchEndReason.Cancelled)
             {
                 MenuButton.IsVisible = true;
             }
+        }
+
+        private static bool HasCurrentPlayerAbandoned(BoardState state)
+        {
+            int currentUserId = SessionService.GetOrCreateCurrentUser().IdUser;
+            BoardPlayer? currentPlayer = state.Players.FirstOrDefault(player => player.UserId == currentUserId);
+            return currentPlayer != null && currentPlayer.HasAbandoned;
         }
 
         protected override void OnClosed(EventArgs eventArgs)
@@ -60,7 +79,14 @@ namespace RiskGame.Views
 
         private void OnWindowLoaded(object? sender, RoutedEventArgs routedEventArgs)
         {
-            ReturnButton.Focus(NavigationMethod.Tab);
+            if (ReturnButton.IsVisible)
+            {
+                ReturnButton.Focus(NavigationMethod.Tab);
+            }
+            else
+            {
+                MenuButton.Focus(NavigationMethod.Tab);
+            }
         }
 
         private void ReturnClick(object? sender, RoutedEventArgs routedEventArgs)

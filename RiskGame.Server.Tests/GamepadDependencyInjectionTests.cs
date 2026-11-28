@@ -6,6 +6,7 @@ using Xunit;
 using GamepadAction = Client::RiskGame.Services.GamepadAction;
 using GamepadActionEventArgs = Client::RiskGame.Services.GamepadActionEventArgs;
 using GamepadBackendFactory = Client::RiskGame.Services.GamepadBackendFactory;
+using GamepadPlatform = Client::RiskGame.Services.GamepadPlatform;
 using GamepadService = Client::RiskGame.Services.GamepadService;
 using IGamepadInputBackend = Client::RiskGame.Services.IGamepadInputBackend;
 using LinuxGamepadInputBackend = Client::RiskGame.Services.LinuxGamepadInputBackend;
@@ -22,7 +23,7 @@ namespace RiskGame.Server.Tests
         [Fact]
         public void Factory_LinuxPlatform_ReturnsLinuxBackend()
         {
-            IGamepadInputBackend backend = GamepadBackendFactory.Create(true, false);
+            IGamepadInputBackend backend = GamepadBackendFactory.Create(GamepadPlatform.Linux);
 
             Assert.IsType<LinuxGamepadInputBackend>(backend);
         }
@@ -30,15 +31,23 @@ namespace RiskGame.Server.Tests
         [Fact]
         public void Factory_WindowsPlatform_ReturnsWindowsBackend()
         {
-            IGamepadInputBackend backend = GamepadBackendFactory.Create(false, true);
+            IGamepadInputBackend backend = GamepadBackendFactory.Create(GamepadPlatform.Windows);
 
             Assert.IsType<WindowsGamepadInputBackend>(backend);
         }
 
         [Fact]
+        public void Factory_MacOsPlatform_ReturnsNullBackend()
+        {
+            IGamepadInputBackend backend = GamepadBackendFactory.Create(GamepadPlatform.MacOs);
+
+            Assert.IsType<NullGamepadInputBackend>(backend);
+        }
+
+        [Fact]
         public void Factory_UnsupportedPlatform_ReturnsNullBackend()
         {
-            IGamepadInputBackend backend = GamepadBackendFactory.Create(false, false);
+            IGamepadInputBackend backend = GamepadBackendFactory.Create(GamepadPlatform.Unsupported);
 
             Assert.IsType<NullGamepadInputBackend>(backend);
         }

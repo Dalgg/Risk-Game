@@ -179,4 +179,5 @@
   <data name="PlayerReportDuplicate" xml:space="preserve"><value>Ya reportaste a este jugador en esta sala.</value></data>
   <data name="PlayerReportNotAllowed" xml:space="preserve"><value>Solo puedes reportar a otra cuenta registrada mientras ambos están en una sala en espera.</value></data>
   <data name="PlayerReportConnectionError" xml:space="preserve"><value>No se pudo registrar el reporte. Revisa tu conexión e inténtalo nuevamente.</value></data>
+  <data name="MatchResultAbandonedNotice" xml:space="preserve"><value>Abandonaste la partida o fuiste retirado por inactividad, por lo que no puedes regresar a la sala original.</value></data>
 </root>
